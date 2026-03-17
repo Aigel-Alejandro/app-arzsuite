@@ -1,0 +1,34 @@
+import 'package:dio/dio.dart';
+
+/// Cliente API para consumir el backend externo de CakePHP 5 (centro-backend)
+class ApiClient {
+  final Dio _dio;
+
+  ApiClient({required String baseUrl}) : _dio = Dio(BaseOptions(
+    baseUrl: baseUrl,
+    connectTimeout: const Duration(seconds: 15),
+    receiveTimeout: const Duration(seconds: 15),
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+  )) {
+    // Interceptores para manejo de tokens, logging, etc.
+    _dio.interceptors.add(InterceptorsWrapper(
+      onRequest: (options, handler) {
+        // Añadir token de autenticación (Ej. JWT) aquí si es necesario
+        // options.headers['Authorization'] = 'Bearer $token';
+        return handler.next(options);
+      },
+      onResponse: (response, handler) {
+        return handler.next(response);
+      },
+      onError: (DioException e, handler) {
+        // Manejar errores de red, respuestas 401, etc.
+        return handler.next(e);
+      },
+    ));
+  }
+
+  Dio get dio => _dio;
+}
