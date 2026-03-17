@@ -9,7 +9,8 @@ Servicios primarios de datos, posiblemente para autenticación rápida o realtim
 - **Project URL:** `https://jgxwzxqbispwempgetrh.supabase.co`
 - **Public Key:** `sb_publishable_z3Iw5Cnoy5F7gHViVwZG2A_455RJrPR`
 
-### 2. CakePHP 5 Backend (`centro-backend`)
-APIs personalizadas para ejecutar la lógica del ecosistema.
-- **Base Endpoint:** `[Aquí se documentará el endpoint productivo/staging que consumiremos mediante Dio]`
-- **Autenticación (Si aplica):** JWT Tokens o Bearer Headers provistos por centro-backend o enlazados a Supabase.
+### 2. CakePHP 5 Backend (`centro-backend` - **Sitio 2 Central**)
+APIs y backend principal del ecosistema. Este es el eje funcional y central de la base de datos de la app.
+- **Base Endpoint (Raíz):** `https://arzsuite.centrolibanes.org.mx/api/`
+- **Endpoint Login:** `auth/login`
+- **Autenticación:** JWT Tokens o Bearer Headers provistos por centro-backend.

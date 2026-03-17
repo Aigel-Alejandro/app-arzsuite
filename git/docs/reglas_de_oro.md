@@ -12,6 +12,8 @@ Todos los valores de diseño deben extraerse obligatoriamente de la configuraci�
 
 *   **Archivo fuente de Colores y Estilos (Tema Central):**
     `lib/core/theme/app_theme.dart`
+*   **Guía de Diseño Estética:**
+    `git/docs/diseno_guia.md`
 *   **Archivos Auxiliares (Opcional si se separa):**
     `lib/core/theme/app_colors.dart`, `lib/core/theme/app_spacing.dart`
 

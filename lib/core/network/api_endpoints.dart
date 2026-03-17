@@ -3,14 +3,14 @@
 
 class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
-  static const String baseUrlCakePHP = "http://centro.ddev.site/"; // Ajustar acorde al entorno.
+  static const String baseUrlCakePHP = "https://arzsuite.centrolibanes.org.mx/api/"; // Eje central Sitio 2
 
   // ---------------------------------------------------------------------------
   // AUTH
   // ---------------------------------------------------------------------------
-  static const String login = "/api/v1/auth/login";
-  static const String logout = "/api/v1/auth/logout";
-  static const String verifyToken = "/api/v1/auth/verify";
+  static const String login = "auth/login";
+  static const String logout = "auth/logout";
+  static const String verifyToken = "auth/verify";
 
   // ---------------------------------------------------------------------------
   // USUARIOS

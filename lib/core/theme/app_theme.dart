@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized application theme adapting styles from styles.scss
 class AppTheme {
   // Centro Primary Colors
   static const Color primaryColor = Color(0xFF406EBA); // primario-700
   static const Color primaryDark = Color(0xFF1D3D79); // primario-800
-  static const Color primaryGradientStart = Color(0xFF87700B);
-  static const Color primaryGradientEnd = Color(0xFFB39716);
+  static const Color accentGold = Color(0xFF87700B);
+  static const Color vibrantGold = Color(0xFFB39716);
 
   // Alert Colors
   static const Color successColor = Color(0xFF43B581);
@@ -44,7 +45,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
-        secondary: primaryGradientEnd,
+        secondary: vibrantGold,
         surface: Colors.white,
         error: dangerColor,
         onPrimary: Colors.white,
@@ -104,8 +105,8 @@ class AppTheme {
         ),
         shadowColor: Colors.black.withOpacity(0.1),
       ),
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: neutral800, fontFamily: 'Inter'),
+      textTheme: GoogleFonts.montserratTextTheme().copyWith(
+        bodyMedium: const TextStyle(color: neutral800),
       ),
     );
   }
@@ -118,7 +119,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: const ColorScheme.dark(
         primary: primaryColor,
-        secondary: primaryGradientStart,
+        secondary: accentGold,
         surface: neutral800,
         error: dangerColor,
         onPrimary: Colors.white,
@@ -178,8 +179,8 @@ class AppTheme {
         ),
         shadowColor: Colors.black.withOpacity(0.3),
       ),
-      textTheme: const TextTheme(
-        bodyMedium: TextStyle(color: neutral200, fontFamily: 'Inter'),
+      textTheme: GoogleFonts.montserratTextTheme().copyWith(
+        bodyMedium: const TextStyle(color: neutral200),
       ),
     );
   }
