@@ -56,6 +56,13 @@ class AppIslandMenu extends StatelessWidget {
                     onTap: () => onItemSelected(0),
                     isDesktop: true,
                   ),
+                  _IslandTabItem(
+                    icon: Icons.sports_tennis_rounded,
+                    label: 'Actividades',
+                    isSelected: selectedIndex == 1,
+                    onTap: () => onItemSelected(1),
+                    isDesktop: true,
+                  ),
                 ],
               ),
             ),
@@ -108,6 +115,13 @@ class AppIslandMenu extends StatelessWidget {
             label: 'Inicio',
             isSelected: selectedIndex == 0,
             onTap: () => onItemSelected(0),
+            isDesktop: false,
+          ),
+          _IslandTabItem(
+            icon: Icons.sports_tennis_rounded,
+            label: 'Actividades',
+            isSelected: selectedIndex == 1,
+            onTap: () => onItemSelected(1),
             isDesktop: false,
           ),
           _IslandTabItem(

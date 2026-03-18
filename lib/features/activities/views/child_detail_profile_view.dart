@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
+import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activities_list_view.dart';
 import 'package:app_arzsuite/features/activities/views/child_medical_form_view.dart';
 import 'package:app_arzsuite/features/activities/views/match_detail_view.dart';
@@ -12,38 +13,41 @@ class ChildDetailProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
-        appBar: AppBar(
-          title: Text(
-             childName,
-             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5),
+    return MainLayout(
+      activeIndex: 1,
+      child: DefaultTabController(
+        length: 3,
+        child: Scaffold(
+          backgroundColor: AppTheme.neutral50,
+          appBar: AppBar(
+            title: Text(
+               childName,
+               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5),
+            ),
+            centerTitle: true,
+            elevation: 0,
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+            bottom: const TabBar(
+              indicatorColor: AppTheme.vibrantGold,
+              indicatorWeight: 4,
+              labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
+              unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+              unselectedLabelColor: Colors.white70,
+              tabs: [
+                Tab(text: 'ACTIVIDADES'),
+                Tab(text: 'TORNEOS'),
+                Tab(text: 'EXPEDIENTE'),
+              ],
+            ),
           ),
-          centerTitle: true,
-          elevation: 0,
-          backgroundColor: AppTheme.primaryColor,
-          foregroundColor: Colors.white,
-          bottom: const TabBar(
-            indicatorColor: AppTheme.vibrantGold,
-            indicatorWeight: 4,
-            labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
-            unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-            unselectedLabelColor: Colors.white70,
-            tabs: [
-              Tab(text: 'ACTIVIDADES'),
-              Tab(text: 'TORNEOS'),
-              Tab(text: 'EXPEDIENTE'),
+          body: const TabBarView(
+            children: [
+              ActivitiesListView(isSubscribed: true, useLayout: false),
+              _TournamentsTabPremium(),
+              ChildMedicalFormView(),
             ],
           ),
-        ),
-        body: const TabBarView(
-          children: [
-            ActivitiesListView(isSubscribed: true),
-            _TournamentsTabPremium(),
-            ChildMedicalFormView(),
-          ],
         ),
       ),
     );
@@ -87,7 +91,7 @@ class _TournamentsTabPremiumState extends State<_TournamentsTabPremium> {
           date: 'Sábado 21, 10:00 AM',
           location: 'Cancha Central',
           onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchDetailView()));
+            Navigator.push(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const MatchDetailView(), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero));
           },
         ),
       ],
@@ -117,16 +121,13 @@ class _InteractiveMatchCardState extends State<_InteractiveMatchCard> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedScale(
+    return Transform.scale(
       scale: _isHovered ? 1.03 : 1.0,
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutBack,
       child: InkWell(
         onHover: (v) => setState(() => _isHovered = v),
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+        child: Container(
           padding: const EdgeInsets.all(AppTheme.spacingLarge),
              decoration: BoxDecoration(
                color: Colors.white,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 class MatchDetailView extends StatefulWidget {
   const MatchDetailView({super.key});
@@ -15,91 +16,94 @@ class _MatchDetailViewState extends State<MatchDetailView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.neutral50,
-      appBar: AppBar(
-        title: const Text('Detalle de Partido'),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-         physics: const BouncingScrollPhysics(),
-         child: ResponsiveContainer(
-           child: Column(
-             crossAxisAlignment: CrossAxisAlignment.start,
-             children: [
-               const SizedBox(height: AppTheme.spacingLarge),
-               Container(
-                 width: double.infinity,
-                 padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                 decoration: BoxDecoration(
-                   color: AppTheme.primaryColor,
-                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+    return MainLayout(
+      activeIndex: 1,
+      child: Scaffold(
+        backgroundColor: AppTheme.neutral50,
+        appBar: AppBar(
+          title: const Text('Detalle de Partido'),
+          centerTitle: true,
+        ),
+        body: SingleChildScrollView(
+           physics: const BouncingScrollPhysics(),
+           child: ResponsiveContainer(
+             child: Column(
+               crossAxisAlignment: CrossAxisAlignment.start,
+               children: [
+                 const SizedBox(height: AppTheme.spacingLarge),
+                 Container(
+                   width: double.infinity,
+                   padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                   decoration: BoxDecoration(
+                     color: AppTheme.primaryColor,
+                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                   ),
+                   child: Column(
+                     children: [
+                       const Text('Jornada 5', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                       const SizedBox(height: AppTheme.spacingSmall),
+                       Text(
+                         'Nosotros vs Club X',
+                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
+                         textAlign: TextAlign.center,
+                       ),
+                       const SizedBox(height: AppTheme.spacingMedium),
+                       _InfoBadge(icon: Icons.calendar_month_rounded, text: 'Sábado 21, 10:00 AM'),
+                       const SizedBox(height: 8),
+                       _InfoBadge(icon: Icons.location_on_rounded, text: 'Cancha Central'),
+                     ],
+                   ),
                  ),
-                 child: Column(
+                 
+                 const SizedBox(height: AppTheme.spacingLarge),
+                 Text(
+                   'Convocatoria: Juanito Pérez',
+                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                 ),
+                 const SizedBox(height: AppTheme.spacingMedium),
+                 const Text('El profesor te ha convocado a este partido. Confirma la asistencia de tu hijo/a lo antes posible.', style: TextStyle(color: AppTheme.neutral600)),
+                 const SizedBox(height: AppTheme.spacingLarge),
+                 
+                 Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                    children: [
-                     const Text('Jornada 5', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
-                     const SizedBox(height: AppTheme.spacingSmall),
-                     Text(
-                       'Nosotros vs Club X',
-                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
-                       textAlign: TextAlign.center,
+                     _ResponseButton(
+                       title: 'Confirmar',
+                       icon: Icons.check_circle_rounded,
+                       color: AppTheme.successColor,
+                       isSelected: _isConfirmed == true,
+                       onTap: () {
+                         setState(() => _isConfirmed = true);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Confirmada')));
+                       },
                      ),
-                     const SizedBox(height: AppTheme.spacingMedium),
-                     _InfoBadge(icon: Icons.calendar_month_rounded, text: 'Sábado 21, 10:00 AM'),
-                     const SizedBox(height: 8),
-                     _InfoBadge(icon: Icons.location_on_rounded, text: 'Cancha Central'),
+                     _ResponseButton(
+                       title: 'No Asistirá',
+                       icon: Icons.cancel_rounded,
+                       color: AppTheme.dangerColor,
+                       isSelected: _isConfirmed == false,
+                       onTap: () {
+                         setState(() => _isConfirmed = false);
+                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Rechazada')));
+                       },
+                     )
                    ],
                  ),
-               ),
-               
-               const SizedBox(height: AppTheme.spacingLarge),
-               Text(
-                 'Convocatoria: Juanito Pérez',
-                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-               ),
-               const SizedBox(height: AppTheme.spacingMedium),
-               const Text('El profesor te ha convocado a este partido. Confirma la asistencia de tu hijo/a lo antes posible.', style: TextStyle(color: AppTheme.neutral600)),
-               const SizedBox(height: AppTheme.spacingLarge),
-               
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                 children: [
-                   _ResponseButton(
-                     title: 'Confirmar',
-                     icon: Icons.check_circle_rounded,
-                     color: AppTheme.successColor,
-                     isSelected: _isConfirmed == true,
-                     onTap: () {
-                       setState(() => _isConfirmed = true);
-                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Confirmada')));
-                     },
-                   ),
-                   _ResponseButton(
-                     title: 'No Asistirá',
-                     icon: Icons.cancel_rounded,
-                     color: AppTheme.dangerColor,
-                     isSelected: _isConfirmed == false,
-                     onTap: () {
-                       setState(() => _isConfirmed = false);
-                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Rechazada')));
-                     },
-                   )
-                 ],
-               ),
-               
-               const SizedBox(height: AppTheme.spacingLarge),
-               const Divider(height: 32, color: AppTheme.neutral100),
-               ListTile(
-                 leading: const Icon(Icons.map_rounded, color: AppTheme.primaryColor),
-                 title: const Text('Abrir en Waze / Maps', style: TextStyle(fontWeight: FontWeight.bold)),
-                 trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
-                 contentPadding: EdgeInsets.zero,
-                 onTap: () {},
-               ),
-             ],
-           ),
+                 
+                 const SizedBox(height: AppTheme.spacingLarge),
+                 const Divider(height: 32, color: AppTheme.neutral100),
+                 ListTile(
+                    leading: const Icon(Icons.map_rounded, color: AppTheme.primaryColor),
+                    title: const Text('Abrir en Waze / Maps', style: TextStyle(fontWeight: FontWeight.bold)),
+                    trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 16),
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
          ),
-      ),
+       ),
     );
   }
 }
@@ -141,8 +145,7 @@ class _ResponseButton extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+      child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,

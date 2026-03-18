@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/app_side_menu.dart';
 import 'package:app_arzsuite/features/home/views/home_view.dart';
+import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 import 'package:app_arzsuite/features/auth/views/login_view.dart';
 
 class MainLayout extends StatefulWidget {
@@ -24,6 +25,11 @@ class _MainLayoutState extends State<MainLayout> {
     if (index == 0) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const HomeView()),
+        (route) => false,
+      );
+    } else if (index == 1) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const ActivitiesDashboardView()),
         (route) => false,
       );
     }

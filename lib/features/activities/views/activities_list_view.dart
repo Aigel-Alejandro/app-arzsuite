@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activity_subscription_view.dart';
 
 class ActivitiesListView extends StatelessWidget {
   final bool isSubscribed;
-  const ActivitiesListView({super.key, required this.isSubscribed});
+  final bool useLayout;
+  const ActivitiesListView({super.key, required this.isSubscribed, this.useLayout = true});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    final body = Scaffold(
       backgroundColor: AppTheme.neutral50,
       appBar: AppBar(
         title: Text(isSubscribed ? 'Mis Actividades' : 'Actividades Disponibles'),
@@ -41,6 +43,9 @@ class ActivitiesListView extends StatelessWidget {
         ),
       ),
     );
+
+    if (!useLayout) return body;
+    return MainLayout(activeIndex: 1, child: body);
   }
 }
 
@@ -144,7 +149,7 @@ class _ActivityCard extends StatelessWidget {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ActivitySubscriptionView()),
+                    PageRouteBuilder(pageBuilder: (_, __, ___) => const ActivitySubscriptionView(), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero),
                   );
                 },
                 child: const Text('Comenzar Inscripción', style: TextStyle(fontWeight: FontWeight.w900)),

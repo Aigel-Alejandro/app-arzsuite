@@ -39,9 +39,7 @@ class _PremiumHorizontalCalendarState extends State<PremiumHorizontalCalendar> {
                setState(() => _selectedIndex = index);
                widget.onDateSelected(index);
              },
-             child: AnimatedContainer(
-               duration: const Duration(milliseconds: 300),
-               curve: Curves.easeOutCubic,
+             child: Container(
                width: 70,
                decoration: BoxDecoration(
                  color: isSelected ? AppTheme.primaryColor : Colors.white,

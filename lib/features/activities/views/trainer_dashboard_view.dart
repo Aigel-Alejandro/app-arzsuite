@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/responsive_grid.dart';
+import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/widgets/premium_horizontal_calendar.dart';
 import 'package:app_arzsuite/features/activities/views/trainer_attendance_view.dart';
 import 'package:app_arzsuite/features/activities/views/trainer_evaluation_view.dart';
@@ -11,38 +12,27 @@ class TrainerDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.neutral50,
-      appBar: AppBar(
-        title: const Text('Mi Panel Docente', style: TextStyle(fontWeight: FontWeight.w900)),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: AppTheme.neutral900,
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: ResponsiveContainer(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: AppTheme.spacingMedium),
-              
-              // Animated Welcome Header
-              TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0.0, end: 1.0),
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.easeOutCubic,
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(0, 20 * (1 - value)),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Row(
+    return MainLayout(
+      activeIndex: 1,
+      child: Scaffold(
+        backgroundColor: AppTheme.neutral50,
+        appBar: AppBar(
+          title: const Text('Mi Panel Docente', style: TextStyle(fontWeight: FontWeight.w900)),
+          centerTitle: true,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          foregroundColor: AppTheme.neutral900,
+        ),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: ResponsiveContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: AppTheme.spacingMedium),
+                
+                // Header (Sin animaciones)
+                Row(
                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                    children: [
                      Column(
@@ -70,74 +60,74 @@ class TrainerDashboardView extends StatelessWidget {
                      )
                    ],
                 ),
-              ),
-              const SizedBox(height: AppTheme.spacingLarge),
-              
-              // Interactive Calendar
-              Text(
-                 'Mi Calendario',
-                 style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
-              ),
-              const SizedBox(height: AppTheme.spacingMedium),
-              PremiumHorizontalCalendar(onDateSelected: (day) {}),
-              
-              const SizedBox(height: AppTheme.spacingLarge),
-              
-              Text(
-                'Accesos Rápidos',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.neutral900,
+                const SizedBox(height: AppTheme.spacingLarge),
+                
+                // Interactive Calendar
+                Text(
+                   'Mi Calendario',
+                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
+                ),
+                const SizedBox(height: AppTheme.spacingMedium),
+                PremiumHorizontalCalendar(onDateSelected: (day) {}),
+                
+                const SizedBox(height: AppTheme.spacingLarge),
+                
+                Text(
+                  'Accesos Rápidos',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.neutral900,
+                      ),
+                ),
+                const SizedBox(height: AppTheme.spacingSmall),
+                
+                ResponsiveGrid(
+                  children: [
+                    _TrainerActionCardPremium(
+                      title: 'Pase de Lista',
+                      subtitle: 'Fútbol Infantil (Sub-12)',
+                      icon: Icons.checklist_rtl_rounded,
+                      color: AppTheme.primaryColor,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(pageBuilder: (_, __, ___) => const TrainerAttendanceView(), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero),
+                        );
+                      },
                     ),
-              ),
-              const SizedBox(height: AppTheme.spacingSmall),
-              
-              ResponsiveGrid(
-                children: [
-                  _TrainerActionCardPremium(
-                    title: 'Pase de Lista',
-                    subtitle: 'Fútbol Infantil (Sub-12)',
-                    icon: Icons.checklist_rtl_rounded,
-                    color: AppTheme.primaryColor,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TrainerAttendanceView()),
-                      );
-                    },
-                  ),
-                  _TrainerActionCardPremium(
-                    title: 'Evaluaciones',
-                    subtitle: 'Fútbol Infantil (Sub-12)',
-                    icon: Icons.star_rate_rounded,
-                    color: AppTheme.vibrantGold,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TrainerEvaluationView()),
-                      );
-                    },
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: AppTheme.spacingLarge),
-              Text(
-                'Partidos de Hoy',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.neutral900,
+                    _TrainerActionCardPremium(
+                      title: 'Evaluaciones',
+                      subtitle: 'Fútbol Infantil (Sub-12)',
+                      icon: Icons.star_rate_rounded,
+                      color: AppTheme.vibrantGold,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(pageBuilder: (_, __, ___) => const TrainerEvaluationView(), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero),
+                        );
+                      },
                     ),
-              ),
-              const SizedBox(height: AppTheme.spacingSmall),
-              
-              _MatchAdminCardPremium(
-                title: 'Jornada 5 vs Club X',
-                time: '10:00 AM',
-                location: 'Cancha Central',
-              ),
-              const SizedBox(height: 48),
-            ],
+                  ],
+                ),
+                
+                const SizedBox(height: AppTheme.spacingLarge),
+                Text(
+                  'Partidos de Hoy',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.neutral900,
+                      ),
+                ),
+                const SizedBox(height: AppTheme.spacingSmall),
+                
+                _MatchAdminCardPremium(
+                  title: 'Jornada 5 vs Club X',
+                  time: '10:00 AM',
+                  location: 'Cancha Central',
+                ),
+                const SizedBox(height: 48),
+              ],
+            ),
           ),
         ),
       ),
@@ -169,16 +159,13 @@ class _TrainerActionCardPremiumState extends State<_TrainerActionCardPremium> {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedScale(
+    return Transform.scale(
       scale: _isHovered ? 1.02 : 1.0,
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
       child: InkWell(
         onHover: (v) => setState(() => _isHovered = v),
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
+        child: Container(
           padding: const EdgeInsets.all(AppTheme.spacingLarge),
           decoration: BoxDecoration(
             color: Colors.white,
