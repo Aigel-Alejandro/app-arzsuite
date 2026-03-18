@@ -14,3 +14,25 @@ APIs y backend principal del ecosistema. Este es el eje funcional y central de l
 - **Base Endpoint (Raíz):** `https://arzsuite.centrolibanes.org.mx/api/`
 - **Endpoint Login:** `auth/login`
 - **Autenticación:** JWT Tokens o Bearer Headers provistos por centro-backend.
+
+### 3. Endpoints de CakePHP (Módulo Actividades y Entrenamientos)
+
+Para las operaciones de la Fase 1 (Piloto Fútbol) y Fase 2, la aplicación consume los siguientes endpoints del Sitio 2:
+
+**Suscripciones y Alumnos:**
+- `GET /api/v1/activities` - Lista de actividades disponibles.
+- `GET /api/v1/activities/subscribed` - Actividades inscritas por el usuario/hijos.
+- `POST /api/v1/activities/{id}/subscribe` - Solicita inscripción de un menor.
+- `GET /api/v1/tutor/beneficiaries` - Lista de hijos asociados al perfil del tutor.
+- `POST /api/v1/child/documents/upload` - Envío multipart de documentos al repositorio unificado.
+- `POST /api/v1/child/{id}/medical` - Inserta/Actualiza la ficha médica (alergias, pólizas).
+
+**Operaciones del Profesor / Coach:**
+- `POST /api/v1/activities/attendance` - Guarda pase de lista de entrenamiento masivamente.
+- `POST /api/v1/activities/evaluations` - Envía calificaciones de criterios (del 1 al 5).
+- `POST /api/v1/activities/tournament/match` - Crea o actualiza ubicaciones y marcadores de un partido.
+- `POST /api/v1/activities/chat/{channelId}/send` - Envía mensaje interactivo en chat en vivo.
+
+**Legales:**
+- `GET /api/v1/terms/latest` - Busca la versión activa del acuerdo para firma o confirmación obligatoria.
+- `POST /api/v1/terms/accept` - Registra la aceptación electrónica del usuario.

@@ -8,8 +8,9 @@ lib/
  │   ├── theme/         # Archivo 'app_theme.dart' (Estilos centralizados CSS-like)
  │   └── network/       # Configuración global para conectar APIs (api_client usando dio)
  ├── features/          # Desarrollo orientado por dominio o funcionalidades
- │   ├── auth/          # Ejemplo: Vistas y controladores para Iniciar Sesión (Supabase)
- │   └── home/          # Vista principal de la app
+ │   ├── auth/          # Vistas y controladores para Iniciar Sesión delegados
+ │   ├── home/          # Vista principal del Dashboard general
+ │   └── activities/    # Módulo de deportes y eventos (Vistas, Modelos, Providers)
  ├── providers/         # Archivos para inyección de dependencias y gestión del estado (Riverpod)
  └── main.dart          # Entrypoint de inicialización de Supabase y ProviderScope
 ```

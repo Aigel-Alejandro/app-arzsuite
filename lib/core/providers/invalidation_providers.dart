@@ -19,4 +19,18 @@ final sessionInvalidationProvider = Provider<void>((ref) {
 void clearApplicationState(Ref ref) {
   /// Al desloguearse o presentarse alguna brecha, aquí mandamos purgar a Riverpod
   /// de forma masiva sobre distintos controladores, Ej: ref.invalidate() a otros stores
+  ref.invalidate(activitiesCacheProvider);
+  ref.invalidate(chatCacheProvider);
 }
+
+// -----------------------------------------------------------------------------
+// INVALIDACIÓN POR MÓDULOS (RIVERPOD)
+// -----------------------------------------------------------------------------
+
+final activitiesCacheProvider = Provider<void>((ref) {
+  // Dispara el refresco de los repositorios de Actividades
+});
+
+final chatCacheProvider = Provider<void>((ref) {
+  // Dispara la recarga de la lista de chats
+});

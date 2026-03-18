@@ -19,6 +19,27 @@ class ApiEndpoints {
   static const String userDetail = "/api/v1/users/{id}"; // Interpolar ID en el repo
 
   // ---------------------------------------------------------------------------
-  // TODO: Agregar más módulos como se requiera a lo largo del desarrollo.
+  // ACTIVIDADES Y DEPORTES
   // ---------------------------------------------------------------------------
+  static const String activitiesList = "/api/v1/activities";
+  static const String activitiesSubscribed = "/api/v1/activities/subscribed";
+  static const String activitySubscribe = "/api/v1/activities/{id}/subscribe";
+  static const String activityChatMessages = "/api/v1/activities/chat/{channelId}/messages";
+  static const String sendChatMessage = "/api/v1/activities/chat/{channelId}/send";
+  static const String editChatMessage = "/api/v1/activities/chat/message/{id}";
+  static const String readChatMessage = "/api/v1/activities/chat/message/{id}/read";
+  static const String updateTrainingDates = "/api/v1/activities/training/{id}";
+  static const String updateTournamentSchedule = "/api/v1/activities/tournament/{id}";
+  
+  // ---------------------------------------------------------------------------
+  // TUTOR Y ALUMNO
+  // ---------------------------------------------------------------------------
+  static const String tutorBeneficiaries = "/api/v1/tutor/beneficiaries";
+  static const String childProfileUpload = "/api/v1/child/documents/upload";
+  
+  // ---------------------------------------------------------------------------
+  // TÉRMINOS Y CONDICIONES
+  // ---------------------------------------------------------------------------
+  static const String latestTerms = "/api/v1/terms/latest";
+  static const String acceptTerms = "/api/v1/terms/accept";
 }

@@ -5,7 +5,7 @@ import 'package:app_arzsuite/core/widgets/responsive_grid.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
-
+import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -104,6 +104,17 @@ class HomeView extends StatelessWidget {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
+                              );
+                            },
+                          ),
+                          _HeroFeatureCard(
+                            title: 'Actividades Deportivas',
+                            subtitle: 'Inscripciones y Gestión',
+                            description: 'Consulta el calendario de deportes, chatea con profesores y administra expedientes.',
+                            icon: Icons.sports_tennis_rounded,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const ActivitiesDashboardView()),
                               );
                             },
                           ),
