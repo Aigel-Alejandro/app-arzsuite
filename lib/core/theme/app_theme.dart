@@ -40,6 +40,17 @@ class AppTheme {
   static const double spacingMedium = 16.0;
   static const double spacingLarge = 24.0;
 
+  // Responsive Breakpoints (Bootstrap-like)
+  static const double breakpointMobile = 576.0;
+  static const double breakpointTablet = 768.0;
+  static const double breakpointDesktop = 992.0;
+  static const double breakpointLargeDesktop = 1200.0;
+
+  // Max Container Widths
+  static const double containerMaxWidthTablet = 720.0;
+  static const double containerMaxWidthDesktop = 960.0;
+  static const double containerMaxWidthLargeDesktop = 1140.0;
+
   // ---------------------------------------------------------------------------
   // Light Theme
   // ---------------------------------------------------------------------------

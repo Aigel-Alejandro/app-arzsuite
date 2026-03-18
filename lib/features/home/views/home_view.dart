@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
+import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/responsive_grid.dart';
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
 
 class HomeView extends StatelessWidget {
@@ -12,102 +14,124 @@ class HomeView extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Custom Integrated Header
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 32),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Buen día,',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  color: AppTheme.neutral500,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '¡Bienvenido!',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.neutral900,
-                                  letterSpacing: -0.5,
-                                ),
-                          ),
-                        ],
+          child: ResponsiveContainer(
+            padding: 0, // Let child handle padding for specific sections if needed
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Custom Integrated Header
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 32),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Buen día,',
+                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: AppTheme.neutral500,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '¡Bienvenido!',
+                              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.w900,
+                                    color: AppTheme.neutral900,
+                                    letterSpacing: -0.5,
+                                  ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.notifications_none_rounded, color: AppTheme.neutral900),
                       ),
-                      child: const Icon(Icons.notifications_none_rounded, color: AppTheme.neutral900),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Hero: Summer Course 2026
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'ACTUALIDAD',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: AppTheme.primaryColor,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 2,
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    _HeroFeatureCard(
-                      title: 'Cursos de Verano 2026',
-                      subtitle: 'Inscripciones Abiertas',
-                      description: 'Inscribe a tus hijos e invitados de forma digital y segura en nuestro curso anual.',
-                      icon: Icons.sunny,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 48),
-              
-              // Bottom Logo or Branding
-              Center(
-                child: Opacity(
-                  opacity: 0.3,
-                  child: Image.asset(
-                    'assets/images/logo-centro-libanes.png',
-                    height: 50,
+                    ],
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
-            ],
+  
+                // Hero: Summer Course 2026
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'ACTUALIDAD',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 2,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      ResponsiveGrid(
+                        children: [
+                          _HeroFeatureCard(
+                            title: 'Cursos de Verano 2026',
+                            subtitle: 'Inscripciones Abiertas',
+                            description: 'Inscribe a tus hijos e invitados de forma digital y segura en nuestro curso anual.',
+                            icon: Icons.sunny,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
+                              );
+                            },
+                          ),
+                          // Placeholder for future cards to demonstrate 3 columns
+                          _HeroFeatureCard(
+                            title: 'Mensualidades',
+                            subtitle: 'Pago en Línea',
+                            description: 'Consulta y paga tus estados de cuenta desde la comodidad de tu hogar.',
+                            icon: Icons.payment_rounded,
+                            onTap: () {},
+                          ),
+                          _HeroFeatureCard(
+                            title: 'Reservaciones',
+                            subtitle: 'Espacios y Canchas',
+                            description: 'Reserva tus espacios deportivos y salones de eventos favoritos.',
+                            icon: Icons.calendar_month_rounded,
+                            onTap: () {},
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 48),
+                
+                // Bottom Logo or Branding
+                Center(
+                  child: Opacity(
+                    opacity: 0.3,
+                    child: Image.asset(
+                      'assets/images/logo-centro-libanes.png',
+                      height: 50,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ),

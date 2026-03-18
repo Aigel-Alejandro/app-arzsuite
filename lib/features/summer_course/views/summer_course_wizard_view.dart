@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
+import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/step_indicator.dart';
@@ -21,81 +22,84 @@ class SummerCourseWizardView extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppTheme.neutral50,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Custom Integrated Header
-            Container(
-              padding: const EdgeInsets.fromLTRB(8, 16, 24, 20),
-              decoration: const BoxDecoration(
-                color: Colors.transparent,
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.neutral900),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      const Expanded(
-                        child: Text(
-                          'Inscripción 2026',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: AppTheme.neutral900,
-                            letterSpacing: -0.5,
-                          ),
-                          textAlign: TextAlign.center,
+        child: ResponsiveContainer(
+          padding: 0,
+          child: Column(
+            children: [
+              // Custom Integrated Header
+              Container(
+                padding: const EdgeInsets.fromLTRB(8, 16, 24, 20),
+                decoration: const BoxDecoration(
+                  color: Colors.transparent,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.neutral900),
+                          onPressed: () => Navigator.of(context).pop(),
                         ),
-                      ),
-                      const SizedBox(width: 48), // Spacer to balance the back button
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: StepIndicator(
-                      currentStep: state.currentStep > 4 ? 4 : state.currentStep, 
-                      totalSteps: 5
+                        const Expanded(
+                          child: Text(
+                            'Inscripción 2026',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.neutral900,
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        const SizedBox(width: 48), // Spacer to balance the back button
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: StepIndicator(
+                        currentStep: state.currentStep > 4 ? 4 : state.currentStep, 
+                        totalSteps: 5
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            
-            // Current Step Content
-            Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 400),
-              transitionBuilder: (Widget child, Animation<double> animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(0.05, 0),
-                      end: Offset.zero,
-                    ).animate(CurvedAnimation(
-                      parent: animation,
-                      curve: Curves.easeOutCubic,
-                    )),
-                    child: child,
+              
+              // Current Step Content
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (Widget child, Animation<double> animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: Tween<Offset>(
+                          begin: const Offset(0.05, 0),
+                          end: Offset.zero,
+                        ).animate(CurvedAnimation(
+                          parent: animation,
+                          curve: Curves.easeOutCubic,
+                        )),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    key: ValueKey<int>(state.currentStep),
+                    child: _buildCurrentStep(state.currentStep),
                   ),
-                );
-              },
-              child: Container(
-                key: ValueKey<int>(state.currentStep),
-                child: _buildCurrentStep(state.currentStep),
+                ),
               ),
-            ),
+              
+              // Navigation Buttons
+              _buildNavigation(context, state, notifier),
+            ],
           ),
-          
-          // Navigation Buttons
-          _buildNavigation(context, state, notifier),
-        ],
+        ),
       ),
-    ),
-  );
+    );
 }
 
   Widget _buildCurrentStep(int step) {
