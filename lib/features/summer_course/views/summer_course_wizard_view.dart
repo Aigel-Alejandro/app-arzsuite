@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/step_indicator.dart';
@@ -19,8 +20,10 @@ class SummerCourseWizardView extends ConsumerWidget {
     final state = ref.watch(summerCourseProvider);
     final notifier = ref.read(summerCourseProvider.notifier);
 
-    return Scaffold(
-      backgroundColor: AppTheme.neutral50,
+    return MainLayout(
+      activeIndex: -1,
+      child: Scaffold(
+        backgroundColor: AppTheme.neutral50,
       body: SafeArea(
         child: ResponsiveContainer(
           padding: 0,
@@ -99,8 +102,9 @@ class SummerCourseWizardView extends ConsumerWidget {
           ),
         ),
       ),
+    ),
     );
-}
+  }
 
   Widget _buildCurrentStep(int step) {
     switch (step) {
@@ -124,7 +128,7 @@ class SummerCourseWizardView extends ConsumerWidget {
         MediaQuery.of(context).padding.bottom + AppTheme.spacingMedium,
       ),
       decoration: const BoxDecoration(
-        color: Colors.white,
+        color: Colors.transparent,
       ),
       child: Row(
         children: [

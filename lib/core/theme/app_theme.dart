@@ -122,6 +122,15 @@ class AppTheme {
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
         bodyMedium: const TextStyle(color: neutral800),
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: NoTransitionsBuilder(),
+          TargetPlatform.iOS: NoTransitionsBuilder(),
+          TargetPlatform.linux: NoTransitionsBuilder(),
+          TargetPlatform.macOS: NoTransitionsBuilder(),
+          TargetPlatform.windows: NoTransitionsBuilder(),
+        },
+      ),
     );
   }
 
@@ -201,6 +210,32 @@ class AppTheme {
         bodyLarge: const TextStyle(color: Colors.white),
         bodyMedium: const TextStyle(color: neutral200),
       ),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: <TargetPlatform, PageTransitionsBuilder>{
+          TargetPlatform.android: NoTransitionsBuilder(),
+          TargetPlatform.iOS: NoTransitionsBuilder(),
+          TargetPlatform.linux: NoTransitionsBuilder(),
+          TargetPlatform.macOS: NoTransitionsBuilder(),
+          TargetPlatform.windows: NoTransitionsBuilder(),
+        },
+      ),
     );
+  }
+}
+
+/// A clean builder that strips away sliding and fading effects for immediate SPA-like navigation.
+class NoTransitionsBuilder extends PageTransitionsBuilder {
+  const NoTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T>? route,
+    BuildContext? context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // Return the child directly without any FadeTransition or SlideTransition
+    return child;
   }
 }

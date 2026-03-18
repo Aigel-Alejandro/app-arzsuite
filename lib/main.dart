@@ -5,7 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/views/login_view.dart';
 
 void main() async {
-  final binding = WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializar Supabase
   await Supabase.initialize(
