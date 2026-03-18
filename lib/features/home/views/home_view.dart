@@ -118,21 +118,6 @@ class HomeView extends StatelessWidget {
                               );
                             },
                           ),
-                          // Placeholder for future cards to demonstrate 3 columns
-                          _HeroFeatureCard(
-                            title: 'Mensualidades',
-                            subtitle: 'Pago en Línea',
-                            description: 'Consulta y paga tus estados de cuenta desde la comodidad de tu hogar.',
-                            icon: Icons.payment_rounded,
-                            onTap: () {},
-                          ),
-                          _HeroFeatureCard(
-                            title: 'Reservaciones',
-                            subtitle: 'Espacios y Canchas',
-                            description: 'Reserva tus espacios deportivos y salones de eventos favoritos.',
-                            icon: Icons.calendar_month_rounded,
-                            onTap: () {},
-                          ),
                         ],
                       ),
                     ],
