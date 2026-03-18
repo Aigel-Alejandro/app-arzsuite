@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/network/api_endpoints.dart';
 import 'package:app_arzsuite/core/providers/global_providers.dart';
+import '../../home/views/home_view.dart';
 
 /// Pantalla de login moderna con estética tipo Pinterest.
 /// Diseño limpio, minimalista, con colores sólidos y una tarjeta central.
@@ -44,14 +45,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
         if (mounted) {
-          // Si el login es correcto, el servidor responderá con el JSON.
-          // Lo mostraremos en un Snackbar de forma temporal como lo solicitaste.
-          ScaffoldMessenger.of(context).showSnackBar(
-             SnackBar(
-              content: Text('¡Acceso concedido!\nRespuesta: ${response.data}'),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 5),
-            ),
+          // Navegar a la pantalla de Home
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeView()),
           );
         }
       } on DioException catch (e) {
