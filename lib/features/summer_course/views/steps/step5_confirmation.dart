@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 
 class Step5Confirmation extends ConsumerWidget {
@@ -18,99 +19,266 @@ class Step5Confirmation extends ConsumerWidget {
     }
 
     if (state.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(strokeWidth: 3),
+            const SizedBox(height: 24),
+            Text(
+              'Generando Orden en NetSuite...',
+              style: TextStyle(
+                color: AppTheme.neutral600,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center, // Centrado como en la imagen
         children: [
-          const Text(
-            'Confirmación de Inscripción',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            'Confirmar Inscripción',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.secondaryColor,
+                ),
           ),
-          const SizedBox(height: 10),
-          const Text('Revisa los datos antes de generar la orden:'),
+          const SizedBox(height: 8),
+          Text(
+            'Revisa los datos antes de generar la orden',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.neutral600,
+                ),
+          ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
 
-          // Titular Summary
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            child: ListTile(
-               leading: const Icon(Icons.person_pin, color: Colors.blue),
-               title: Text(state.selectedTitular?.fullName ?? 'N/A'),
-               subtitle: Text('Socio Titular • ID: ${state.selectedTitular?.membershipNumber}'),
+          // Titular Summary Card
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Socio Titular',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.secondaryColor,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildSummaryCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nombre: ${state.selectedTitular?.fullName ?? 'N/A'}',
+                  style: const TextStyle(color: AppTheme.neutral700, fontSize: 15),
+                ),
+                Text(
+                  'Membresía: ${state.selectedTitular?.membershipNumber}',
+                  style: const TextStyle(color: AppTheme.neutral700, fontSize: 15),
+                ),
+                Text(
+                  'Tipo: ${state.selectedTitular?.memberType ?? 'N/A'}',
+                  style: const TextStyle(color: AppTheme.neutral700, fontSize: 15),
+                ),
+              ],
             ),
           ),
 
-          const SizedBox(height: 20),
-          const Text('Participantes', style: TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 10),
+          const SizedBox(height: 32),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'Participantes',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.secondaryColor,
+                  ),
+            ),
+          ),
+          const SizedBox(height: 16),
 
           ...state.selectedParticipants.map((p) {
-             return ListTile(
-                dense: true,
-                title: Text(p.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('Semana(s): ${p.selectedWeekIds.map((id) => 'Semana $id').join(', ')}'),
-                trailing: Text(formatter.format(p.totalCost), style: const TextStyle(fontWeight: FontWeight.bold)),
+             return Padding(
+               padding: const EdgeInsets.only(bottom: 12),
+               child: _buildSummaryCard(
+                 child: Row(
+                   children: [
+                     Expanded(
+                       child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                           Text(p.fullName, style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.secondaryColor, fontSize: 16)),
+                           const SizedBox(height: 4),
+                           Text(
+                             p.isSocio ? 'Socio' : 'Invitado', 
+                             style: const TextStyle(color: AppTheme.neutral500, fontSize: 12, fontWeight: FontWeight.bold)
+                           ),
+                           Text(
+                             p.selectedWeekIds.map((id) => 'Semana $id').join(', '),
+                             style: const TextStyle(color: AppTheme.neutral600, fontSize: 12),
+                           ),
+                         ],
+                       ),
+                     ),
+                     Text(
+                       formatter.format(p.totalCost), 
+                       style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.secondaryColor, fontSize: 18)
+                     ),
+                   ],
+                 ),
+               ),
              );
           }),
 
-          const Divider(height: 40),
+          const SizedBox(height: 32),
+          const Divider(height: 1, color: AppTheme.neutral200),
+          const SizedBox(height: 32),
 
-          Row(
-             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-             children: [
-                const Text('Total Final', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                Text(formatter.format(state.totalGeneral), style: TextStyle(color: Theme.of(context).primaryColor, fontWeight: FontWeight.bold, fontSize: 24)),
-             ],
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2EBE0), // Beige background
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+              border: Border.all(color: AppTheme.primaryColor, width: 1.5),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total', 
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 22, 
+                    color: AppTheme.secondaryColor,
+                  )
+                ),
+                Text(
+                  formatter.format(state.totalGeneral), 
+                  style: const TextStyle(
+                    color: AppTheme.primaryColor, 
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 36,
+                  )
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 40),
-
-          if (state.errorMessage != null)
-             Text(state.errorMessage!, style: const TextStyle(color: Colors.red)),
           
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => notifier.submitRegistration(),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              child: const Text('Confirmar y Generar Orden'),
-            ),
-          ),
+          if (state.errorMessage != null)
+            _buildErrorWidget(state.errorMessage!),
+
+          const SizedBox(height: 48),
         ],
       ),
     );
   }
 
+  Widget _buildSummaryCard({required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF0E7D8).withOpacity(0.5), // Light beige
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.neutral200),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildErrorWidget(String error) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppTheme.dangerColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(error, style: const TextStyle(color: AppTheme.dangerColor)),
+    );
+  }
+
   Widget _buildSuccess(BuildContext context, String orderId) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-             const Icon(Icons.check_circle, color: Colors.green, size: 80),
-             const SizedBox(height: 20),
-             const Text('¡Orden Generada Exitosamente!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-             const SizedBox(height: 10),
-             Text('Se ha creado la Orden de Venta en NetSuite con el ID:', textAlign: TextAlign.center),
-             const SizedBox(height: 5),
-             Text(orderId, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18), textAlign: TextAlign.center),
-             const SizedBox(height: 40),
-             OutlinedButton(
-               onPressed: () => Navigator.of(context).pop(),
-               child: const Text('Regresar al Inicio'),
+    return Container(
+      width: double.infinity,
+      color: Colors.white,
+      padding: const EdgeInsets.all(40),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+           Container(
+             padding: const EdgeInsets.all(24),
+             decoration: BoxDecoration(
+               color: AppTheme.successColor.withOpacity(0.1),
+               shape: BoxShape.circle,
              ),
-          ],
-        ),
+             child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 80),
+           ),
+           const SizedBox(height: 32),
+           Text(
+             '¡Inscripción Exitosa!', 
+             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
+             textAlign: TextAlign.center
+           ),
+           const SizedBox(height: 16),
+           Text(
+             'Tu orden de venta ha sido generada correctamente en nuestro sistema administrativo.', 
+             style: TextStyle(color: AppTheme.neutral600, height: 1.5),
+             textAlign: TextAlign.center
+           ),
+           const SizedBox(height: 32),
+           Container(
+             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+             decoration: BoxDecoration(
+               color: AppTheme.neutral50,
+               borderRadius: BorderRadius.circular(16),
+               border: Border.all(color: AppTheme.neutral200),
+             ),
+             child: Column(
+               children: [
+                 const Text(
+                   'ID DE ORDEN (NETSUITE)', 
+                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.neutral500, letterSpacing: 1.2)
+                 ),
+                 const SizedBox(height: 4),
+                 Text(
+                   orderId, 
+                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppTheme.primaryColor), 
+                   textAlign: TextAlign.center
+                 ),
+               ],
+             ),
+           ),
+           const SizedBox(height: 48),
+           SizedBox(
+             width: double.infinity,
+             child: OutlinedButton(
+               onPressed: () => Navigator.of(context).pop(),
+               style: OutlinedButton.styleFrom(
+                 padding: const EdgeInsets.all(18),
+                 side: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                 shape: RoundedRectangleBorder(
+                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                 ),
+               ),
+               child: const Text(
+                 'VOLVER AL INICIO', 
+                 style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900)
+               ),
+             ),
+           ),
+        ],
       ),
     );
   }
 }
+

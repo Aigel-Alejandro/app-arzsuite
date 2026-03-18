@@ -3,11 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized application theme adapting styles from styles.scss
 class AppTheme {
-  // Centro Primary Colors
-  static const Color primaryColor = Color(0xFF406EBA); // primario-700
-  static const Color primaryDark = Color(0xFF1D3D79); // primario-800
-  static const Color accentGold = Color(0xFF87700B);
+  // Centro Primary Colors (Updated to match reference image)
+  static const Color primaryColor = Color(0xFF9C842B); // Dorado/Olivo - Botón principal
+  static const Color primaryDark = Color(0xFF7A6822); 
+  static const Color accentGold = Color(0xFF9C842B);
   static const Color vibrantGold = Color(0xFFB39716);
+
+  // Secondary Color (Reference: prices and check icons)
+  static const Color secondaryColor = Color(0xFF1B4D4D); // Teal/Cyan Obscuro
 
   // Alert Colors
   static const Color successColor = Color(0xFF43B581);
@@ -45,7 +48,7 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
-        secondary: vibrantGold,
+        secondary: secondaryColor,
         surface: Colors.white,
         error: dangerColor,
         onPrimary: Colors.white,
@@ -119,12 +122,12 @@ class AppTheme {
       useMaterial3: true,
       colorScheme: const ColorScheme.dark(
         primary: primaryColor,
-        secondary: accentGold,
+        secondary: secondaryColor,
         surface: neutral800,
         error: dangerColor,
         onPrimary: Colors.white,
         onSecondary: Colors.white,
-        onSurface: neutral100,
+        onSurface: Colors.white,
         onError: Colors.white,
       ),
       scaffoldBackgroundColor: neutral900,
@@ -137,6 +140,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: neutral800,
+        labelStyle: const TextStyle(color: Colors.white),
+        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMedium,
           vertical: spacingMedium,
@@ -180,6 +185,9 @@ class AppTheme {
         shadowColor: Colors.black.withOpacity(0.3),
       ),
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
+        titleLarge: const TextStyle(color: Colors.white),
+        titleMedium: const TextStyle(color: Colors.white),
+        bodyLarge: const TextStyle(color: Colors.white),
         bodyMedium: const TextStyle(color: neutral200),
       ),
     );

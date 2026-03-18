@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 
 class Step4Weeks extends ConsumerWidget {
@@ -14,92 +15,175 @@ class Step4Weeks extends ConsumerWidget {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Selección de Semanas',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            'Calendario de Participación',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.neutral900,
+                ),
           ),
-          const SizedBox(height: 10),
-          const Text('Elige las semanas de participación para cada integrante:'),
-          
-          const SizedBox(height: 20),
+          const SizedBox(height: 8),
+          Text(
+            'Selecciona las semanas que cada integrante asistirá al curso. El precio se ajustará automáticamente.',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppTheme.neutral600,
+                ),
+          ),
+          const SizedBox(height: 32),
 
           ...state.selectedParticipants.map((participant) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 20),
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-                side: BorderSide(color: Colors.grey.shade200),
+            return Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 15,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+                border: Border.all(color: AppTheme.neutral100),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
                       children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: participant.isSocio 
+                              ? AppTheme.primaryColor.withOpacity(0.1)
+                              : AppTheme.vibrantGold.withOpacity(0.1),
+                          child: Icon(
+                            participant.isSocio ? Icons.person_rounded : Icons.person_add_rounded,
+                            color: participant.isSocio ? AppTheme.primaryColor : AppTheme.vibrantGold,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(participant.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(
+                                participant.fullName, 
+                                style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
+                              ),
                               Text(
                                 participant.isSocio 
-                                    ? 'Socio (${participant.member?.membershipNumber})' 
-                                    : 'Invitado',
-                                style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                                    ? 'Socio Activo' 
+                                    : 'Invitado Especial',
+                                style: TextStyle(color: AppTheme.neutral500, fontSize: 11, fontWeight: FontWeight.bold),
                               ),
                             ],
                           ),
                         ),
-                        Text(
-                          formatter.format(participant.totalCost),
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AppTheme.successColor.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            formatter.format(participant.totalCost),
+                            style: const TextStyle(
+                              color: AppTheme.successColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    const Divider(height: 24),
-                    _buildWeeksSelector(participant, notifier),
-                  ],
-                ),
+                  ),
+                  const Divider(height: 1, color: AppTheme.neutral100),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'SEMANAS DISPONIBLES',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.neutral500,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildWeeksSelector(participant, notifier),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             );
           }),
 
-          const SizedBox(height: 30),
+          const SizedBox(height: 20),
           
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor, AppTheme.primaryDark],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Total General', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TOTAL A PAGAR',
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.7),
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Resumen de Orden',
+                      style: TextStyle(color: Colors.white, fontSize: 14),
+                    ),
+                  ],
+                ),
                 Text(
                   formatter.format(state.totalGeneral),
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 28,
                   ),
                 ),
               ],
             ),
           ),
           
-          const SizedBox(height: 20),
+          const SizedBox(height: 40),
         ],
       ),
     );
@@ -107,43 +191,74 @@ class Step4Weeks extends ConsumerWidget {
 
   Widget _buildWeeksSelector(participant, notifier) {
     final weeks = [
-      {'id': 1, 'label': 'Semana 1', 'date': '21 – 25 julio'},
-      {'id': 2, 'label': 'Semana 2', 'date': '28 jul – 1 ago'},
-      {'id': 3, 'label': 'Semana 3', 'date': '4 – 8 ago'},
-      {'id': 4, 'label': 'Semana 4', 'date': '11 – 15 ago'},
-      {'id': 5, 'label': 'Semana 5', 'date': '18 – 22 ago'},
+      {'id': 1, 'label': 'Sem 1', 'date': '21-25 Jul'},
+      {'id': 2, 'label': 'Sem 2', 'date': '28 Jul-01 Ago'},
+      {'id': 3, 'label': 'Sem 3', 'date': '04-08 Ago'},
+      {'id': 4, 'label': 'Sem 4', 'date': '11-15 Ago'},
+      {'id': 5, 'label': 'Sem 5', 'date': '18-22 Ago'},
     ];
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 12,
+    return GridView.count(
+      crossAxisCount: 3,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      mainAxisSpacing: 12,
+      crossAxisSpacing: 12,
+      childAspectRatio: 1.5,
       children: weeks.map((w) {
         final id = w['id'] as int;
         final isSelected = participant.selectedWeekIds.contains(id);
         
-        return ChoiceChip(
-          label: Column(
-            children: [
-              Text(w['label'] as String, style: TextStyle(fontWeight: FontWeight.bold, color: isSelected ? Colors.white : Colors.black)),
-              Text(w['date'] as String, style: TextStyle(fontSize: 10, color: isSelected ? Colors.white70 : Colors.grey)),
-            ],
-          ),
-          selected: isSelected,
-          onSelected: (selected) {
+        return GestureDetector(
+          onTap: () {
             final currentWeeks = List<int>.from(participant.selectedWeekIds);
-            if (selected) {
-              currentWeeks.add(id);
-            } else {
+            if (isSelected) {
               currentWeeks.remove(id);
+            } else {
+              currentWeeks.add(id);
             }
             notifier.updateWeeks(participant.identifier, currentWeeks);
           },
-          selectedColor: Colors.blue.shade700,
-          backgroundColor: Colors.grey.shade100,
-          showCheckmark: false,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.primaryColor : AppTheme.neutral100,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+                width: 1.5,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  w['label'] as String, 
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900, 
+                    fontSize: 12,
+                    color: isSelected ? Colors.white : AppTheme.neutral800,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  w['date'] as String, 
+                  style: TextStyle(
+                    fontSize: 9, 
+                    color: isSelected ? Colors.white.withOpacity(0.8) : AppTheme.neutral500,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
         );
       }).toList(),
     );
   }
 }
+

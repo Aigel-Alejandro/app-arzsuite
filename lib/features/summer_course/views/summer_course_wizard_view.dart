@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/step_indicator.dart';
@@ -18,32 +19,84 @@ class SummerCourseWizardView extends ConsumerWidget {
     final notifier = ref.read(summerCourseProvider.notifier);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Inscripción Curso de Verano'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Step Indicator
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-            child: StepIndicator(currentStep: state.currentStep, totalSteps: 5),
-          ),
-          
-          // Current Step Content
-          Expanded(
-            child: _buildCurrentStep(state.currentStep),
+      backgroundColor: AppTheme.neutral50,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Integrated Header
+            Container(
+              padding: const EdgeInsets.fromLTRB(8, 16, 24, 20),
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: AppTheme.neutral900),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Inscripción 2026',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.neutral900,
+                            letterSpacing: -0.5,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      const SizedBox(width: 48), // Spacer to balance the back button
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: StepIndicator(
+                      currentStep: state.currentStep > 4 ? 4 : state.currentStep, 
+                      totalSteps: 5
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Current Step Content
+            Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 400),
+              transitionBuilder: (Widget child, Animation<double> animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: SlideTransition(
+                    position: Tween<Offset>(
+                      begin: const Offset(0.05, 0),
+                      end: Offset.zero,
+                    ).animate(CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    )),
+                    child: child,
+                  ),
+                );
+              },
+              child: Container(
+                key: ValueKey<int>(state.currentStep),
+                child: _buildCurrentStep(state.currentStep),
+              ),
+            ),
           ),
           
           // Navigation Buttons
           _buildNavigation(context, state, notifier),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildCurrentStep(int step) {
     switch (step) {
@@ -57,27 +110,57 @@ class SummerCourseWizardView extends ConsumerWidget {
   }
 
   Widget _buildNavigation(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier) {
-    if (state.currentStep == 4) return const SizedBox.shrink(); // No nav in step 5 result
+    if (state.salesOrderId != null) return const SizedBox.shrink(); // No nav in success state
     
     return Container(
-      padding: const EdgeInsets.all(20),
-      color: Colors.white,
+      padding: EdgeInsets.fromLTRB(
+        AppTheme.spacingLarge,
+        AppTheme.spacingMedium,
+        AppTheme.spacingLarge,
+        MediaQuery.of(context).padding.bottom + AppTheme.spacingMedium,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           // Back button
           if (state.currentStep > 0)
-            OutlinedButton(
-              onPressed: () => notifier.previousStep(),
-              child: const Text('Anterior'),
+            Expanded(
+              flex: 1,
+              child: OutlinedButton(
+                onPressed: () => notifier.previousStep(),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: AppTheme.neutral200),
+                  foregroundColor: AppTheme.neutral600,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Anterior', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             )
           else
             const SizedBox.shrink(),
 
+          if (state.currentStep > 0) const SizedBox(width: 16),
+          
           // Next button
-          ElevatedButton(
-            onPressed: _isNextDisabled(state) ? null : () => notifier.nextStep(),
-            child: Text(state.currentStep == 3 ? 'Confirmar' : 'Siguiente'),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: _isNextDisabled(state) 
+                  ? null 
+                  : (state.currentStep == 4 ? () => notifier.submitRegistration() : () => notifier.nextStep()),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: AppTheme.primaryColor,
+                disabledBackgroundColor: AppTheme.neutral200,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: Text(
+                state.currentStep == 4 ? 'Generar Orden de Venta' : 'Continuar',
+                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+              ),
+            ),
           ),
         ],
       ),
@@ -86,13 +169,13 @@ class SummerCourseWizardView extends ConsumerWidget {
 
   bool _isNextDisabled(SummerCourseState state) {
     if (state.currentStep == 0) return state.selectedTitular == null;
-    if (state.currentStep == 1) return false; // Paso 2 y 3 son combinados para validar 1 participante
-    if (state.currentStep == 2) return state.selectedParticipants.isEmpty;
+    if (state.currentStep == 1) return state.selectedParticipants.isEmpty;
+    if (state.currentStep == 2) return state.selectedParticipants.isEmpty; // Al menos un participante (socio o invitado)
     if (state.currentStep == 3) {
-      // All participants must have at least one week
       if (state.selectedParticipants.isEmpty) return true;
       return state.selectedParticipants.any((p) => p.selectedWeekIds.isEmpty);
     }
     return false;
   }
 }
+

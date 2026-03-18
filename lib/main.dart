@@ -5,7 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/views/login_view.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  final binding = WidgetsFlutterBinding.ensureInitialized();
 
   // Inicializar Supabase
   await Supabase.initialize(
@@ -13,8 +13,11 @@ void main() async {
     anonKey: 'sb_publishable_z3Iw5Cnoy5F7gHViVwZG2A_455RJrPR',
   );
 
+  // En Flutter Web, a veces hay una condición de carrera con el mecanismo de vsync.
+  // Un pequeño retraso asegura que el motor JS esté listo antes de montar el ProviderScope.
+  await Future.delayed(Duration.zero);
+
   runApp(
-    // ProviderScope es necesario para el manejo de estados e inyección de dependencias con Riverpod
     const ProviderScope(
       child: ArzSuiteApp(),
     ),

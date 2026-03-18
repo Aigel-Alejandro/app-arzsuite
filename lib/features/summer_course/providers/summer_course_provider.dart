@@ -115,7 +115,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       state = state.copyWith(
         isLoading: false, 
         salesOrderId: 'SO-2026-00123',
-        currentStep: 5 // Result step
+        // Permanecemos en el paso actual (4) para mostrar el éxito
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
