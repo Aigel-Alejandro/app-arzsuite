@@ -172,6 +172,92 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
 
   @override
   Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
+
+        if (isMobile) {
+          return _buildListLayout(context);
+        }
+        return _buildCardLayout(context);
+      },
+    );
+  }
+
+  Widget _buildListLayout(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(
+          color: AppTheme.neutral200.withValues(alpha: 0.5),
+          width: 1,
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(widget.icon, color: AppTheme.primaryColor, size: 24),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.title,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.neutral900,
+                              fontSize: 15,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        widget.subtitle,
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: AppTheme.neutral400,
+                  size: 16,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardLayout(BuildContext context) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -193,8 +279,8 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
               ),
             ],
             border: Border.all(
-              color: AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.3 : 0.1), 
-              width: 1
+              color: AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.3 : 0.1),
+              width: 1,
             ),
           ),
           child: Material(
@@ -202,7 +288,7 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
             child: InkWell(
               onTap: widget.onTap,
               borderRadius: BorderRadius.circular(24),
-              hoverColor: AppTheme.primaryColor.withValues(alpha: 0.03), // Subtle blue tint, not plain grey
+              hoverColor: AppTheme.primaryColor.withValues(alpha: 0.03),
               splashColor: AppTheme.primaryColor.withValues(alpha: 0.1),
               highlightColor: Colors.transparent,
               child: Padding(
@@ -253,12 +339,12 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
                         color: _isHovered ? AppTheme.primaryColor : AppTheme.primaryColor.withValues(alpha: 0.9),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
-                           if (_isHovered)
-                             BoxShadow(
-                               color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                               blurRadius: 10,
-                               offset: const Offset(0, 4),
-                             )
+                          if (_isHovered)
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
                         ],
                       ),
                       child: const Center(
@@ -282,4 +368,5 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
     );
   }
 }
+
 
