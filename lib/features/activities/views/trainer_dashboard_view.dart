@@ -81,7 +81,7 @@ class TrainerDashboardView extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTheme.spacingSmall),
                 
-                ResponsiveGrid(
+                Column(
                   children: [
                     _TrainerActionCardPremium(
                       title: 'Pase de Lista',
@@ -95,6 +95,7 @@ class TrainerDashboardView extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: AppTheme.spacingSmall),
                     _TrainerActionCardPremium(
                       title: 'Evaluaciones',
                       subtitle: 'Fútbol Infantil (Sub-12)',
@@ -171,28 +172,21 @@ class _TrainerActionCardPremiumState extends State<_TrainerActionCardPremium> {
         onTap: widget.onTap,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
         child: Container(
-          padding: const EdgeInsets.all(AppTheme.spacingLarge),
+          padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMedium, vertical: AppTheme.spacingSmall + 4),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-            border: Border.all(color: widget.color.withValues(alpha: _isHovered ? 0.3 : 0.05), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: widget.color.withValues(alpha: _isHovered ? 0.15 : 0.03),
-                blurRadius: _isHovered ? 20 : 10,
-                offset: Offset(0, _isHovered ? 8 : 4),
-              )
-            ],
+            borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+            border: Border.all(color: widget.color.withValues(alpha: _isHovered ? 0.3 : 0.08), width: 1.2),
           ),
           child: Row(
             children: [
                Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: widget.color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
                 ),
-                child: Icon(widget.icon, color: widget.color, size: 28),
+                child: Icon(widget.icon, color: widget.color, size: 22),
               ),
               const SizedBox(width: AppTheme.spacingMedium),
               Expanded(
@@ -224,25 +218,18 @@ class _MatchAdminCardPremium extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      padding: const EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
         color: AppTheme.primaryColor,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          )
-        ]
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+              borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
             ),
             child: Column(
               children: [
