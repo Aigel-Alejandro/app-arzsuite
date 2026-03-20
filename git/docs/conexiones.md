@@ -33,6 +33,13 @@ Para las operaciones de la Fase 1 (Piloto Fútbol) y Fase 2, la aplicación cons
 - `POST /api/v1/activities/tournament/match` - Crea o actualiza ubicaciones y marcadores de un partido.
 - `POST /api/v1/activities/chat/{channelId}/send` - Envía mensaje interactivo en chat en vivo.
 
+**Inscripción Curso de Verano:**
+- `GET /api/v1/summer-course/titular` - Buscador de socios titulares por nombre o número de acción.
+- `GET /api/v1/summer-course/relationships` - Obtiene las opciones de catálogo para el parentesco de invitados con el titular.
+- `GET /api/v1/summer-course/titular/{id}/family` - Recupera la lista de beneficiarios enlazados al titular.
+- `POST /api/v1/summer-course/guest` - Valida y pre-registra los datos de un invitado externo.
+- `POST /api/v1/summer-course/registration` - Registra los participantes y genera la Orden de Venta en NetSuite via CakePHP.
+
 **Legales:**
 - `GET /api/v1/terms/latest` - Busca la versión activa del acuerdo para firma o confirmación obligatoria.
 - `POST /api/v1/terms/accept` - Registra la aceptación electrónica del usuario.

@@ -38,6 +38,15 @@ class ApiEndpoints {
   static const String childProfileUpload = "/api/v1/child/documents/upload";
   
   // ---------------------------------------------------------------------------
+  // CURSO DE VERANO
+  // ---------------------------------------------------------------------------
+  static const String summerCourseSearchTitular = "/api/v1/summer-course/titular";
+  static const String summerCourseRelationships = "/api/v1/summer-course/relationships";
+  static const String summerCourseFamily = "/api/v1/summer-course/titular/{id}/family";
+  static const String summerCourseGuest = "/api/v1/summer-course/guest";
+  static const String summerCourseRegister = "/api/v1/summer-course/registration";
+  
+  // ---------------------------------------------------------------------------
   // TÉRMINOS Y CONDICIONES
   // ---------------------------------------------------------------------------
   static const String latestTerms = "/api/v1/terms/latest";
