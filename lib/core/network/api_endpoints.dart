@@ -13,6 +13,8 @@ class ApiEndpoints {
   // AUTH
   // ---------------------------------------------------------------------------
   static const String login = "auth/login";
+  static const String loginSocio = "auth/login-socio";
+  static const String requestSocioCode = "auth/request-socio-code";
   static const String logout = "auth/logout";
   static const String verifyToken = "auth/verify";
 

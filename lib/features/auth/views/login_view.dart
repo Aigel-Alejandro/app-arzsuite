@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import 'package:app_arzsuite/core/network/api_endpoints.dart';
 import 'package:app_arzsuite/core/providers/global_providers.dart';
 import '../../home/views/home_view.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../summer_course/models/member.dart';
-/// Pantalla de login moderna con estética tipo Pinterest.
-/// Diseño limpio, minimalista, con colores sólidos y una tarjeta central.
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Pantalla de login moderna con flujo de dos pasos para Socios.
 class LoginView extends ConsumerStatefulWidget {
   const LoginView({super.key});
 
@@ -22,13 +25,161 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
+  bool _codeSent = false;
+  final LocalAuthentication _localAuth = LocalAuthentication();
+  bool _hasBiometricsSaved = false;
 
   @override
   void initState() {
     super.initState();
-    // Credenciales por defecto para pruebas locales
-    _userController.text = 'admin';
-    _passwordController.text = 'Sistema!Centro2026';
+    // Pre-rellenar para desarrollo
+    assert(() {
+      _userController.text = '2270600';
+      return true;
+    }());
+    _checkSavedBiometrics();
+  }
+
+  Future<void> _checkSavedBiometrics() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool('use_biometrics') ?? false;
+    if (saved && mounted) {
+      setState(() => _hasBiometricsSaved = true);
+      final savedUser = prefs.getString('saved_username');
+      if (savedUser != null) _userController.text = savedUser;
+    }
+  }
+
+  Future<void> _authenticateWithBiometrics() async {
+    try {
+      final isAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
+      if (!isAvailable) return;
+
+      final didAuthenticate = await _localAuth.authenticate(
+        localizedReason: 'Inicia sesión con tu Face ID o Huella Digital',
+      );
+
+      if (didAuthenticate && mounted) {
+        final prefs = await SharedPreferences.getInstance();
+        final savedUser = prefs.getString('saved_username') ?? '2270600';
+
+        ref.read(authProvider.notifier).setLoggedInMember(
+          Member(
+            id: '999',
+            membershipNumber: savedUser,
+            firstName: 'Socio',
+            lastName: 'Identificado',
+            secondLastName: '',
+            memberType: 'Titular',
+            isTitular: true,
+          ),
+        );
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const HomeView()),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error using biometrics: $e');
+    }
+  }
+
+  Future<void> _requestWhatsAppCode() async {
+    final username = _userController.text.trim();
+    if (username.isEmpty) {
+      ToastAlerts.showWarning(context, 'Ingresa tu número de membresía primero');
+      return;
+    }
+    
+    setState(() => _isLoading = true);
+    
+    try {
+      final dio = ref.read(apiClientProvider).dio;
+      final response = await dio.post(
+        ApiEndpoints.requestSocioCode,
+        data: {'username': username},
+      );
+      
+      if (mounted) {
+        setState(() => _codeSent = true);
+        String codeMsg = 'Código enviado por WhatsApp';
+        String? mockCode;
+        if (response.data is Map && response.data['data'] != null && response.data['data']['mock_code'] != null) {
+          mockCode = response.data['data']['mock_code'].toString();
+          codeMsg += ' (Código: $mockCode)';
+        }
+        
+        ToastAlerts.showSuccess(
+          context, 
+          codeMsg,
+          onTap: mockCode != null ? () {
+             setState(() {
+               _passwordController.text = mockCode!;
+             });
+          } : null
+        );
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        String errorMsg = e.response?.data['message'] ?? 'Error al solicitar código';
+        ToastAlerts.showError(context, errorMsg);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() => _isLoading = true);
+      final username = _userController.text.trim();
+      final password = _passwordController.text;
+
+      try {
+        final dio = ref.read(apiClientProvider).dio;
+        final response = await dio.post(
+          ApiEndpoints.loginSocio,
+          data: {
+            'username': username,
+            'password': password,
+            'app_client': 'member_mobile',
+          },
+        );
+
+        if (mounted) {
+          final socioData = response.data['data']['socio'];
+          final mappedMember = Member(
+            id: socioData['id'].toString(),
+            membershipNumber: socioData['entityid'] ?? username,
+            firstName: socioData['fullname'] ?? 'Usuario',
+            lastName: '',
+            secondLastName: '',
+            memberType: 'Titular',
+            isTitular: true,
+            email: socioData['email'],
+            phone: socioData['phone'],
+          );
+          ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
+
+          if (_rememberMe) {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool('use_biometrics', true);
+            await prefs.setString('saved_username', username);
+          }
+
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeView()),
+          );
+        }
+      } on DioException catch (e) {
+        if (mounted) {
+          String errorMsg = e.response?.data['message'] ?? 'Credenciales incorrectas';
+          ToastAlerts.showError(context, errorMsg);
+        }
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -38,97 +189,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
     super.dispose();
   }
 
-  Future<void> _handleLogin() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-
-      final username = _userController.text.trim();
-      final password = _passwordController.text;
-
-      // BYPASS LOCAL: Credenciales de admin para pruebas rápidas
-      if (username == 'admin' && password == 'Sistema!Centro2026') {
-        if (mounted) {
-          ref.read(authProvider.notifier).setLoggedInMember(
-            Member(
-              id: '1234500',
-              membershipNumber: '1234500',
-              firstName: 'JOSE ARTURO',
-              lastName: 'FEREZ',
-              secondLastName: 'VIDAL',
-              memberType: 'Titular',
-              isTitular: true,
-            ),
-          );
-           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeView()),
-          );
-        }
-        return;
-      }
-
-      try {
-        final dio = ref.read(apiClientProvider).dio;
-        // Petición al Sitio 2 enviando el contexto "app_client" para que actúe en consecuencia
-        final response = await dio.post(
-          ApiEndpoints.login,
-          data: {
-            'username': username,
-            'password': password,
-            'app_client': 'member_mobile', // Identificador del Sitio 3
-          },
-        );
-
-        if (mounted) {
-          final mappedMember = Member(
-            id: '1234500', // En caso real: response.data['user']['id'],
-            membershipNumber: username,
-            firstName: 'Usuario',
-            lastName: 'Socio',
-            secondLastName: '',
-            memberType: 'Titular',
-            isTitular: true,
-          );
-          ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
-
-          // Navegar a la pantalla de Home
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const HomeView()),
-          );
-        }
-      } on DioException catch (e) {
-        if (mounted) {
-          // Manejo de errores 401, 404, etc.
-          String errorMsg = e.message ?? 'Error de red';
-          if (e.response != null && e.response?.data is Map) {
-             errorMsg = e.response?.data['message'] ?? e.response?.data['error'] ?? 'Credenciales incorrectas';
-          }
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ Error: $errorMsg'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('❌ Error inesperado: $e'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Detectar si estamos en modo oscuro para ajustar el brillo sutilmente
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -136,154 +198,101 @@ class _LoginViewState extends ConsumerState<LoginView> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppTheme.spacingLarge,
-              vertical: AppTheme.spacingLarge,
-            ),
+            padding: const EdgeInsets.all(AppTheme.spacingLarge),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // CARD Central estilo Pinterest
                   Card(
                     elevation: isDark ? 0 : 5,
-                    shadowColor: Colors.black.withOpacity(0.05),
-                    color: Theme.of(context).cardTheme.color,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal)),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppTheme.spacingLarge,
-                        vertical: AppTheme.spacingLarge * 1.5,
-                      ),
+                      padding: const EdgeInsets.all(AppTheme.spacingLarge),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // LOGO ASSET
                             Center(
-                              child: Container(
+                              child: Image.asset(
+                                'assets/images/logo-centro-libanes.png',
                                 height: 90,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                                ),
-                                child: Image.asset(
-                                  'assets/images/logo-centro-libanes.png',
-                                  fit: BoxFit.contain,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      const Icon(Icons.account_balance_wallet,
-                                          size: 60, color: AppTheme.primaryColor),
-                                ),
+                                errorBuilder: (c, e, s) => const Icon(Icons.account_balance_wallet, size: 60, color: AppTheme.primaryColor),
                               ),
                             ),
                             const SizedBox(height: AppTheme.spacingLarge),
-                            
-                            // TITULO Y MENSAJE
                             Text(
                               'Ecosistema Centro Libanés',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                color: AppTheme.neutral500,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.neutral500),
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
-
-                            // INPUT USUARIO
+                            
                             TextFormField(
                               controller: _userController,
-                              style: const TextStyle(fontSize: 15),
+                              keyboardType: TextInputType.number,
                               decoration: const InputDecoration(
-                                labelText: 'Usuario o Correo',
-                                prefixIcon: Icon(Icons.alternate_email_rounded, size: 20),
+                                labelText: 'Número de Membresía',
+                                prefixIcon: Icon(Icons.badge_outlined, size: 20),
                               ),
-                              validator: (value) =>
-                                  value == null || value.isEmpty ? 'Campo requerido' : null,
+                              validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
                             ),
                             const SizedBox(height: AppTheme.spacingMedium),
 
-                            // INPUT CONTRASEÑA
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              style: const TextStyle(fontSize: 15),
-                              decoration: InputDecoration(
-                                labelText: 'Contraseña',
-                                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility_off_outlined
-                                        : Icons.visibility_outlined,
-                                    size: 20,
-                                    color: AppTheme.neutral500,
+                            if (_codeSent) ...[
+                              TextFormField(
+                                controller: _passwordController,
+                                obscureText: _obscurePassword,
+                                decoration: InputDecoration(
+                                  labelText: 'Código WhatsApp',
+                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                  suffixIcon: IconButton(
+                                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
                                 ),
+                                validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
                               ),
-                              validator: (value) =>
-                                  value == null || value.isEmpty ? 'Campo requerido' : null,
-                            ),
-                            const SizedBox(height: AppTheme.spacingLarge),
+                              const SizedBox(height: AppTheme.spacingLarge),
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _handleLogin,
+                                  child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                                ),
+                                const SizedBox(height: AppTheme.spacingMedium),
+                                TextButton(
+                                  onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                  child: const Text('¿No recibiste el código? Reenviar'),
+                                ),
+                              ] else ...[
+                              ElevatedButton(
+                                onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Continuar y Recibir Código'),
+                              ),
+                            ],
 
-                            // BOTÓN ENTRAR (SOLID)
-                            ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 20),
-                                elevation: 0, // Pinterest-like flat look for buttons
-                              ),
-                              child: _isLoading 
-                                ? const SizedBox(
-                                    height: 24, 
-                                    width: 24, 
-                                    child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                                  )
-                                : const Text(
-                                'Entrar',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                            
                             const SizedBox(height: AppTheme.spacingMedium),
-                            
-                            // RECUPERACIÓN SUTIL
-                            TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                '¿Tienes problemas para entrar?',
-                                style: TextStyle(
-                                  color: AppTheme.neutral500,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
+                            CheckboxListTile(
+                              value: _rememberMe,
+                              onChanged: (v) => setState(() => _rememberMe = v ?? false),
+                              title: const Text('Recordarme y usar Biometría', style: TextStyle(fontSize: 13)),
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: EdgeInsets.zero,
                             ),
+                            
+                            if (_hasBiometricsSaved && !_codeSent) ...[
+                              OutlinedButton.icon(
+                                onPressed: _authenticateWithBiometrics,
+                                icon: const Icon(Icons.fingerprint),
+                                label: const Text('Ingresar con Biometría'),
+                              ),
+                            ],
                           ],
                         ),
                       ),
                     ),
                   ),
-                  
-                  // FOOTER EXTERNO AL CARD
                   const SizedBox(height: AppTheme.spacingLarge),
-                  Text(
-                    '© 2026 ArzSuite. Todos los derechos reservados.',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppTheme.neutral400,
-                        ),
-                  ),
+                  const Text('© 2026 ArzSuite. Todos los derechos reservados.', style: TextStyle(color: AppTheme.neutral400, fontSize: 12)),
                 ],
               ),
             ),

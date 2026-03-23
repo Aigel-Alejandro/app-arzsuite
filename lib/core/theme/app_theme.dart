@@ -3,14 +3,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized application theme adapting styles from styles.scss
 class AppTheme {
-  // Centro Primary Colors (Updated to match reference image)
-  static const Color primaryColor = Color(0xFF9C842B); // Dorado/Olivo - Botón principal
+  // Centro Primary Colors (Respetado como principal pero para acentos sutiles)
+  static const Color primaryColor = Color(0xFFA3892F); // Un dorado un poco más refinado/suave
   static const Color primaryDark = Color(0xFF7A6822); 
-  static const Color accentGold = Color(0xFF9C842B);
+  static const Color accentGold = Color(0xFFA3892F);
   static const Color vibrantGold = Color(0xFFB39716);
 
-  // Secondary Color (Reference: prices and check icons)
-  static const Color secondaryColor = Color(0xFF1B4D4D); // Teal/Cyan Obscuro
+  // Secondary Color (Referencia: Gris Carbón casi Negro en lugar de Teal para mayor elegancia)
+  static const Color secondaryColor = Color(0xFF1E1E1E);
 
   // Alert Colors
   static const Color successColor = Color(0xFF43B581);
@@ -69,8 +69,8 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: neutral50,
       appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Color(0xFFFDFDFD),
+        backgroundColor: Colors.transparent, // AppBar limpia y neutral
+        foregroundColor: neutral900,         // Texto oscuro
         elevation: 0,
         centerTitle: true,
       ),
