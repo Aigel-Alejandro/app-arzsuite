@@ -60,23 +60,23 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        surface: Colors.white,
+        surface: Color(0xFFFDFDFD), // Casi blanco, pero no total
         error: dangerColor,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
+        onPrimary: Color(0xFFFDFDFD),
+        onSecondary: Color(0xFFFDFDFD),
         onSurface: neutral900,
-        onError: Colors.white,
+        onError: Color(0xFFFDFDFD),
       ),
       scaffoldBackgroundColor: neutral50,
       appBarTheme: const AppBarTheme(
         backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+        foregroundColor: Color(0xFFFDFDFD),
         elevation: 0,
         centerTitle: true,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: const Color(0xFFFDFDFD),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMedium,
           vertical: spacingMedium,
@@ -101,7 +101,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: const Color(0xFFFDFDFD),
           padding: const EdgeInsets.symmetric(
             horizontal: spacingLarge,
             vertical: spacingMedium,
@@ -112,12 +112,12 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: Colors.white,
+        color: const Color(0xFFFDFDFD),
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusGlobal),
         ),
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: neutral900.withValues(alpha: 0.1),
       ),
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
         bodyMedium: const TextStyle(color: neutral800),

@@ -22,6 +22,14 @@ class _LoginViewState extends ConsumerState<LoginView> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Credenciales por defecto para pruebas locales
+    _userController.text = 'admin';
+    _passwordController.text = 'Sistema!Centro2026';
+  }
+
+  @override
   void dispose() {
     _userController.dispose();
     _passwordController.dispose();
@@ -32,14 +40,27 @@ class _LoginViewState extends ConsumerState<LoginView> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
 
+      final username = _userController.text.trim();
+      final password = _passwordController.text;
+
+      // BYPASS LOCAL: Credenciales de admin para pruebas rápidas
+      if (username == 'admin' && password == 'Sistema!Centro2026') {
+        if (mounted) {
+           Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeView()),
+          );
+        }
+        return;
+      }
+
       try {
         final dio = ref.read(apiClientProvider).dio;
         // Petición al Sitio 2 enviando el contexto "app_client" para que actúe en consecuencia
         final response = await dio.post(
           ApiEndpoints.login,
           data: {
-            'username': _userController.text.trim(),
-            'password': _passwordController.text,
+            'username': username,
+            'password': password,
             'app_client': 'member_mobile', // Identificador del Sitio 3
           },
         );

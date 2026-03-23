@@ -22,18 +22,37 @@ class ChildDetailProfileView extends StatelessWidget {
           appBar: AppBar(
             title: Text(
                childName,
-               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, letterSpacing: -0.5),
+               style: const TextStyle(
+                 fontWeight: FontWeight.w900, 
+                 fontSize: 22, 
+                 letterSpacing: -0.5,
+               ),
             ),
             centerTitle: true,
             elevation: 0,
             backgroundColor: AppTheme.primaryColor,
-            foregroundColor: Colors.white,
+            foregroundColor: const Color(0xFFFDFDFD),
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(AppTheme.borderRadiusGlobal),
+              ),
+            ),
             bottom: const TabBar(
-              indicatorColor: AppTheme.vibrantGold,
+              indicatorColor: Color(0xFFFDFDFD),
+              indicatorSize: TabBarIndicatorSize.label,
               indicatorWeight: 4,
-              labelStyle: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 0.5),
-              unselectedLabelStyle: TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
-              unselectedLabelColor: Colors.white70,
+              dividerColor: Colors.transparent,
+              labelStyle: TextStyle(
+                fontWeight: FontWeight.w900, 
+                fontSize: 12, 
+                letterSpacing: 0.8,
+              ),
+              unselectedLabelStyle: TextStyle(
+                fontWeight: FontWeight.w600, 
+                fontSize: 12,
+              ),
+              unselectedLabelColor: Color(0x99FDFDFD),
+              labelColor: Color(0xFFFDFDFD),
               tabs: [
                 Tab(text: 'ACTIVIDADES'),
                 Tab(text: 'TORNEOS'),
@@ -42,6 +61,7 @@ class ChildDetailProfileView extends StatelessWidget {
             ),
           ),
           body: const TabBarView(
+            physics: BouncingScrollPhysics(),
             children: [
               ActivitiesListView(isSubscribed: true, useLayout: false),
               _TournamentsTabPremium(),
