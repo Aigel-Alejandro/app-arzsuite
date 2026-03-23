@@ -3,31 +3,32 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Centralized application theme adapting styles from styles.scss
 class AppTheme {
-  // Centro Primary Colors (Respetado como principal pero para acentos sutiles)
-  static const Color primaryColor = Color(0xFFA3892F); // Un dorado un poco más refinado/suave
-  static const Color primaryDark = Color(0xFF7A6822); 
+  // Brand Colors (Logo Gold as Primary)
+  static const Color primaryColor = Color(0xFFA3892F); // Dorado Institucional
+  static const Color primaryDark = Color(0xFF7A6822);  
+  static const Color secondaryColor = Color(0xFF406EBA); // Azul como secundario/acento
   static const Color accentGold = Color(0xFFA3892F);
   static const Color vibrantGold = Color(0xFFB39716);
 
-  // Secondary Color (Referencia: Gris Carbón casi Negro en lugar de Teal para mayor elegancia)
-  static const Color secondaryColor = Color(0xFF1E1E1E);
 
   // Alert Colors
   static const Color successColor = Color(0xFF43B581);
   static const Color warningColor = Color(0xFFF4D35E);
   static const Color dangerColor = Color(0xFFDA3E3E);
 
-  // Neutral Colors
-  static const Color neutral900 = Color(0xFF141414);
-  static const Color neutral800 = Color(0xFF373737);
-  static const Color neutral700 = Color(0xFF5B5B5B);
-  static const Color neutral600 = Color(0xFF727272);
-  static const Color neutral500 = Color(0xFF8A8A8A);
-  static const Color neutral400 = Color(0xFFA1A1A1);
-  static const Color neutral300 = Color(0xFFB9B9B9);
-  static const Color neutral200 = Color(0xFFD0D0D0);
-  static const Color neutral100 = Color(0xFFE8E8E8);
-  static const Color neutral50 = Color(0xFFF6F6F6);
+  // Neutral Colors (Softer grays for better UX/UI)
+  static const Color neutral900 = Color(0xFF1D1C1C); // Deep Charcoal (Not pure black)
+  static const Color neutral800 = Color(0xFF333333); // Main Text Gray
+  static const Color neutral700 = Color(0xFF525252);
+  static const Color neutral600 = Color(0xFF737373);
+  static const Color neutral500 = Color(0xFF8F8F8F);
+  static const Color neutral400 = Color(0xFFA3A3A3);
+  static const Color neutral300 = Color(0xFFD4D4D4);
+  static const Color neutral200 = Color(0xFFE5E5E5);
+  static const Color neutral100 = Color(0xFFF5F5F5); // Off-white for Dark Mode text
+  static const Color neutral50 = Color(0xFFF6F6F6);  // Original light gray for backgrounds
+  static const Color surfaceColor = Color(0xFFFDFDFD); // High-quality surface (for Cards)
+
 
   // Border Radiuses
   static const double borderRadiusSmall = 8.0;
@@ -60,23 +61,23 @@ class AppTheme {
       colorScheme: const ColorScheme.light(
         primary: primaryColor,
         secondary: secondaryColor,
-        surface: Color(0xFFFDFDFD), // Casi blanco, pero no total
+        surface: surfaceColor, 
         error: dangerColor,
-        onPrimary: Color(0xFFFDFDFD),
-        onSecondary: Color(0xFFFDFDFD),
+        onPrimary: surfaceColor,
+        onSecondary: surfaceColor,
         onSurface: neutral900,
-        onError: Color(0xFFFDFDFD),
+        onError: surfaceColor,
       ),
       scaffoldBackgroundColor: neutral50,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent, // AppBar limpia y neutral
-        foregroundColor: neutral900,         // Texto oscuro
+        backgroundColor: Colors.transparent,
+        foregroundColor: neutral900,
         elevation: 0,
         centerTitle: true,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFFDFDFD),
+        fillColor: surfaceColor,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMedium,
           vertical: spacingMedium,
@@ -101,7 +102,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: const Color(0xFFFDFDFD),
+          foregroundColor: surfaceColor,
           padding: const EdgeInsets.symmetric(
             horizontal: spacingLarge,
             vertical: spacingMedium,
@@ -112,15 +113,20 @@ class AppTheme {
         ),
       ),
       cardTheme: CardThemeData(
-        color: const Color(0xFFFDFDFD),
+        color: surfaceColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusGlobal),
         ),
         shadowColor: neutral900.withValues(alpha: 0.1),
       ),
+
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
+        titleLarge: const TextStyle(color: neutral900, fontWeight: FontWeight.bold),
+        titleMedium: const TextStyle(color: neutral900, fontWeight: FontWeight.w600),
+        bodyLarge: const TextStyle(color: neutral800),
         bodyMedium: const TextStyle(color: neutral800),
+        bodySmall: const TextStyle(color: neutral700),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: <TargetPlatform, PageTransitionsBuilder>{
@@ -145,23 +151,23 @@ class AppTheme {
         secondary: secondaryColor,
         surface: neutral800,
         error: dangerColor,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: Colors.white,
-        onError: Colors.white,
+        onPrimary: neutral100,
+        onSecondary: neutral100,
+        onSurface: neutral100,
+        onError: neutral100,
       ),
       scaffoldBackgroundColor: neutral900,
       appBarTheme: const AppBarTheme(
         backgroundColor: neutral800,
-        foregroundColor: Colors.white,
+        foregroundColor: neutral100,
         elevation: 0,
         centerTitle: true,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: neutral800,
-        labelStyle: const TextStyle(color: Colors.white),
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+        labelStyle: const TextStyle(color: neutral100),
+        hintStyle: TextStyle(color: neutral100.withOpacity(0.5)),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: spacingMedium,
           vertical: spacingMedium,
@@ -186,7 +192,7 @@ class AppTheme {
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
+          foregroundColor: neutral100,
           padding: const EdgeInsets.symmetric(
             horizontal: spacingLarge,
             vertical: spacingMedium,
@@ -205,10 +211,11 @@ class AppTheme {
         shadowColor: Colors.black.withOpacity(0.3),
       ),
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
-        titleLarge: const TextStyle(color: Colors.white),
-        titleMedium: const TextStyle(color: Colors.white),
-        bodyLarge: const TextStyle(color: Colors.white),
+        titleLarge: const TextStyle(color: neutral100, fontWeight: FontWeight.bold),
+        titleMedium: const TextStyle(color: neutral100, fontWeight: FontWeight.w600),
+        bodyLarge: const TextStyle(color: neutral100),
         bodyMedium: const TextStyle(color: neutral200),
+        bodySmall: const TextStyle(color: neutral300),
       ),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: <TargetPlatform, PageTransitionsBuilder>{

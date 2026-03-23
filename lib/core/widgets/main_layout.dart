@@ -22,16 +22,24 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   void _onItemSelected(int index) {
     if (widget.activeIndex == index) return;
+    
+    PageRouteBuilder? route;
     if (index == 0) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomeView()),
-        (route) => false,
+      route = PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const HomeView(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       );
     } else if (index == 1) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const ActivitiesDashboardView()),
-        (route) => false,
+      route = PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const ActivitiesDashboardView(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
       );
+    }
+
+    if (route != null) {
+      Navigator.of(context).pushAndRemoveUntil(route, (route) => false);
     }
   }
 

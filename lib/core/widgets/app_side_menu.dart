@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 
-class AppIslandMenu extends StatelessWidget {
+class AppIslandMenu extends StatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
   final VoidCallback? onLogout;
@@ -16,8 +16,41 @@ class AppIslandMenu extends StatelessWidget {
   });
 
   @override
+  State<AppIslandMenu> createState() => _AppIslandMenuState();
+}
+
+class _AppIslandMenuState extends State<AppIslandMenu> {
+  late int _currentIndex;
+  bool _isNavigating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.selectedIndex;
+  }
+
+  void _handleTap(int index) {
+    if (index == _currentIndex || _isNavigating) return;
+    
+    setState(() {
+      _currentIndex = index;
+      _isNavigating = true; // Prevent double taps during animation
+    });
+
+    // Animate for 350ms before changing the page (Creates a seamless illusion)
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) {
+        setState(() => _isNavigating = false);
+        widget.onItemSelected(index);
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return isDesktop ? _buildDesktopIsland(context) : _buildMobileIsland(context);
+    return widget.isDesktop
+        ? _buildDesktopIsland(context)
+        : _buildMobileIsland(context);
   }
 
   Widget _buildDesktopIsland(BuildContext context) {
@@ -50,17 +83,18 @@ class AppIslandMenu extends StatelessWidget {
               child: Column(
                 children: [
                   _IslandTabItem(
-                    icon: Icons.grid_view_rounded, // Matches the reference image style
+                    icon: Icons
+                        .grid_view_rounded, // Matches the reference image style
                     label: 'Inicio',
-                    isSelected: selectedIndex == 0,
-                    onTap: () => onItemSelected(0),
+                    isSelected: _currentIndex == 0,
+                    onTap: () => _handleTap(0),
                     isDesktop: true,
                   ),
                   _IslandTabItem(
                     icon: Icons.sports_tennis_rounded,
                     label: 'Actividades',
-                    isSelected: selectedIndex == 1,
-                    onTap: () => onItemSelected(1),
+                    isSelected: _currentIndex == 1,
+                    onTap: () => _handleTap(1),
                     isDesktop: true,
                   ),
                 ],
@@ -73,7 +107,7 @@ class AppIslandMenu extends StatelessWidget {
             label: 'Salir',
             isSelected: false,
             isDestructive: true,
-            onTap: onLogout ?? () {},
+            onTap: widget.onLogout ?? () {},
             isDesktop: true,
           ),
           const SizedBox(height: 24),
@@ -83,56 +117,91 @@ class AppIslandMenu extends StatelessWidget {
   }
 
   Widget _buildMobileIsland(BuildContext context) {
+    const int totalItems = 3;
+    final scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Container(
       height: 64,
       width: double.infinity,
-      margin: const EdgeInsets.only(
-        left: AppTheme.spacingMedium,
-        right: AppTheme.spacingMedium,
-        bottom: AppTheme.spacingLarge,
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingMedium,
+        vertical: AppTheme.spacingLarge,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.98),
-        borderRadius: BorderRadius.circular(32), // stadium shape
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
-        border: Border.all(
-          color: AppTheme.neutral200.withValues(alpha: 0.5),
-          width: 0.5,
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _IslandTabItem(
-            icon: Icons.grid_view_rounded,
-            label: 'Inicio',
-            isSelected: selectedIndex == 0,
-            onTap: () => onItemSelected(0),
-            isDesktop: false,
-          ),
-          _IslandTabItem(
-            icon: Icons.sports_tennis_rounded,
-            label: 'Actividades',
-            isSelected: selectedIndex == 1,
-            onTap: () => onItemSelected(1),
-            isDesktop: false,
-          ),
-          _IslandTabItem(
-            icon: Icons.logout_rounded,
-            label: 'Salir',
-            isSelected: false,
-            isDestructive: true,
-            onTap: onLogout ?? () {},
-            isDesktop: false,
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final double itemWidth = constraints.maxWidth / totalItems;
+          
+          return TweenAnimationBuilder<double>(
+            tween: Tween<double>(end: _currentIndex.toDouble()),
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.fastOutSlowIn,
+            builder: (context, animIndex, child) {
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Smooth Custom Painted Background with Moving Notch
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: _CurvedBarPainter(
+                        index: animIndex,
+                        itemWidth: itemWidth,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  // Floating Background Circle (Moves in perfect sync with the notch)
+                  Positioned(
+                    left: (animIndex * itemWidth) + (itemWidth / 2) - 24,
+                    top: -22,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                  // Normal Tab Content - Wrapped in Positioned.fill for correct ParentData
+                  Positioned.fill(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _IslandTabItem(
+                            icon: Icons.grid_view_rounded,
+                            label: 'Inicio',
+                            isSelected: _currentIndex == 0,
+                            onTap: () => _handleTap(0),
+                            isDesktop: false,
+                          ),
+                        ),
+                        Expanded(
+                          child: _IslandTabItem(
+                            icon: Icons.sports_tennis_rounded,
+                            label: 'Actividades',
+                            isSelected: _currentIndex == 1,
+                            onTap: () => _handleTap(1),
+                            isDesktop: false,
+                          ),
+                        ),
+                        Expanded(
+                          child: _IslandTabItem(
+                            icon: Icons.logout_rounded,
+                            label: 'Salir',
+                            isSelected: false,
+                            isDestructive: true,
+                            onTap: widget.onLogout ?? () {},
+                            isDesktop: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -141,7 +210,7 @@ class AppIslandMenu extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.1),
+        color: AppTheme.primaryColor.withOpacity(0.1),
         shape: BoxShape.circle,
       ),
       child: const Icon(
@@ -180,21 +249,24 @@ class _IslandTabItemState extends State<_IslandTabItem> {
   @override
   Widget build(BuildContext context) {
     // Determine colors based on state
-    final Color activeColor = widget.isDestructive ? AppTheme.dangerColor : AppTheme.primaryColor;
+    final Color activeColor = widget.isDestructive
+        ? AppTheme.dangerColor
+        : AppTheme.primaryColor;
     final Color inactiveColor = AppTheme.neutral500;
-    
-    final Color color = widget.isSelected ? activeColor : (widget.isDestructive && _isHovered ? AppTheme.dangerColor : inactiveColor);
-    
-    Widget content = MouseRegion(
+
+    final Color color = widget.isSelected
+        ? activeColor
+        : (widget.isDestructive && _isHovered
+              ? AppTheme.dangerColor
+              : inactiveColor);
+
+    return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: widget.isDesktop ? _buildDesktopItem(color) : _buildMobileItem(color),
+      child: widget.isDesktop
+          ? _buildDesktopItem(color)
+          : _buildMobileItem(context),
     );
-
-    if (!widget.isDesktop) {
-      return Expanded(child: content);
-    }
-    return content;
   }
 
   Widget _buildDesktopItem(Color color) {
@@ -207,12 +279,18 @@ class _IslandTabItemState extends State<_IslandTabItem> {
             borderRadius: BorderRadius.circular(20),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(8), // Reduced from 12
               decoration: BoxDecoration(
-                color: widget.isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+                color: widget.isSelected
+                    ? AppTheme.primaryColor.withOpacity(0.1)
+                    : Colors.transparent,
                 shape: BoxShape.circle,
               ),
-              child: Icon(widget.icon, size: 22, color: color),
+              child: Icon(
+                widget.icon,
+                size: 20,
+                color: color,
+              ), // Reduced from 22
             ),
           ),
           AnimatedOpacity(
@@ -224,7 +302,7 @@ class _IslandTabItemState extends State<_IslandTabItem> {
                 widget.label,
                 style: TextStyle(
                   color: color,
-                  fontSize: 10,
+                  fontSize: 12, // Increased as requested
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -235,38 +313,144 @@ class _IslandTabItemState extends State<_IslandTabItem> {
     );
   }
 
-  Widget _buildMobileItem(Color color) {
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(24),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            decoration: BoxDecoration(
-              color: widget.isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(24), // Perfectly rounded pill
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(widget.icon, size: 22, color: color),
-                const SizedBox(height: 4),
-                Text(
-                  widget.label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 10,
-                    fontWeight: widget.isSelected ? FontWeight.w800 : FontWeight.w500,
-                  ),
-                ),
-              ],
+  Widget _buildMobileItem(BuildContext context) {
+    final Color inactiveColor = AppTheme.neutral500;
+    final Color textColor = widget.isSelected
+        ? AppTheme.neutral900
+        : inactiveColor;
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        clipBehavior: Clip.none,
+        fit: StackFit.expand,
+        children: [
+          // Icon - Moves UP smoothly to sit inside the floating circle
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.fastOutSlowIn,
+            top: widget.isSelected ? -10.0 : 12.0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Icon(
+                widget.icon,
+                size: 24,
+                color: widget.isSelected ? Colors.white : inactiveColor,
+              ),
             ),
           ),
-        ),
+          // Label - Centered at the bottom
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.fastOutSlowIn,
+            bottom: widget.isSelected ? 8.0 : 10.0,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                widget.label,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 12,
+                  letterSpacing: -0.2,
+                  fontWeight: widget.isSelected
+                      ? FontWeight.w800
+                      : FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+}
+
+class _CurvedBarPainter extends CustomPainter {
+  final double index;
+  final double itemWidth;
+  final Color color;
+
+  _CurvedBarPainter({
+    required this.index,
+    required this.itemWidth,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.06)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+
+    // 1. Draw the base pill shape
+    final RRect hostRRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      const Radius.circular(24.0),
+    );
+    final Path hostPath = Path()..addRRect(hostRRect);
+
+    // 2. Exact center of the current selected notch
+    final double notchCenter = (index * itemWidth) + (itemWidth / 2);
+
+    // Geometry for the bezier notch
+    const double notchDepth = 28.0;
+    const double notchHalfWidth = 42.0;
+
+    // 3. Draw the notch cut-out shape
+    final Path notchPath = Path();
+    notchPath.moveTo(notchCenter - 48, 0);
+    
+    // Left flare corner
+    notchPath.quadraticBezierTo(
+      notchCenter - 36, 0,
+      notchCenter - 29.5, 8,
+    );
+    
+    // Circular gap perfectly encompassing the 48px gold circle
+    // The gold circle center is at Y=2 relative to this canvas, with radius 24.
+    // This arc uses radius 30, creating a mathematically perfect 6px gap all around.
+    notchPath.arcToPoint(
+      Offset(notchCenter + 29.5, 8),
+      radius: const Radius.circular(30),
+      clockwise: false,
+    );
+    
+    // Right flare corner
+    notchPath.quadraticBezierTo(
+      notchCenter + 36, 0,
+      notchCenter + 48, 0,
+    ); // Close the polygon upward to subtract the notch completely from the top edge
+    notchPath.lineTo(notchCenter + 64, -100);
+    notchPath.lineTo(notchCenter - 64, -100);
+    notchPath.close();
+
+    // 4. Subtract the notch from the pill
+    final Path finalPath = Path.combine(
+      PathOperation.difference,
+      hostPath,
+      notchPath,
+    );
+
+    // Draw shadow translated exactly below the bar
+    canvas.save();
+    canvas.translate(0, 8);
+    canvas.drawPath(finalPath, shadowPaint);
+    canvas.restore();
+
+    // Draw white bar
+    canvas.drawPath(finalPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _CurvedBarPainter oldDelegate) {
+    return oldDelegate.index != index || oldDelegate.itemWidth != itemWidth;
   }
 }
