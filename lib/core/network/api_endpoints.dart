@@ -55,4 +55,15 @@ class ApiEndpoints {
   // ---------------------------------------------------------------------------
   static const String latestTerms = "/api/v1/terms/latest";
   static const String acceptTerms = "/api/v1/terms/accept";
+  
+  // ---------------------------------------------------------------------------
+  // API WHATSAPP (YUPIO DELIVERY SERVICE)
+  // --- Servicio externo para el envío de notificaciones por WhatsApp.
+  // ---------------------------------------------------------------------------
+  static const String baseUrlWhatsApp = "https://template-delivery-service.yupio.com.mx/api/v1/";
+  static const String whatsappSend = "whatsapp/send";
+  
+  // Credenciales WhatsApp (Pruebas)
+  static const String whatsappUserName = "CentroLibanesTest";
+  static const String whatsappAuthToken = "0ad25924-8f6d-4c25-bd4f-f2615bffa589";
 }

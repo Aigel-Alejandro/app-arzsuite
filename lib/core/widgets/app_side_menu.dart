@@ -185,11 +185,16 @@ class _IslandTabItemState extends State<_IslandTabItem> {
     
     final Color color = widget.isSelected ? activeColor : (widget.isDestructive && _isHovered ? AppTheme.dangerColor : inactiveColor);
     
-    return MouseRegion(
+    Widget content = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: widget.isDesktop ? _buildDesktopItem(color) : _buildMobileItem(color),
     );
+
+    if (!widget.isDesktop) {
+      return Expanded(child: content);
+    }
+    return content;
   }
 
   Widget _buildDesktopItem(Color color) {
@@ -231,35 +236,33 @@ class _IslandTabItemState extends State<_IslandTabItem> {
   }
 
   Widget _buildMobileItem(Color color) {
-    return Expanded(
-      child: Center(
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(24),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-              decoration: BoxDecoration(
-                color: widget.isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
-                borderRadius: BorderRadius.circular(24), // Perfectly rounded pill
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(widget.icon, size: 22, color: color),
-                  const SizedBox(height: 4),
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 10,
-                      fontWeight: widget.isSelected ? FontWeight.w800 : FontWeight.w500,
-                    ),
+    return Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            decoration: BoxDecoration(
+              color: widget.isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(24), // Perfectly rounded pill
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(widget.icon, size: 22, color: color),
+                const SizedBox(height: 4),
+                Text(
+                  widget.label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 10,
+                    fontWeight: widget.isSelected ? FontWeight.w800 : FontWeight.w500,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

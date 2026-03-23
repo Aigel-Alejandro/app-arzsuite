@@ -6,7 +6,6 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/step_indicator.dart';
-import 'package:app_arzsuite/features/summer_course/views/steps/step1_search_titular.dart';
 import 'package:app_arzsuite/features/summer_course/views/steps/step2_beneficiaries.dart';
 import 'package:app_arzsuite/features/summer_course/views/steps/step3_guests.dart';
 import 'package:app_arzsuite/features/summer_course/views/steps/step4_weeks.dart';
@@ -62,8 +61,8 @@ class SummerCourseWizardView extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: StepIndicator(
-                        currentStep: state.currentStep > 4 ? 4 : state.currentStep, 
-                        totalSteps: 5
+                        currentStep: state.currentStep > 3 ? 3 : state.currentStep, 
+                        totalSteps: 4
                       ),
                     ),
                   ],
@@ -108,12 +107,11 @@ class SummerCourseWizardView extends ConsumerWidget {
 
   Widget _buildCurrentStep(int step) {
     switch (step) {
-      case 0: return const Step1SearchTitular();
-      case 1: return const Step2Beneficiaries();
-      case 2: return const Step3Guests();
-      case 3: return const Step4Weeks();
-      case 4: return const Step5Confirmation();
-      default: return const Step1SearchTitular();
+      case 0: return const Step2Beneficiaries();
+      case 1: return const Step3Guests();
+      case 2: return const Step4Weeks();
+      case 3: return const Step5Confirmation();
+      default: return const Step2Beneficiaries();
     }
   }
 
@@ -157,7 +155,7 @@ class SummerCourseWizardView extends ConsumerWidget {
             child: ElevatedButton(
               onPressed: _isNextDisabled(state) 
                   ? null 
-                  : (state.currentStep == 4 ? () => notifier.submitRegistration() : () => notifier.nextStep()),
+                  : (state.currentStep == 3 ? () => notifier.submitRegistration() : () => notifier.nextStep()),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: AppTheme.primaryColor,
@@ -165,7 +163,7 @@ class SummerCourseWizardView extends ConsumerWidget {
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
-                state.currentStep == 4 ? 'Generar Orden de Venta' : 'Continuar',
+                state.currentStep == 3 ? 'Generar Orden de Venta' : 'Continuar',
                 style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
               ),
             ),
@@ -176,10 +174,9 @@ class SummerCourseWizardView extends ConsumerWidget {
   }
 
   bool _isNextDisabled(SummerCourseState state) {
-    if (state.currentStep == 0) return state.selectedTitular == null;
-    if (state.currentStep == 1) return state.selectedParticipants.isEmpty;
-    if (state.currentStep == 2) return state.selectedParticipants.isEmpty; // Al menos un participante (socio o invitado)
-    if (state.currentStep == 3) {
+    if (state.currentStep == 0) return state.selectedParticipants.isEmpty;
+    if (state.currentStep == 1) return state.selectedParticipants.isEmpty; // Al menos un participante (socio o invitado)
+    if (state.currentStep == 2) {
       if (state.selectedParticipants.isEmpty) return true;
       return state.selectedParticipants.any((p) => p.selectedWeekIds.isEmpty);
     }

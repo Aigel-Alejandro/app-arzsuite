@@ -4,15 +4,19 @@ import 'package:dio/dio.dart';
 class ApiClient {
   final Dio _dio;
 
-  ApiClient({required String baseUrl}) : _dio = Dio(BaseOptions(
-    baseUrl: baseUrl,
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 15),
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    },
-  )) {
+  ApiClient({
+    required String baseUrl,
+    Map<String, String>? additionalHeaders,
+  }) : _dio = Dio(BaseOptions(
+          baseUrl: baseUrl,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            ...?additionalHeaders,
+          },
+        )) {
     // Interceptores para manejo de tokens, logging, etc.
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {

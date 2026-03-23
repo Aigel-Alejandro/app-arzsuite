@@ -43,3 +43,10 @@ Para las operaciones de la Fase 1 (Piloto Fútbol) y Fase 2, la aplicación cons
 **Legales:**
 - `GET /api/v1/terms/latest` - Busca la versión activa del acuerdo para firma o confirmación obligatoria.
 - `POST /api/v1/terms/accept` - Registra la aceptación electrónica del usuario.
+
+### 4. API de WhatsApp (Yupio Delivery)
+Servicio externo para el envío de notificaciones por WhatsApp.
+- **Documentación Completa:** [API de WhatsApp](./whatsapp_api.md)
+- **App Name:** `CentroLibanesTest`
+- **Base URL:** `https://template-delivery-service.yupio.com.mx/api/v1/whatsapp/send`
+

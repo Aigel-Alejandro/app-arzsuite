@@ -13,6 +13,19 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 // -----------------------------------------------------------------------------
+// WHATSAPP API CLIENT (YUPIO DELIVERY)
+// -----------------------------------------------------------------------------
+final whatsappClientProvider = Provider<ApiClient>((ref) {
+  return ApiClient(
+    baseUrl: ApiEndpoints.baseUrlWhatsApp,
+    additionalHeaders: {
+      'UserName': ApiEndpoints.whatsappUserName,
+      'AuthenticationToken': ApiEndpoints.whatsappAuthToken,
+    },
+  );
+});
+
+// -----------------------------------------------------------------------------
 // SUPABASE (Ejemplo, si existiera)
 // -----------------------------------------------------------------------------
 // final supabaseClientProvider = Provider<SupabaseClient>((ref) {

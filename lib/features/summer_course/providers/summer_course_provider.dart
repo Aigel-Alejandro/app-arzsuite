@@ -3,16 +3,20 @@ import '../models/summer_course_state.dart';
 import '../models/member.dart';
 import '../models/guest.dart';
 import '../models/registration_participant.dart';
+import '../../../core/providers/auth_provider.dart';
 
 class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
-  SummerCourseNotifier() : super(const SummerCourseState());
-
+  SummerCourseNotifier(Member? loggedInUser) : super(const SummerCourseState()) {
+    if (loggedInUser != null) {
+      selectTitular(loggedInUser);
+    }
+  }
   void setStep(int step) {
     state = state.copyWith(currentStep: step);
   }
 
   void nextStep() {
-    if (state.currentStep < 4) {
+    if (state.currentStep < 3) {
       state = state.copyWith(currentStep: state.currentStep + 1);
     }
   }
@@ -115,7 +119,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       state = state.copyWith(
         isLoading: false, 
         salesOrderId: 'SO-2026-00123',
-        // Permanecemos en el paso actual (4) para mostrar el éxito
+        // Permanecemos en el paso actual (3) para mostrar el éxito
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -123,6 +127,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
   }
 }
 
-final summerCourseProvider = StateNotifierProvider<SummerCourseNotifier, SummerCourseState>((ref) {
-  return SummerCourseNotifier();
+final summerCourseProvider = StateNotifierProvider.autoDispose<SummerCourseNotifier, SummerCourseState>((ref) {
+  final user = ref.watch(authProvider);
+  return SummerCourseNotifier(user);
 });

@@ -5,7 +5,8 @@ import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/network/api_endpoints.dart';
 import 'package:app_arzsuite/core/providers/global_providers.dart';
 import '../../home/views/home_view.dart';
-
+import '../../../core/providers/auth_provider.dart';
+import '../../summer_course/models/member.dart';
 /// Pantalla de login moderna con estética tipo Pinterest.
 /// Diseño limpio, minimalista, con colores sólidos y una tarjeta central.
 class LoginView extends ConsumerStatefulWidget {
@@ -20,6 +21,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _userController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -46,6 +48,17 @@ class _LoginViewState extends ConsumerState<LoginView> {
       // BYPASS LOCAL: Credenciales de admin para pruebas rápidas
       if (username == 'admin' && password == 'Sistema!Centro2026') {
         if (mounted) {
+          ref.read(authProvider.notifier).setLoggedInMember(
+            Member(
+              id: '1234500',
+              membershipNumber: '1234500',
+              firstName: 'JOSE ARTURO',
+              lastName: 'FEREZ',
+              secondLastName: 'VIDAL',
+              memberType: 'Titular',
+              isTitular: true,
+            ),
+          );
            Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeView()),
           );
@@ -66,6 +79,17 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
         if (mounted) {
+          final mappedMember = Member(
+            id: '1234500', // En caso real: response.data['user']['id'],
+            membershipNumber: username,
+            firstName: 'Usuario',
+            lastName: 'Socio',
+            secondLastName: '',
+            memberType: 'Titular',
+            isTitular: true,
+          );
+          ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
+
           // Navegar a la pantalla de Home
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (_) => const HomeView()),
@@ -184,11 +208,25 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             // INPUT CONTRASEÑA
                             TextFormField(
                               controller: _passwordController,
-                              obscureText: true,
+                              obscureText: _obscurePassword,
                               style: const TextStyle(fontSize: 15),
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'Contraseña',
-                                prefixIcon: Icon(Icons.lock_outline_rounded, size: 20),
+                                prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    size: 20,
+                                    color: AppTheme.neutral500,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _obscurePassword = !_obscurePassword;
+                                    });
+                                  },
+                                ),
                               ),
                               validator: (value) =>
                                   value == null || value.isEmpty ? 'Campo requerido' : null,
