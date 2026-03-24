@@ -15,7 +15,7 @@ class Step5Confirmation extends ConsumerWidget {
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
     if (state.salesOrderId != null) {
-      return _buildSuccess(context, state.salesOrderId!);
+      return _buildSuccess(context, state.salesOrderId!, state.pickUpTokens);
     }
 
     if (state.isLoading) {
@@ -207,76 +207,120 @@ class Step5Confirmation extends ConsumerWidget {
     );
   }
 
-  Widget _buildSuccess(BuildContext context, String orderId) {
+  Widget _buildSuccess(BuildContext context, String orderId, List<dynamic>? pickUpTokens) {
     return Container(
       width: double.infinity,
       color: Colors.white,
-      padding: const EdgeInsets.all(40),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-           Container(
-             padding: const EdgeInsets.all(24),
-             decoration: BoxDecoration(
-               color: AppTheme.successColor.withOpacity(0.1),
-               shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+             Container(
+               padding: const EdgeInsets.all(24),
+               decoration: BoxDecoration(
+                 color: AppTheme.successColor.withOpacity(0.1),
+                 shape: BoxShape.circle,
+               ),
+               child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 80),
              ),
-             child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 80),
-           ),
-           const SizedBox(height: 32),
-           Text(
-             '¡Inscripción Exitosa!', 
-             style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
-             textAlign: TextAlign.center
-           ),
-           const SizedBox(height: 16),
-           Text(
-             'Tu orden de venta ha sido generada correctamente en nuestro sistema administrativo.', 
-             style: TextStyle(color: AppTheme.neutral600, height: 1.5),
-             textAlign: TextAlign.center
-           ),
-           const SizedBox(height: 32),
-           Container(
-             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-             decoration: BoxDecoration(
-               color: AppTheme.neutral50,
-               borderRadius: BorderRadius.circular(16),
-               border: Border.all(color: AppTheme.neutral200),
+             const SizedBox(height: 32),
+             Text(
+               '¡Inscripción Exitosa!', 
+               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: AppTheme.neutral900),
+               textAlign: TextAlign.center
              ),
-             child: Column(
-               children: [
-                 const Text(
-                   'ID DE ORDEN (NETSUITE)', 
-                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.neutral500, letterSpacing: 1.2)
+             const SizedBox(height: 16),
+             Text(
+               'Tu orden de venta ha sido generada correctamente en nuestro sistema administrativo.', 
+               style: TextStyle(color: AppTheme.neutral600, height: 1.5),
+               textAlign: TextAlign.center
+             ),
+             const SizedBox(height: 32),
+             Container(
+               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+               decoration: BoxDecoration(
+                 color: AppTheme.neutral50,
+                 borderRadius: BorderRadius.circular(16),
+                 border: Border.all(color: AppTheme.neutral200),
+               ),
+               child: Column(
+                 children: [
+                   const Text(
+                     'ID DE ORDEN (NETSUITE)', 
+                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: AppTheme.neutral500, letterSpacing: 1.2)
+                   ),
+                   const SizedBox(height: 4),
+                   Text(
+                     orderId, 
+                     style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppTheme.primaryColor), 
+                     textAlign: TextAlign.center
+                   ),
+                 ],
+                ),
+              ),
+             const SizedBox(height: 32),
+             if (pickUpTokens != null && pickUpTokens.isNotEmpty) ...[
+               const Text(
+                 'CÓDIGOS DE RECOLECCIÓN (NETKEY)', 
+                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppTheme.neutral600, letterSpacing: 1.2)
+               ),
+               const SizedBox(height: 12),
+               ...pickUpTokens.map((tokenData) => Container(
+                 margin: const EdgeInsets.only(bottom: 8),
+                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                 decoration: BoxDecoration(
+                   color: AppTheme.neutral50,
+                   borderRadius: BorderRadius.circular(12),
+                   border: Border.all(color: AppTheme.neutral200),
                  ),
-                 const SizedBox(height: 4),
-                 Text(
-                   orderId, 
-                   style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppTheme.primaryColor), 
-                   textAlign: TextAlign.center
+                 child: Row(
+                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                   children: [
+                     Expanded(
+                       child: Text(
+                         tokenData['participantName'] ?? 'Participante',
+                         style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.neutral700),
+                         overflow: TextOverflow.ellipsis,
+                       ),
+                     ),
+                     const SizedBox(width: 8),
+                     Container(
+                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                       decoration: BoxDecoration(
+                         color: AppTheme.primaryColor.withOpacity(0.1),
+                         borderRadius: BorderRadius.circular(8),
+                       ),
+                       child: Text(
+                         tokenData['accessCode'] ?? '',
+                         style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2, color: AppTheme.primaryColor),
+                       ),
+                     ),
+                   ],
                  ),
-               ],
-             ),
-           ),
-           const SizedBox(height: 48),
-           SizedBox(
-             width: double.infinity,
-             child: OutlinedButton(
-               onPressed: () => Navigator.of(context).pop(),
-               style: OutlinedButton.styleFrom(
-                 padding: const EdgeInsets.all(18),
-                 side: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                 shape: RoundedRectangleBorder(
-                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+               )),
+             ],
+             const SizedBox(height: 48),
+             SizedBox(
+               width: double.infinity,
+               child: OutlinedButton(
+                 onPressed: () => Navigator.of(context).pop(),
+                 style: OutlinedButton.styleFrom(
+                   padding: const EdgeInsets.all(18),
+                   side: const BorderSide(color: AppTheme.primaryColor, width: 2),
+                   shape: RoundedRectangleBorder(
+                     borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                   ),
+                 ),
+                 child: const Text(
+                   'VOLVER AL INICIO', 
+                   style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900)
                  ),
                ),
-               child: const Text(
-                 'VOLVER AL INICIO', 
-                 style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900)
-               ),
              ),
-           ),
-        ],
+          ],
+        ),
       ),
     );
   }

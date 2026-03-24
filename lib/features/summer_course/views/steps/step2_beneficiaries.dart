@@ -69,7 +69,7 @@ class Step2Beneficiaries extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Selecciona a los miembros de la familia que participarán:',
+            'Selecciona a los miembros de la familia que participarán (Rango: 3 a 15 años):',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: AppTheme.neutral600,
                 ),
@@ -77,7 +77,12 @@ class Step2Beneficiaries extends ConsumerWidget {
           
           const SizedBox(height: 24),
 
-          if (state.beneficiariesList.isEmpty)
+          if (state.isLoading)
+             const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator()),
+              )
+          else if (state.beneficiariesList.isEmpty)
              const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: Text('No hay beneficiarios registrados bajo esta acción.')),
@@ -85,46 +90,72 @@ class Step2Beneficiaries extends ConsumerWidget {
           else
             ...state.beneficiariesList.map((beneficiary) {
               final isSelected = state.selectedParticipants.any((p) => p.member?.id == beneficiary.id);
+              final isWithinAgeRange = beneficiary.age != null && beneficiary.age! >= 3 && beneficiary.age! <= 15;
               
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isWithinAgeRange ? Colors.white : AppTheme.neutral50.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
+                    if (isWithinAgeRange)
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                   ],
                 ),
-                child: CheckboxListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                  ),
-                  activeColor: AppTheme.primaryColor,
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  value: isSelected,
-                  onChanged: (_) => notifier.toggleBeneficiary(beneficiary),
-                  title: Text(
-                    beneficiary.fullName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? AppTheme.primaryColor : AppTheme.neutral900,
+                child: Opacity(
+                  opacity: isWithinAgeRange ? 1.0 : 0.6,
+                  child: CheckboxListTile(
+                    enabled: isWithinAgeRange,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
                     ),
-                  ),
-                  subtitle: Text(
-                    'No. Credencial: ${beneficiary.membershipNumber}',
-                    style: const TextStyle(fontSize: 13, color: AppTheme.neutral500),
-                  ),
-                  secondary: CircleAvatar(
-                    backgroundColor: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.neutral50,
-                    child: Icon(
-                      Icons.family_restroom_rounded, 
-                      size: 20, 
-                      color: isSelected ? AppTheme.primaryColor : AppTheme.neutral300,
+                    activeColor: AppTheme.primaryColor,
+                    controlAffinity: ListTileControlAffinity.trailing,
+                    value: isSelected,
+                    onChanged: isWithinAgeRange ? (_) => notifier.toggleBeneficiary(beneficiary) : null,
+                    title: Text(
+                      beneficiary.fullName,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: isSelected ? AppTheme.primaryColor : AppTheme.neutral900,
+                      ),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'No. Credencial: ${beneficiary.membershipNumber}',
+                          style: const TextStyle(fontSize: 13, color: AppTheme.neutral500),
+                        ),
+                        const SizedBox(height: 2),
+                        if (beneficiary.age != null)
+                          Text(
+                            'Edad: ${beneficiary.age} años ${isWithinAgeRange ? '' : '(Fuera de rango)'}',
+                            style: TextStyle(
+                              fontSize: 12, 
+                              fontWeight: isWithinAgeRange ? FontWeight.normal : FontWeight.bold,
+                              color: isWithinAgeRange ? AppTheme.neutral500 : Colors.redAccent,
+                            ),
+                          )
+                        else
+                          const Text(
+                            'Edad no registrada (Inhabilitado)',
+                            style: TextStyle(fontSize: 12, color: Colors.orangeAccent),
+                          ),
+                      ],
+                    ),
+                    secondary: CircleAvatar(
+                      backgroundColor: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.neutral50,
+                      child: Icon(
+                        Icons.family_restroom_rounded, 
+                        size: 20, 
+                        color: isSelected ? AppTheme.primaryColor : AppTheme.neutral300,
+                      ),
                     ),
                   ),
                 ),

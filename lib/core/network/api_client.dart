@@ -7,6 +7,7 @@ class ApiClient {
   ApiClient({
     required String baseUrl,
     Map<String, String>? additionalHeaders,
+    String? token,
   }) : _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 15),
@@ -20,8 +21,9 @@ class ApiClient {
     // Interceptores para manejo de tokens, logging, etc.
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        // Añadir token de autenticación (Ej. JWT) aquí si es necesario
-        // options.headers['Authorization'] = 'Bearer $token';
+        if (token != null && token.isNotEmpty) {
+          options.headers['Authorization'] = 'Bearer $token';
+        }
         return handler.next(options);
       },
       onResponse: (response, handler) {

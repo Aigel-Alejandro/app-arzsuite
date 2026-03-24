@@ -19,6 +19,19 @@ class SummerCourseWizardView extends ConsumerWidget {
     final state = ref.watch(summerCourseProvider);
     final notifier = ref.read(summerCourseProvider.notifier);
 
+    // Escuchar errores y mostrarlos
+    ref.listen<SummerCourseState>(summerCourseProvider, (previous, next) {
+      if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: AppTheme.dangerColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
     return MainLayout(
       activeIndex: -1,
       child: Scaffold(
@@ -135,7 +148,7 @@ class SummerCourseWizardView extends ConsumerWidget {
             Expanded(
               flex: 1,
               child: OutlinedButton(
-                onPressed: () => notifier.previousStep(),
+                onPressed: state.isLoading ? null : () => notifier.previousStep(),
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: AppTheme.neutral200),
                   foregroundColor: AppTheme.neutral600,
@@ -153,7 +166,7 @@ class SummerCourseWizardView extends ConsumerWidget {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _isNextDisabled(state) 
+              onPressed: (_isNextDisabled(state) || state.isLoading)
                   ? null 
                   : (state.currentStep == 3 ? () => notifier.submitRegistration() : () => notifier.nextStep()),
               style: ElevatedButton.styleFrom(
@@ -162,10 +175,16 @@ class SummerCourseWizardView extends ConsumerWidget {
                 disabledBackgroundColor: AppTheme.neutral200,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(
-                state.currentStep == 3 ? 'Generar Orden de Venta' : 'Continuar',
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-              ),
+              child: state.isLoading && state.currentStep == 3
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(
+                      state.currentStep == 3 ? 'Generar Orden de Venta' : 'Continuar',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                    ),
             ),
           ),
         ],

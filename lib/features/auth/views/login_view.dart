@@ -158,6 +158,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             isTitular: true,
             email: socioData['email'],
             phone: socioData['phone'],
+            token: response.data['data']['access_token'],
           );
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
@@ -228,15 +229,35 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
                             
-                            TextFormField(
-                              controller: _userController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Número de Membresía',
-                                prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                            if (!_codeSent)
+                              TextFormField(
+                                controller: _userController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Número de Membresía',
+                                  prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                ),
+                                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                              )
+                            else
+                              Card(
+                                elevation: 0,
+                                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                                child: ListTile(
+                                  dense: true,
+                                  leading: const Icon(Icons.person_pin_circle_outlined),
+                                  title: Text(
+                                    _userController.text,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  trailing: TextButton(
+                                    child: const Text("Editar"),
+                                    onPressed: () => setState(() => _codeSent = false),
+                                  ),
+                                ),
                               ),
-                              validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                            ),
                             const SizedBox(height: AppTheme.spacingMedium),
 
                             if (_codeSent) ...[

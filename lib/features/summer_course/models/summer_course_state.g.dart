@@ -28,6 +28,7 @@ _$SummerCourseStateImpl _$$SummerCourseStateImplFromJson(
   isLoading: json['isLoading'] as bool? ?? false,
   errorMessage: json['errorMessage'] as String?,
   salesOrderId: json['salesOrderId'] as String?,
+  pickUpTokens: json['pickUpTokens'] as List<dynamic>?,
 );
 
 Map<String, dynamic> _$$SummerCourseStateImplToJson(
@@ -40,4 +41,5 @@ Map<String, dynamic> _$$SummerCourseStateImplToJson(
   'isLoading': instance.isLoading,
   'errorMessage': instance.errorMessage,
   'salesOrderId': instance.salesOrderId,
+  'pickUpTokens': instance.pickUpTokens,
 };

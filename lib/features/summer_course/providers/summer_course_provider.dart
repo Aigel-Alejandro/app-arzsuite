@@ -4,9 +4,12 @@ import '../models/member.dart';
 import '../models/guest.dart';
 import '../models/registration_participant.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../services/summer_course_service.dart';
 
 class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
-  SummerCourseNotifier(Member? loggedInUser) : super(const SummerCourseState()) {
+  final SummerCourseService _service;
+
+  SummerCourseNotifier(this._service, Member? loggedInUser) : super(const SummerCourseState()) {
     if (loggedInUser != null) {
       selectTitular(loggedInUser);
     }
@@ -27,41 +30,28 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     }
   }
 
-  void selectTitular(Member titular) {
+  Future<void> selectTitular(Member titular) async {
     state = state.copyWith(
       selectedTitular: titular,
-      // Clear previous family selections when changing titular
       selectedParticipants: [], 
+      isLoading: true,
+      errorMessage: null,
     );
-    // TODO: In a real implementation, this would trigger fetching beneficiaries
-    // For now we'll have a method to mock this or provide it.
-    _mockBeneficiariesFor(titular);
-  }
-
-  void _mockBeneficiariesFor(Member titular) {
-    // Logic: members with same base excluding '00'
-    final base = titular.membershipNumber.substring(0, titular.membershipNumber.length - 2);
-    final mockBeneficiaries = [
-      Member(
-        id: '${titular.id}01',
-        membershipNumber: '${base}01',
-        firstName: 'Martha Silvia',
-        lastName: 'Martínez',
-        secondLastName: 'Vázquez',
-        memberType: '2',
-        isTitular: false,
-      ),
-      Member(
-        id: '${titular.id}02',
-        membershipNumber: '${base}02',
-        firstName: 'Juan Pablo',
-        lastName: 'Ferez',
-        secondLastName: 'Martínez',
-        memberType: '2',
-        isTitular: false,
-      ),
-    ];
-    state = state.copyWith(beneficiariesList: mockBeneficiaries);
+    
+    try {
+      final beneficiaries = await _service.getBeneficiaries(titular.id);
+      state = state.copyWith(
+        beneficiariesList: beneficiaries,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al obtener familiares: $e',
+        // Fallback or empty if error
+        beneficiariesList: [],
+      );
+    }
   }
 
   void toggleBeneficiary(Member beneficiary) {
@@ -112,14 +102,36 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
   }
 
   Future<void> submitRegistration() async {
+    if (state.selectedTitular == null) return;
+
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      // TODO: Call API to generate NetSuite Order
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      // Preparar data para el backend
+      final registrationData = {
+        'titular_id': state.selectedTitular?.id,
+        'membership_number': state.selectedTitular?.membershipNumber,
+        'participants': state.selectedParticipants.map((p) => {
+          'id': p.member?.id ?? p.guest?.email,
+          'fullName': p.fullName,
+          'member_id': p.member?.id,
+          'guest': p.guest != null ? {
+            'first_name': p.guest!.firstName,
+            'last_name': p.guest!.lastName,
+            'email': p.guest!.email,
+            'phone': p.guest!.phone,
+          } : null,
+          'type': p.type.name, // e.g., 'socio', 'invitado'
+          'weeks': p.selectedWeekIds,
+        }).toList(),
+        'total_amount': state.totalGeneral,
+      };
+
+      final resultPayload = await _service.register(registrationData);
+      
       state = state.copyWith(
         isLoading: false, 
-        salesOrderId: 'SO-2026-00123',
-        // Permanecemos en el paso actual (3) para mostrar el éxito
+        salesOrderId: resultPayload['sales_order_id']?.toString() ?? 'N/A',
+        pickUpTokens: resultPayload['pick_up_tokens'] as List<dynamic>?,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -129,5 +141,6 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
 
 final summerCourseProvider = StateNotifierProvider.autoDispose<SummerCourseNotifier, SummerCourseState>((ref) {
   final user = ref.watch(authProvider);
-  return SummerCourseNotifier(user);
+  final service = ref.watch(summerCourseServiceProvider);
+  return SummerCourseNotifier(service, user);
 });

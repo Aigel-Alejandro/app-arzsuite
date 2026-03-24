@@ -29,7 +29,9 @@ mixin _$SummerCourseState {
       throw _privateConstructorUsedError; // From beneficiaries + guests
   bool get isLoading => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
-  String? get salesOrderId => throw _privateConstructorUsedError;
+  String? get salesOrderId =>
+      throw _privateConstructorUsedError; // ID generated at the end
+  List<dynamic>? get pickUpTokens => throw _privateConstructorUsedError;
 
   /// Serializes this SummerCourseState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -56,6 +58,7 @@ abstract class $SummerCourseStateCopyWith<$Res> {
     bool isLoading,
     String? errorMessage,
     String? salesOrderId,
+    List<dynamic>? pickUpTokens,
   });
 
   $MemberCopyWith<$Res>? get selectedTitular;
@@ -83,6 +86,7 @@ class _$SummerCourseStateCopyWithImpl<$Res, $Val extends SummerCourseState>
     Object? isLoading = null,
     Object? errorMessage = freezed,
     Object? salesOrderId = freezed,
+    Object? pickUpTokens = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -114,6 +118,10 @@ class _$SummerCourseStateCopyWithImpl<$Res, $Val extends SummerCourseState>
                 ? _value.salesOrderId
                 : salesOrderId // ignore: cast_nullable_to_non_nullable
                       as String?,
+            pickUpTokens: freezed == pickUpTokens
+                ? _value.pickUpTokens
+                : pickUpTokens // ignore: cast_nullable_to_non_nullable
+                      as List<dynamic>?,
           )
           as $Val,
     );
@@ -151,6 +159,7 @@ abstract class _$$SummerCourseStateImplCopyWith<$Res>
     bool isLoading,
     String? errorMessage,
     String? salesOrderId,
+    List<dynamic>? pickUpTokens,
   });
 
   @override
@@ -178,6 +187,7 @@ class __$$SummerCourseStateImplCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? errorMessage = freezed,
     Object? salesOrderId = freezed,
+    Object? pickUpTokens = freezed,
   }) {
     return _then(
       _$SummerCourseStateImpl(
@@ -209,6 +219,10 @@ class __$$SummerCourseStateImplCopyWithImpl<$Res>
             ? _value.salesOrderId
             : salesOrderId // ignore: cast_nullable_to_non_nullable
                   as String?,
+        pickUpTokens: freezed == pickUpTokens
+            ? _value._pickUpTokens
+            : pickUpTokens // ignore: cast_nullable_to_non_nullable
+                  as List<dynamic>?,
       ),
     );
   }
@@ -225,8 +239,10 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
     this.isLoading = false,
     this.errorMessage,
     this.salesOrderId,
+    final List<dynamic>? pickUpTokens,
   }) : _beneficiariesList = beneficiariesList,
        _selectedParticipants = selectedParticipants,
+       _pickUpTokens = pickUpTokens,
        super._();
 
   factory _$SummerCourseStateImpl.fromJson(Map<String, dynamic> json) =>
@@ -267,10 +283,21 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
   final String? errorMessage;
   @override
   final String? salesOrderId;
+  // ID generated at the end
+  final List<dynamic>? _pickUpTokens;
+  // ID generated at the end
+  @override
+  List<dynamic>? get pickUpTokens {
+    final value = _pickUpTokens;
+    if (value == null) return null;
+    if (_pickUpTokens is EqualUnmodifiableListView) return _pickUpTokens;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
 
   @override
   String toString() {
-    return 'SummerCourseState(currentStep: $currentStep, selectedTitular: $selectedTitular, beneficiariesList: $beneficiariesList, selectedParticipants: $selectedParticipants, isLoading: $isLoading, errorMessage: $errorMessage, salesOrderId: $salesOrderId)';
+    return 'SummerCourseState(currentStep: $currentStep, selectedTitular: $selectedTitular, beneficiariesList: $beneficiariesList, selectedParticipants: $selectedParticipants, isLoading: $isLoading, errorMessage: $errorMessage, salesOrderId: $salesOrderId, pickUpTokens: $pickUpTokens)';
   }
 
   @override
@@ -295,7 +322,11 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
             (identical(other.salesOrderId, salesOrderId) ||
-                other.salesOrderId == salesOrderId));
+                other.salesOrderId == salesOrderId) &&
+            const DeepCollectionEquality().equals(
+              other._pickUpTokens,
+              _pickUpTokens,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -309,6 +340,7 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
     isLoading,
     errorMessage,
     salesOrderId,
+    const DeepCollectionEquality().hash(_pickUpTokens),
   );
 
   /// Create a copy of SummerCourseState
@@ -337,6 +369,7 @@ abstract class _SummerCourseState extends SummerCourseState {
     final bool isLoading,
     final String? errorMessage,
     final String? salesOrderId,
+    final List<dynamic>? pickUpTokens,
   }) = _$SummerCourseStateImpl;
   const _SummerCourseState._() : super._();
 
@@ -356,7 +389,9 @@ abstract class _SummerCourseState extends SummerCourseState {
   @override
   String? get errorMessage;
   @override
-  String? get salesOrderId;
+  String? get salesOrderId; // ID generated at the end
+  @override
+  List<dynamic>? get pickUpTokens;
 
   /// Create a copy of SummerCourseState
   /// with the given fields replaced by the non-null parameter values.

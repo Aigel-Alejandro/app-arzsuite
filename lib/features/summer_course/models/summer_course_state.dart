@@ -15,6 +15,7 @@ class SummerCourseState with _$SummerCourseState {
     @Default(false) bool isLoading,
     String? errorMessage,
     String? salesOrderId, // ID generated at the end
+    List<dynamic>? pickUpTokens, // Tokens_acceso para recoger a los niños
   }) = _SummerCourseState;
 
   factory SummerCourseState.fromJson(Map<String, dynamic> json) => 
