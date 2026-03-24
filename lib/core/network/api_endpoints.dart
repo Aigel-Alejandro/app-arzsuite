@@ -7,7 +7,7 @@ class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
   static const String baseUrlCakePHP = kReleaseMode 
       ? "https://arzsuite.centrolibanes.org.mx/api/" 
-      : "https://ecosistema-centro.ddev.site/api/"; // Eje central Sitio 2
+      : "https://centro.ddev.site/api/"; // Backend local DDEV
 
   // ---------------------------------------------------------------------------
   // AUTH

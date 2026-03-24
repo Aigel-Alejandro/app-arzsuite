@@ -8,7 +8,7 @@ import 'package:app_arzsuite/core/providers/global_providers.dart';
 import '../../home/views/home_view.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../summer_course/models/member.dart';
-import 'package:local_auth/local_auth.dart';
+import 'package:app_arzsuite/core/auth/biometric_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Pantalla de login moderna con flujo de dos pasos para Socios.
@@ -27,7 +27,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   bool _obscurePassword = true;
   bool _rememberMe = false;
   bool _codeSent = false;
-  final LocalAuthentication _localAuth = LocalAuthentication();
+  final BiometricAuth _localAuth = BiometricAuth();
   bool _hasBiometricsSaved = false;
 
   @override
@@ -53,7 +53,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
   Future<void> _authenticateWithBiometrics() async {
     try {
-      final isAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
+      final isAvailable = await _localAuth.canCheckBiometrics() || await _localAuth.isDeviceSupported();
       if (!isAvailable) return;
 
       final didAuthenticate = await _localAuth.authenticate(
