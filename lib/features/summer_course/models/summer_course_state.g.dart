@@ -28,7 +28,14 @@ _$SummerCourseStateImpl _$$SummerCourseStateImplFromJson(
   isLoading: json['isLoading'] as bool? ?? false,
   errorMessage: json['errorMessage'] as String?,
   salesOrderId: json['salesOrderId'] as String?,
+  masterToken: json['masterToken'] as String?,
   pickUpTokens: json['pickUpTokens'] as List<dynamic>?,
+  activeRegistration: json['activeRegistration'] as Map<String, dynamic>?,
+  courseCosts:
+      (json['courseCosts'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$SummerCourseStateImplToJson(
@@ -41,5 +48,8 @@ Map<String, dynamic> _$$SummerCourseStateImplToJson(
   'isLoading': instance.isLoading,
   'errorMessage': instance.errorMessage,
   'salesOrderId': instance.salesOrderId,
+  'masterToken': instance.masterToken,
   'pickUpTokens': instance.pickUpTokens,
+  'activeRegistration': instance.activeRegistration,
+  'courseCosts': instance.courseCosts,
 };

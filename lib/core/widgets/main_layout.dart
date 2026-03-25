@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/app_side_menu.dart';
 import 'package:app_arzsuite/features/home/views/home_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 import 'package:app_arzsuite/features/auth/views/login_view.dart';
+import 'package:app_arzsuite/core/providers/auth_provider.dart';
+import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
 
-class MainLayout extends StatefulWidget {
+class MainLayout extends ConsumerStatefulWidget {
   final Widget child;
   final int activeIndex;
 
@@ -16,10 +19,10 @@ class MainLayout extends StatefulWidget {
   });
 
   @override
-  State<MainLayout> createState() => _MainLayoutState();
+  ConsumerState<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class _MainLayoutState extends ConsumerState<MainLayout> {
   void _onItemSelected(int index) {
     if (widget.activeIndex == index) return;
     
@@ -44,6 +47,13 @@ class _MainLayoutState extends State<MainLayout> {
   }
 
   void _onLogout() {
+    // 1. Limpia el current token en Riverpod / SharedPreferences
+    ref.read(authProvider.notifier).logout();
+    
+    // 2. Limpia el token en el cliente HTTP (Dio)
+    ref.read(apiClientNotifierProvider.notifier).updateToken('');
+    
+    // 3. Redirige a login
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginView()),
       (route) => false,

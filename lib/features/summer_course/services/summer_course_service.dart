@@ -1,19 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/member.dart';
-import '../../../core/network/api_client.dart';
 import '../../../core/network/api_endpoints.dart';
 import '../../../core/providers/global_providers.dart';
 
 class SummerCourseService {
-  final ApiClient _apiClient;
+  final Ref _ref;
 
-  SummerCourseService(this._apiClient);
+  SummerCourseService(this._ref);
 
   Future<List<Member>> getBeneficiaries(String titularId) async {
     try {
+      final apiClient = _ref.read(apiClientProvider);
       final endpoint = ApiEndpoints.summerCourseFamily.replaceAll('{id}', titularId);
-      final response = await _apiClient.dio.get(endpoint);
+      final response = await apiClient.dio.get(endpoint);
       
       if (response.statusCode == 200 && response.data != null) {
         final dynamic rawData = response.data;
@@ -59,7 +59,8 @@ class SummerCourseService {
 
   Future<Map<String, dynamic>> register(Map<String, dynamic> registrationData) async {
     try {
-      final response = await _apiClient.dio.post(
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
         ApiEndpoints.summerCourseRegister,
         data: registrationData,
       );
@@ -78,9 +79,72 @@ class SummerCourseService {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>?> getPickupToken(String userId) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/summer-course/pick-up-token',
+        queryParameters: {
+          'user_id': userId,
+        },
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> getActiveRegistration(String userId) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/summer-course/active-registration',
+        queryParameters: {
+          'user_id': userId,
+        },
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  Future<List<Map<String, dynamic>>> getCosts() async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/summer-course/costs',
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            List<dynamic> listData = rawData['data'];
+            return listData.map((e) => e as Map<String, dynamic>).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error al obtener costos: $e');
+      return [];
+    }
+  }
 }
 
 final summerCourseServiceProvider = Provider<SummerCourseService>((ref) {
-  final apiClient = ref.watch(apiClientProvider);
-  return SummerCourseService(apiClient);
+  return SummerCourseService(ref);
 });

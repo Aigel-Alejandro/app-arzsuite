@@ -27,17 +27,10 @@ class StepIndicator extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 height: isActive ? 6 : 4,
                 decoration: BoxDecoration(
-                  color: isCompleted
-                      ? AppTheme.secondaryColor
-                      : isActive
-                          ? AppTheme.primaryColor
-                          : AppTheme.neutral200,
+                  color: isCompleted || isActive
+                      ? AppTheme.primaryColor
+                      : AppTheme.neutral200,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusSmall),
-                  boxShadow: isActive 
-                    ? [BoxShadow(color: AppTheme.primaryColor.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 2))]
-                    : isCompleted
-                        ? [BoxShadow(color: AppTheme.secondaryColor.withOpacity(0.1), blurRadius: 4)]
-                        : null,
                 ),
               ),
             );
@@ -50,13 +43,15 @@ class StepIndicator extends StatelessWidget {
             Text(
               'Paso ${currentStep + 1} de $totalSteps',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w900,
                 color: AppTheme.primaryColor,
+                letterSpacing: 0.5,
               ),
             ),
             Text(
-              '${((currentStep + 1) / totalSteps * 100).toInt()}%',
+              '${((currentStep + 1) / totalSteps * 100).toInt()}% Completado',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
                 color: AppTheme.neutral500,
               ),
             ),

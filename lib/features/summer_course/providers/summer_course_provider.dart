@@ -36,21 +36,35 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       selectedParticipants: [], 
       isLoading: true,
       errorMessage: null,
+      activeRegistration: null,
+      courseCosts: [],
     );
     
     try {
       final beneficiaries = await _service.getBeneficiaries(titular.id);
+      final activeReg = await _service.getActiveRegistration(titular.id);
+      final costs = await _service.getCosts();
+
       state = state.copyWith(
         beneficiariesList: beneficiaries,
+        activeRegistration: activeReg,
+        courseCosts: costs,
         isLoading: false,
       );
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Error al obtener familiares: $e',
-        // Fallback or empty if error
+        errorMessage: 'Error al obtener datos: $e',
         beneficiariesList: [],
       );
+    }
+  }
+
+  void reset() {
+    final titular = state.selectedTitular;
+    state = const SummerCourseState();
+    if (titular != null) {
+      selectTitular(titular);
     }
   }
 
@@ -90,11 +104,34 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     );
   }
 
+  double _calculateCost(ParticipantType type, int weeksCount) {
+    if (weeksCount == 0 || state.courseCosts.isEmpty) return 0.0;
+    
+    final costEntry = state.courseCosts.firstWhere(
+      (c) => c['weeks_count'] == weeksCount, 
+      orElse: () => <String, dynamic>{}
+    );
+    
+    if (costEntry.isEmpty) return 0.0;
+
+    switch (type) {
+      case ParticipantType.socio:
+        return double.tryParse(costEntry['socio'].toString()) ?? 0.0;
+      case ParticipantType.invitado:
+        return double.tryParse(costEntry['invitado'].toString()) ?? 0.0;
+      case ParticipantType.colaborador:
+        return double.tryParse(costEntry['colaborador'].toString()) ?? 0.0;
+      case ParticipantType.invColaborador:
+        return double.tryParse(costEntry['inv_colaborador'].toString()) ?? 0.0;
+    }
+  }
+
   void updateWeeks(String identifier, List<int> weeks) {
     state = state.copyWith(
       selectedParticipants: state.selectedParticipants.map((p) {
         if (p.identifier == identifier) {
-          return p.copyWith(selectedWeekIds: weeks);
+          final newCost = _calculateCost(p.type, weeks.length);
+          return p.copyWith(selectedWeekIds: weeks, calculatedCost: newCost);
         }
         return p;
       }).toList(),
@@ -106,7 +143,6 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
 
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      // Preparar data para el backend
       final registrationData = {
         'titular_id': state.selectedTitular?.id,
         'membership_number': state.selectedTitular?.membershipNumber,
@@ -120,8 +156,9 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
             'email': p.guest!.email,
             'phone': p.guest!.phone,
           } : null,
-          'type': p.type.name, // e.g., 'socio', 'invitado'
+          'type': p.type.name,
           'weeks': p.selectedWeekIds,
+          'total_cost': p.totalCost,
         }).toList(),
         'total_amount': state.totalGeneral,
       };
@@ -131,6 +168,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       state = state.copyWith(
         isLoading: false, 
         salesOrderId: resultPayload['sales_order_id']?.toString() ?? 'N/A',
+        masterToken: resultPayload['master_token']?.toString(),
         pickUpTokens: resultPayload['pick_up_tokens'] as List<dynamic>?,
       );
     } catch (e) {

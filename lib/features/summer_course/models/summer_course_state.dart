@@ -15,7 +15,10 @@ class SummerCourseState with _$SummerCourseState {
     @Default(false) bool isLoading,
     String? errorMessage,
     String? salesOrderId, // ID generated at the end
+    String? masterToken, // Master Netkey for the whole registration
     List<dynamic>? pickUpTokens, // Tokens_acceso para recoger a los niños
+    Map<String, dynamic>? activeRegistration,
+    @Default([]) List<Map<String, dynamic>> courseCosts,
   }) = _SummerCourseState;
 
   factory SummerCourseState.fromJson(Map<String, dynamic> json) => 

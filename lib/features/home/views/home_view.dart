@@ -6,6 +6,8 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
+import 'package:app_arzsuite/features/summer_course/widgets/access_card.dart';
+
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -78,7 +80,11 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 32), // Breathing room after header
+                    const SizedBox(height: 32),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                      child: SummerCourseAccessCard(),
+                    ),
                     // Hero: Summer Course 2026
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),

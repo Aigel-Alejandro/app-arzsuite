@@ -26,7 +26,9 @@ mixin _$RegistrationParticipant {
   Member? get member => throw _privateConstructorUsedError;
   Guest? get guest => throw _privateConstructorUsedError;
   ParticipantType get type => throw _privateConstructorUsedError;
-  List<int> get selectedWeekIds => throw _privateConstructorUsedError;
+  List<int> get selectedWeekIds =>
+      throw _privateConstructorUsedError; // IDs 1 to 5
+  double get calculatedCost => throw _privateConstructorUsedError;
 
   /// Serializes this RegistrationParticipant to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,6 +52,7 @@ abstract class $RegistrationParticipantCopyWith<$Res> {
     Guest? guest,
     ParticipantType type,
     List<int> selectedWeekIds,
+    double calculatedCost,
   });
 
   $MemberCopyWith<$Res>? get member;
@@ -78,6 +81,7 @@ class _$RegistrationParticipantCopyWithImpl<
     Object? guest = freezed,
     Object? type = null,
     Object? selectedWeekIds = null,
+    Object? calculatedCost = null,
   }) {
     return _then(
       _value.copyWith(
@@ -97,6 +101,10 @@ class _$RegistrationParticipantCopyWithImpl<
                 ? _value.selectedWeekIds
                 : selectedWeekIds // ignore: cast_nullable_to_non_nullable
                       as List<int>,
+            calculatedCost: null == calculatedCost
+                ? _value.calculatedCost
+                : calculatedCost // ignore: cast_nullable_to_non_nullable
+                      as double,
           )
           as $Val,
     );
@@ -145,6 +153,7 @@ abstract class _$$RegistrationParticipantImplCopyWith<$Res>
     Guest? guest,
     ParticipantType type,
     List<int> selectedWeekIds,
+    double calculatedCost,
   });
 
   @override
@@ -175,6 +184,7 @@ class __$$RegistrationParticipantImplCopyWithImpl<$Res>
     Object? guest = freezed,
     Object? type = null,
     Object? selectedWeekIds = null,
+    Object? calculatedCost = null,
   }) {
     return _then(
       _$RegistrationParticipantImpl(
@@ -194,6 +204,10 @@ class __$$RegistrationParticipantImplCopyWithImpl<$Res>
             ? _value._selectedWeekIds
             : selectedWeekIds // ignore: cast_nullable_to_non_nullable
                   as List<int>,
+        calculatedCost: null == calculatedCost
+            ? _value.calculatedCost
+            : calculatedCost // ignore: cast_nullable_to_non_nullable
+                  as double,
       ),
     );
   }
@@ -207,6 +221,7 @@ class _$RegistrationParticipantImpl extends _RegistrationParticipant {
     this.guest,
     required this.type,
     final List<int> selectedWeekIds = const [],
+    this.calculatedCost = 0.0,
   }) : _selectedWeekIds = selectedWeekIds,
        super._();
 
@@ -228,9 +243,14 @@ class _$RegistrationParticipantImpl extends _RegistrationParticipant {
     return EqualUnmodifiableListView(_selectedWeekIds);
   }
 
+  // IDs 1 to 5
+  @override
+  @JsonKey()
+  final double calculatedCost;
+
   @override
   String toString() {
-    return 'RegistrationParticipant(member: $member, guest: $guest, type: $type, selectedWeekIds: $selectedWeekIds)';
+    return 'RegistrationParticipant(member: $member, guest: $guest, type: $type, selectedWeekIds: $selectedWeekIds, calculatedCost: $calculatedCost)';
   }
 
   @override
@@ -244,7 +264,9 @@ class _$RegistrationParticipantImpl extends _RegistrationParticipant {
             const DeepCollectionEquality().equals(
               other._selectedWeekIds,
               _selectedWeekIds,
-            ));
+            ) &&
+            (identical(other.calculatedCost, calculatedCost) ||
+                other.calculatedCost == calculatedCost));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -255,6 +277,7 @@ class _$RegistrationParticipantImpl extends _RegistrationParticipant {
     guest,
     type,
     const DeepCollectionEquality().hash(_selectedWeekIds),
+    calculatedCost,
   );
 
   /// Create a copy of RegistrationParticipant
@@ -280,6 +303,7 @@ abstract class _RegistrationParticipant extends RegistrationParticipant {
     final Guest? guest,
     required final ParticipantType type,
     final List<int> selectedWeekIds,
+    final double calculatedCost,
   }) = _$RegistrationParticipantImpl;
   const _RegistrationParticipant._() : super._();
 
@@ -293,7 +317,9 @@ abstract class _RegistrationParticipant extends RegistrationParticipant {
   @override
   ParticipantType get type;
   @override
-  List<int> get selectedWeekIds;
+  List<int> get selectedWeekIds; // IDs 1 to 5
+  @override
+  double get calculatedCost;
 
   /// Create a copy of RegistrationParticipant
   /// with the given fields replaced by the non-null parameter values.

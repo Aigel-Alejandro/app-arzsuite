@@ -8,6 +8,7 @@ import 'package:app_arzsuite/core/providers/global_providers.dart';
 import '../../home/views/home_view.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../summer_course/models/member.dart';
+import '../../../core/providers/api_client_notifier.dart';
 import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -63,6 +64,12 @@ class _LoginViewState extends ConsumerState<LoginView> {
       if (didAuthenticate && mounted) {
         final prefs = await SharedPreferences.getInstance();
         final savedUser = prefs.getString('saved_username') ?? '2270600';
+        final savedToken = prefs.getString('saved_token');
+
+        // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+        if (savedToken != null) {
+          ref.read(apiClientNotifierProvider.notifier).updateToken(savedToken);
+        }
 
         ref.read(authProvider.notifier).setLoggedInMember(
           Member(
@@ -73,6 +80,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             secondLastName: '',
             memberType: 'Titular',
             isTitular: true,
+            token: savedToken, // <-- Cargar el token guardado
           ),
         );
         Navigator.of(context).pushReplacement(
@@ -160,12 +168,15 @@ class _LoginViewState extends ConsumerState<LoginView> {
             phone: socioData['phone'],
             token: response.data['data']['access_token'],
           );
+          // 1. Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+          ref.read(apiClientNotifierProvider.notifier).updateToken(response.data['data']['access_token']);
+
+          // 2. Notificar al sistema del nuevo usuario. El AuthNotifier ahora guarda automáticamente en SharedPreferences.
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
           if (_rememberMe) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('use_biometrics', true);
-            await prefs.setString('saved_username', username);
           }
 
           Navigator.of(context).pushReplacement(
