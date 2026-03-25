@@ -51,7 +51,7 @@ class _ActivityTermsViewState extends State<ActivityTermsView> {
     return MainLayout(
       activeIndex: 1,
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Términos y Condiciones v1.2'), // Versionado
           centerTitle: true,

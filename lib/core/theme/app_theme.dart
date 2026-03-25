@@ -16,18 +16,19 @@ class AppTheme {
   static const Color warningColor = Color(0xFFF4D35E);
   static const Color dangerColor = Color(0xFFDA3E3E);
 
-  // Neutral Colors (Softer grays for better UX/UI)
-  static const Color neutral900 = Color(0xFF1D1C1C); // Deep Charcoal (Not pure black)
-  static const Color neutral800 = Color(0xFF333333); // Main Text Gray
-  static const Color neutral700 = Color(0xFF525252);
-  static const Color neutral600 = Color(0xFF737373);
-  static const Color neutral500 = Color(0xFF8F8F8F);
-  static const Color neutral400 = Color(0xFFA3A3A3);
-  static const Color neutral300 = Color(0xFFD4D4D4);
-  static const Color neutral200 = Color(0xFFE5E5E5);
-  static const Color neutral100 = Color(0xFFF5F5F5); // Off-white for Dark Mode text
-  static const Color neutral50 = Color(0xFFF6F6F6);  // Original light gray for backgrounds
-  static const Color surfaceColor = Color(0xFFFDFDFD); // High-quality surface (for Cards)
+  // Neutral Colors (Softer grays for better UX/UI - Modern 2026 Zinc palette)
+  // Minimalist, clean, and elegant. No pure white (#FFFFFF) or pure black (#000000).
+  static const Color neutral900 = Color(0xFF141416); // Deep Charcoal Slate (Background Dark)
+  static const Color neutral800 = Color(0xFF1D1D21); // Dark Surface
+  static const Color neutral700 = Color(0xFF2A2A30); // Elevated Dark Surface / Borders
+  static const Color neutral600 = Color(0xFF404046); // Muted Dark
+  static const Color neutral500 = Color(0xFF71717A); // Subtext / Icons Dark
+  static const Color neutral400 = Color(0xFFA1A1AA); // Subtext Light
+  static const Color neutral300 = Color(0xFFD4D4D8); // Disabled / Borders Light
+  static const Color neutral200 = Color(0xFFE4E4E7); // Dividers Light
+  static const Color neutral100 = Color(0xFFF4F4F5); // Alternative Background Light / Text Dark
+  static const Color neutral50 = Color(0xFFFAFAFA);  // Main background light 
+  static const Color surfaceColor = Color(0xFFFCFCFD); // High-quality surface (for Cards)
 
 
   // Border Radiuses
@@ -208,7 +209,7 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadiusGlobal),
         ),
-        shadowColor: Colors.black.withOpacity(0.3),
+        shadowColor: neutral900.withOpacity(0.3),
       ),
       textTheme: GoogleFonts.montserratTextTheme().copyWith(
         titleLarge: const TextStyle(color: neutral100, fontWeight: FontWeight.bold),

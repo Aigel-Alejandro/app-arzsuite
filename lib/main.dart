@@ -7,6 +7,7 @@ import 'features/auth/views/login_view.dart';
 import 'features/home/views/home_view.dart';
 import 'core/providers/global_providers.dart';
 import 'core/providers/auth_provider.dart';
+import 'core/providers/theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,6 +41,7 @@ class ArzSuiteApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Si el usuario ya está autenticado a nivel de almacenamiento local/Riverpod, lo mandamos a Home.
     final loggedInMember = ref.watch(authProvider);
+    final themeMode = ref.watch(themeProvider);
 
     return MaterialApp(
       title: 'App ArzSuite',
@@ -47,7 +49,7 @@ class ArzSuiteApp extends ConsumerWidget {
       // Se utiliza el archivo centralizado de colores y componentes (estilo CSS) importando `AppTheme.lightTheme`
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       home: loggedInMember != null ? const HomeView() : const LoginView(),
     );
   }

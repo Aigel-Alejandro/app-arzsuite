@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
+import 'package:app_arzsuite/core/providers/auth_provider.dart';
+import 'package:app_arzsuite/core/providers/theme_provider.dart';
 
-class AppIslandMenu extends StatefulWidget {
+class AppIslandMenu extends ConsumerStatefulWidget {
   final int selectedIndex;
   final Function(int) onItemSelected;
   final VoidCallback? onLogout;
@@ -16,10 +19,10 @@ class AppIslandMenu extends StatefulWidget {
   });
 
   @override
-  State<AppIslandMenu> createState() => _AppIslandMenuState();
+  ConsumerState<AppIslandMenu> createState() => _AppIslandMenuState();
 }
 
-class _AppIslandMenuState extends State<AppIslandMenu> {
+class _AppIslandMenuState extends ConsumerState<AppIslandMenu> {
   late int _currentIndex;
   bool _isNavigating = false;
 
@@ -46,6 +49,72 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
     });
   }
 
+  void _showProfileModal() {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Consumer(
+          builder: (context, ref, child) {
+            final user = ref.watch(authProvider);
+            final themeMode = ref.watch(themeProvider);
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 400),
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircleAvatar(
+                      radius: 36,
+                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                      child: Text(
+                        (user?.firstName.isNotEmpty == true) ? user!.firstName.substring(0, 1).toUpperCase() : 'U',
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(user?.firstName ?? 'Socio', style: Theme.of(context).textTheme.titleLarge),
+                    Text('Membresía: ${user?.membershipNumber ?? 'N/A'}', style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppTheme.primaryColor),
+                      title: Text('Tema Oscuro', style: Theme.of(context).textTheme.titleMedium),
+                      trailing: Switch(
+                        value: isDark,
+                        activeColor: AppTheme.primaryColor,
+                        onChanged: (val) {
+                          ref.read(themeProvider.notifier).setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cerrar', style: TextStyle(color: AppTheme.primaryColor)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.isDesktop
@@ -58,7 +127,7 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
       width: 64, // ultra-thin for minimalist look
       margin: const EdgeInsets.all(AppTheme.spacingLarge),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.95),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(32), // stadium shape
         boxShadow: [
           BoxShadow(
@@ -97,6 +166,13 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
                     onTap: () => _handleTap(1),
                     isDesktop: true,
                   ),
+                  _IslandTabItem(
+                    icon: Icons.person_rounded,
+                    label: 'Perfil',
+                    isSelected: false,
+                    onTap: _showProfileModal,
+                    isDesktop: true,
+                  ),
                 ],
               ),
             ),
@@ -117,7 +193,7 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
   }
 
   Widget _buildMobileIsland(BuildContext context) {
-    const int totalItems = 3;
+    const int totalItems = 4;
     final scaffoldColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Container(
@@ -145,7 +221,7 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
                       painter: _CurvedBarPainter(
                         index: animIndex,
                         itemWidth: itemWidth,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                       ),
                     ),
                   ),
@@ -181,6 +257,15 @@ class _AppIslandMenuState extends State<AppIslandMenu> {
                             label: 'Actividades',
                             isSelected: _currentIndex == 1,
                             onTap: () => _handleTap(1),
+                            isDesktop: false,
+                          ),
+                        ),
+                        Expanded(
+                          child: _IslandTabItem(
+                            icon: Icons.person_rounded,
+                            label: 'Perfil',
+                            isSelected: false,
+                            onTap: _showProfileModal,
                             isDesktop: false,
                           ),
                         ),
@@ -316,7 +401,7 @@ class _IslandTabItemState extends State<_IslandTabItem> {
   Widget _buildMobileItem(BuildContext context) {
     final Color inactiveColor = AppTheme.neutral500;
     final Color textColor = widget.isSelected
-        ? AppTheme.neutral900
+        ? Theme.of(context).colorScheme.onSurface
         : inactiveColor;
 
     return GestureDetector(

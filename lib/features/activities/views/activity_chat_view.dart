@@ -43,7 +43,7 @@ class _ActivityChatViewState extends State<ActivityChatView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.neutral50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Chat: Fútbol Infantil'),
         centerTitle: true,
@@ -97,8 +97,8 @@ class _ActivityChatViewState extends State<ActivityChatView> {
                             borderSide: BorderSide.none,
                           ),
                           filled: true,
-                          fillColor: AppTheme.neutral100,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          fillColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.05),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         ),
                         onSubmitted: (_) => _sendMessage(),
                       ),

@@ -65,7 +65,7 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     final bool isDesktop = MediaQuery.of(context).size.width >= AppTheme.breakpointDesktop;
 
     return Scaffold(
-      backgroundColor: AppTheme.neutral50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBody: true,
       bottomNavigationBar: !isDesktop
           ? SafeArea(

@@ -86,7 +86,7 @@ class ActivitiesListView extends StatelessWidget {
     return MainLayout(
       activeIndex: 1, 
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: Text(isSubscribed ? 'Mis Actividades' : 'Actividades Disponibles'),
           centerTitle: true,

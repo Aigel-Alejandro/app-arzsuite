@@ -18,7 +18,7 @@ class ChildDetailProfileView extends StatelessWidget {
       child: DefaultTabController(
         length: 3,
         child: Scaffold(
-          backgroundColor: AppTheme.neutral50,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: AppBar(
             title: Text(
                childName,
