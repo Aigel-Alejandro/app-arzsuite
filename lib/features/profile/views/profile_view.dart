@@ -716,7 +716,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildSettingsTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
     final settings = profile.settings;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final themeMode = ref.watch(themeProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
@@ -729,14 +729,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             context,
             child: Column(
               children: [
-                _buildConfigSwitch(
+                _buildThemeSelector(
                   context,
-                  title: 'Modo Oscuro',
-                  subtitle: 'Cambiar apariencia de la interfaz',
-                  icon: isDark ? Icons.dark_mode_outlined : Icons.light_mode_outlined,
-                  value: isDark,
+                  currentMode: themeMode,
                   onChanged: (val) {
-                    ref.read(themeProvider.notifier).setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
+                    if (val != null) {
+                      ref.read(themeProvider.notifier).setThemeMode(val);
+                    }
                   },
                 ),
               ],
@@ -987,6 +986,125 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       ],
     );
   }
+
+  Widget _buildThemeSelector(
+    BuildContext context, {
+    required ThemeMode currentMode,
+    required ValueChanged<ThemeMode?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              currentMode == ThemeMode.dark ? Icons.dark_mode_outlined : 
+              currentMode == ThemeMode.light ? Icons.light_mode_outlined : 
+              Icons.brightness_auto_outlined, 
+              color: AppTheme.neutral500, size: 22
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Tema de la Aplicación', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Selecciona la apariencia', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Container(
+          width: double.infinity,
+          height: 48,
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppTheme.neutral100.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.1 : 1),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            children: [
+              _buildThemeOption(
+                context,
+                title: 'Claro',
+                icon: Icons.light_mode_outlined,
+                mode: ThemeMode.light,
+                currentMode: currentMode,
+                onTap: () => onChanged(ThemeMode.light),
+              ),
+              _buildThemeOption(
+                context,
+                title: 'Oscuro',
+                icon: Icons.dark_mode_outlined,
+                mode: ThemeMode.dark,
+                currentMode: currentMode,
+                onTap: () => onChanged(ThemeMode.dark),
+              ),
+              _buildThemeOption(
+                context,
+                title: 'Auto',
+                icon: Icons.phone_iphone_rounded,
+                mode: ThemeMode.system,
+                currentMode: currentMode,
+                onTap: () => onChanged(ThemeMode.system),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThemeOption(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required ThemeMode mode,
+    required ThemeMode currentMode,
+    required VoidCallback onTap,
+  }) {
+    final isSelected = mode == currentMode;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: isSelected 
+                    ? Colors.white 
+                    : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.neutral600),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                    color: isSelected 
+                      ? Colors.white 
+                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.neutral600),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
@@ -1018,6 +1136,6 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return false;
+    return oldDelegate.backgroundColor != backgroundColor || oldDelegate._tabBar != _tabBar;
   }
 }
