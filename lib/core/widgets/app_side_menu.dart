@@ -49,71 +49,7 @@ class _AppIslandMenuState extends ConsumerState<AppIslandMenu> {
     });
   }
 
-  void _showProfileModal() {
-    showDialog(
-      context: context,
-      builder: (ctx) {
-        return Consumer(
-          builder: (context, ref, child) {
-            final user = ref.watch(authProvider);
-            final themeMode = ref.watch(themeProvider);
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            
-            return Dialog(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              child: Container(
-                constraints: const BoxConstraints(maxWidth: 400),
-                padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      radius: 36,
-                      backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-                      child: Text(
-                        (user?.firstName.isNotEmpty == true) ? user!.firstName.substring(0, 1).toUpperCase() : 'U',
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(user?.firstName ?? 'Socio', style: Theme.of(context).textTheme.titleLarge),
-                    Text('Membresía: ${user?.membershipNumber ?? 'N/A'}', style: Theme.of(context).textTheme.bodyMedium),
-                    const SizedBox(height: 24),
-                    const Divider(),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: Icon(isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded, color: AppTheme.primaryColor),
-                      title: Text('Tema Oscuro', style: Theme.of(context).textTheme.titleMedium),
-                      trailing: Switch(
-                        value: isDark,
-                        activeColor: AppTheme.primaryColor,
-                        onChanged: (val) {
-                          ref.read(themeProvider.notifier).setThemeMode(val ? ThemeMode.dark : ThemeMode.light);
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('Cerrar', style: TextStyle(color: AppTheme.primaryColor)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
+  // _showProfileModal removed to navigate directly to ProfileView
 
   @override
   Widget build(BuildContext context) {
@@ -169,8 +105,8 @@ class _AppIslandMenuState extends ConsumerState<AppIslandMenu> {
                   _IslandTabItem(
                     icon: Icons.person_rounded,
                     label: 'Perfil',
-                    isSelected: false,
-                    onTap: _showProfileModal,
+                    isSelected: _currentIndex == 2,
+                    onTap: () => _handleTap(2),
                     isDesktop: true,
                   ),
                 ],
@@ -264,8 +200,8 @@ class _AppIslandMenuState extends ConsumerState<AppIslandMenu> {
                           child: _IslandTabItem(
                             icon: Icons.person_rounded,
                             label: 'Perfil',
-                            isSelected: false,
-                            onTap: _showProfileModal,
+                            isSelected: _currentIndex == 2,
+                            onTap: () => _handleTap(2),
                             isDesktop: false,
                           ),
                         ),

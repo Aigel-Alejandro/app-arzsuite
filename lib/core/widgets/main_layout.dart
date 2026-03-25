@@ -4,6 +4,7 @@ import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/app_side_menu.dart';
 import 'package:app_arzsuite/features/home/views/home_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
+import 'package:app_arzsuite/features/profile/views/profile_view.dart';
 import 'package:app_arzsuite/features/auth/views/login_view.dart';
 import 'package:app_arzsuite/core/providers/auth_provider.dart';
 import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
@@ -36,6 +37,12 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
     } else if (index == 1) {
       route = PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => const ActivitiesDashboardView(),
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+      );
+    } else if (index == 2) {
+      route = PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => const ProfileView(),
         transitionDuration: Duration.zero,
         reverseTransitionDuration: Duration.zero,
       );

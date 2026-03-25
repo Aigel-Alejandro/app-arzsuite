@@ -83,6 +83,12 @@ class ChildSelectorView extends StatelessWidget {
                     ),
                   ),
                  ),
+                 Builder(
+                   builder: (context) {
+                     final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
+                     return SizedBox(height: isMobile ? 120 : 32);
+                   }
+                 ),
               ],
             ),
           ),

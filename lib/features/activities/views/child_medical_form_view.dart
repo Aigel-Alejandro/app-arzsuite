@@ -105,7 +105,12 @@ class _ChildMedicalFormViewState extends State<ChildMedicalFormView> {
                 ],
               ),
             ),
-            const SizedBox(height: 48),
+            Builder(
+              builder: (context) {
+                final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
+                return SizedBox(height: isMobile ? 120 : 48);
+              }
+            ),
           ],
         ),
       ),
