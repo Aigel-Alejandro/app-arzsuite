@@ -1,3 +1,4 @@
+// ignore_for_file: invalid_annotation_target
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'profile_settings_model.dart';
 import 'sub_member_model.dart';
@@ -18,6 +19,9 @@ class ProfileModel with _$ProfileModel {
     String? rfc,
     String? curp,
     String? address,
+    @JsonKey(name: 'profile_picture') String? profilePicture,
+    @JsonKey(name: 'can_edit_sensitive_data') @Default(false) bool canEditSensitiveData,
+    @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
     required ProfileSettingsModel settings,
     @JsonKey(name: 'associated_members') @Default([]) List<SubMemberModel> associatedMembers,

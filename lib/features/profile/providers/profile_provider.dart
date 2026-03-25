@@ -16,8 +16,10 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
     fetchProfile();
   }
 
-  Future<void> fetchProfile() async {
-    state = const AsyncValue.loading();
+  Future<void> fetchProfile({bool isBackgroundRefresh = false}) async {
+    if (!isBackgroundRefresh) {
+      state = const AsyncValue.loading();
+    }
     try {
       final response = await _apiClient.dio.get('arzsuite/profile');
       var responseData = response.data;
@@ -54,6 +56,46 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
         }
       } else {
         throw Exception(responseData['message'] ?? 'Error desconocido al actualizar');
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateProfile({
+    String? profilePictureBase64,
+    Map<String, dynamic>? personalAddress,
+    Map<String, dynamic>? fiscalData,
+  }) async {
+    try {
+      final Map<String, dynamic> data = {};
+      if (profilePictureBase64 != null) {
+        data['profile_picture'] = profilePictureBase64;
+      }
+      if (personalAddress != null) {
+        data['personal_address'] = personalAddress;
+      }
+      if (fiscalData != null) {
+        data['fiscal_data'] = fiscalData;
+      }
+
+      if (data.isEmpty) return;
+
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/update',
+        data: data,
+      );
+      
+      var responseData = response.data;
+      if (responseData is String) {
+        responseData = jsonDecode(responseData);
+      }
+
+      if (responseData['success'] == true) {
+        // Refresh silently without showing a loading spinner
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(responseData['message'] ?? 'Error al actualizar perfil');
       }
     } catch (e) {
       rethrow;
