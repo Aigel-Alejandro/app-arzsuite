@@ -131,6 +131,8 @@ class SummerCourseWizardView extends ConsumerWidget {
   Widget _buildNavigation(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier) {
     if (state.salesOrderId != null) return const SizedBox.shrink(); // No nav in success state
     
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         AppTheme.spacingLarge,
@@ -150,8 +152,8 @@ class SummerCourseWizardView extends ConsumerWidget {
               child: OutlinedButton(
                 onPressed: state.isLoading ? null : () => notifier.previousStep(),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppTheme.neutral200),
-                  foregroundColor: AppTheme.neutral600,
+                  side: BorderSide(color: isDark ? AppTheme.neutral700 : AppTheme.neutral200),
+                  foregroundColor: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text('Anterior', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -172,7 +174,8 @@ class SummerCourseWizardView extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: AppTheme.primaryColor,
-                disabledBackgroundColor: AppTheme.neutral200,
+                disabledBackgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
+                disabledForegroundColor: isDark ? AppTheme.neutral500 : AppTheme.neutral400,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: state.isLoading && state.currentStep == 3

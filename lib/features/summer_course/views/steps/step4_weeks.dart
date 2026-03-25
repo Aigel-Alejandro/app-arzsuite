@@ -15,6 +15,12 @@ class Step4Weeks extends ConsumerWidget {
     
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBgColor = isDark ? AppTheme.neutral800 : Colors.white;
+    final textColor = isDark ? AppTheme.neutral100 : AppTheme.neutral900;
+    final subTextColor = isDark ? AppTheme.neutral400 : AppTheme.neutral500;
+    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200.withOpacity(0.5);
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 24),
@@ -25,14 +31,14 @@ class Step4Weeks extends ConsumerWidget {
             'Fechas y Tarifas',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: AppTheme.neutral900,
+                  color: textColor,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             'Selecciona las semanas para cada asistente.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.neutral600,
+                  color: subTextColor,
                   height: 1.3,
                 ),
           ),
@@ -44,9 +50,9 @@ class Step4Weeks extends ConsumerWidget {
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardBgColor,
                 borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                border: Border.all(color: borderColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -72,11 +78,11 @@ class Step4Weeks extends ConsumerWidget {
                             children: [
                               Text(
                                 participant.fullName, 
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppTheme.neutral900),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
                               ),
                               Text(
                                 participant.isSocio ? 'Socio Directo' : 'Invitado Especial',
-                                style: TextStyle(color: AppTheme.neutral500, fontSize: 11, fontWeight: FontWeight.w600),
+                                style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.w600),
                               ),
                             ],
                           ),
@@ -102,41 +108,24 @@ class Step4Weeks extends ConsumerWidget {
                     ),
                   ),
                   
-                  const Divider(height: 1, color: AppTheme.neutral100, indent: 16, endIndent: 16),
+                  Divider(height: 1, color: isDark ? AppTheme.neutral700 : AppTheme.neutral100, indent: 16, endIndent: 16),
                   
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                'SELECCIONA LAS SEMANAS DE ASISTENCIA',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  color: AppTheme.neutral400,
-                                  letterSpacing: 0.8,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _getWeeklyCost(participant, formatter, state),
-                              style: TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w900,
-                                color: socioColor,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ],
+                        const Text(
+                          'SELECCIONA LAS SEMANAS DE ASISTENCIA',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.neutral400,
+                            letterSpacing: 0.8,
+                          ),
                         ),
                         const SizedBox(height: 16),
-                        _buildWeeksSelector(participant, notifier),
+                        _buildWeeksSelector(context, participant, notifier, state),
                       ],
                     ),
                   ),
@@ -204,7 +193,10 @@ class Step4Weeks extends ConsumerWidget {
     );
   }
 
-  Widget _buildWeeksSelector(participant, notifier) {
+  Widget _buildWeeksSelector(BuildContext context, participant, notifier, state) {
+    // Restauramos las fechas reales del calendario, porque la tabla de la base de datos (courseCosts) 
+    // almacena los PAQUETES DE DESCUENTO POR VOLUMEN (1 SEMANA, 2 SEMANAS, 3 SEMANAS...) 
+    // y no las semanas calendáricas individuales.
     final weeks = [
       {'id': 1, 'label': 'Semana 1', 'date': '21-25 Jul'},
       {'id': 2, 'label': 'Semana 2', 'date': '28 Jul-01 Ago'},
@@ -213,14 +205,15 @@ class Step4Weeks extends ConsumerWidget {
       {'id': 5, 'label': 'Semana 5', 'date': '18-22 Ago'},
     ];
 
-    return GridView.count(
-      crossAxisCount: 2,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 8,
-      crossAxisSpacing: 8,
-      childAspectRatio: 2.0,
-      children: weeks.map((w) {
+      itemCount: weeks.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final w = weeks[index];
         final id = w['id'] as int;
         final isSelected = participant.selectedWeekIds.contains(id);
         
@@ -236,12 +229,16 @@ class Step4Weeks extends ConsumerWidget {
           },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected ? AppTheme.primaryColor : Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              color: isSelected 
+                  ? AppTheme.primaryColor 
+                  : (isDark ? AppTheme.neutral800 : Colors.white),
+              borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected ? AppTheme.primaryColor : AppTheme.neutral200,
+                color: isSelected 
+                    ? AppTheme.primaryColor 
+                    : (isDark ? AppTheme.neutral700 : AppTheme.neutral200),
                 width: 1.5,
               ),
               boxShadow: isSelected ? [
@@ -255,9 +252,7 @@ class Step4Weeks extends ConsumerWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
                       Text(
                         w['label'] as String, 
@@ -265,60 +260,37 @@ class Step4Weeks extends ConsumerWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontWeight: FontWeight.bold, 
-                          fontSize: 13,
-                          color: isSelected ? Colors.white : AppTheme.neutral800,
+                          fontSize: 14,
+                          color: isSelected ? Colors.white : (isDark ? AppTheme.neutral100 : AppTheme.neutral800),
                         ),
                       ),
+                      const Spacer(),
                       Text(
                         w['date'] as String, 
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 10, 
-                          color: isSelected ? Colors.white.withOpacity(0.8) : AppTheme.neutral500,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontSize: 11, 
+                          color: isSelected ? Colors.white.withOpacity(0.9) : (isDark ? AppTheme.neutral400 : AppTheme.neutral500),
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(width: 16),
                 Icon(
-                  isSelected ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded, 
-                  color: isSelected ? Colors.white : AppTheme.neutral300, 
+                  isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, 
+                  color: isSelected ? Colors.white : (isDark ? AppTheme.neutral500 : AppTheme.neutral300), 
                   size: 20
                 ),
               ],
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 
-  String _getWeeklyCost(participant, NumberFormat formatter, SummerCourseState state) {
-     if (state.courseCosts.isEmpty) return '';
-     
-     final baseEntry = state.courseCosts.firstWhere(
-       (c) => c['weeks_count'] == 1,
-       orElse: () => <String, dynamic>{},
-     );
-     
-     if (baseEntry.isEmpty) return '';
-
-     double basePrice = 0;
-     final typeName = participant.type.toString().split('.').last.toLowerCase();
-     
-     if (typeName == 'socio') {
-         basePrice = double.tryParse(baseEntry['socio'].toString()) ?? 0.0;
-     } else if (typeName == 'invitado') {
-         basePrice = double.tryParse(baseEntry['invitado'].toString()) ?? 0.0;
-     } else if (typeName == 'colaborador') {
-         basePrice = double.tryParse(baseEntry['colaborador'].toString()) ?? 0.0;
-     } else if (typeName == 'invcolaborador') {
-         basePrice = double.tryParse(baseEntry['inv_colaborador'].toString()) ?? 0.0;
-     }
-     
-     return '${formatter.format(basePrice)} / SEM';
-  }
 }
 

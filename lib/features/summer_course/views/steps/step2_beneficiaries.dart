@@ -16,6 +16,13 @@ class Step2Beneficiaries extends ConsumerWidget {
       return const Center(child: Text('Selecciona un titular primero'));
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.neutral100 : AppTheme.neutral900;
+    final subtitleColor = isDark ? AppTheme.neutral400 : AppTheme.neutral600;
+    final cardBgColor = isDark ? AppTheme.neutral800 : Colors.white;
+    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200.withOpacity(0.8);
+    final altBgColor = isDark ? AppTheme.neutral800.withOpacity(0.5) : AppTheme.neutral100;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 24),
@@ -43,8 +50,8 @@ class Step2Beneficiaries extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        titular.fullName, 
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.neutral900),
+                        titular.fullName.replaceAll(RegExp(r'[0-9]'), '').trim(), 
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: textColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -58,38 +65,7 @@ class Step2Beneficiaries extends ConsumerWidget {
             ),
           ),
           
-          if (state.activeRegistration != null && state.activeRegistration!['has_registration'] == true)
-            Container(
-              margin: const EdgeInsets.only(top: 24),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.successColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                border: Border.all(color: AppTheme.successColor.withOpacity(0.3)),
-              ),
-              child: Row(
-                children: [
-                   const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 28),
-                   const SizedBox(width: 16),
-                   Expanded(
-                     child: Column(
-                       crossAxisAlignment: CrossAxisAlignment.start,
-                       children: [
-                         const Text(
-                           'Inscripción Vigente Encontrada',
-                           style: TextStyle(fontWeight: FontWeight.w900, color: AppTheme.successColor, fontSize: 14),
-                         ),
-                         const SizedBox(height: 2),
-                         Text(
-                           'Ya tienes ${state.activeRegistration!['participants_count']} participantes inscritos para este verano. ¿Deseas inscribir a alguien más?',
-                           style: const TextStyle(color: AppTheme.neutral700, fontSize: 12),
-                         ),
-                       ],
-                     ),
-                   ),
-                ],
-              ),
-            ),
+
           
           const SizedBox(height: 32),
           
@@ -97,14 +73,14 @@ class Step2Beneficiaries extends ConsumerWidget {
             'Beneficiarios Directos',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: AppTheme.neutral900,
+                  color: textColor,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
             'Selecciona a los miembros de la familia que participarán (Rango: 3 a 15 años):',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.neutral600,
+                  color: subtitleColor,
                   height: 1.4,
                 ),
           ),
@@ -138,15 +114,15 @@ class Step2Beneficiaries extends ConsumerWidget {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: isAlreadyRegistered ? AppTheme.successColor.withOpacity(0.02) : Colors.white,
+                  color: isAlreadyRegistered ? AppTheme.successColor.withOpacity(isDark ? 0.05 : 0.02) : cardBgColor,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
                   border: Border.all(
                     color: isAlreadyRegistered 
                         ? AppTheme.successColor.withOpacity(0.3) 
-                        : (isSelected ? AppTheme.primaryColor : AppTheme.neutral200.withOpacity(0.8))
+                        : (isSelected ? AppTheme.primaryColor : borderColor)
                   ),
                   boxShadow: [
-                    if (!isAlreadyRegistered)
+                    if (!isAlreadyRegistered && !isDark)
                       BoxShadow(
                         color: Colors.black.withOpacity(0.02),
                         blurRadius: 10,
@@ -166,13 +142,13 @@ class Step2Beneficiaries extends ConsumerWidget {
                           radius: 18,
                           backgroundColor: isAlreadyRegistered
                               ? AppTheme.successColor.withOpacity(0.1)
-                              : (isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.neutral50),
+                              : (isSelected ? AppTheme.primaryColor.withOpacity(0.1) : (isDark ? AppTheme.neutral700 : AppTheme.neutral50)),
                           child: Icon(
                             isAlreadyRegistered ? Icons.check_circle_rounded : Icons.person_outline_rounded, 
                             size: 18, 
                             color: isAlreadyRegistered
                                 ? AppTheme.successColor
-                                : (isSelected ? AppTheme.primaryColor : AppTheme.neutral400),
+                                : (isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral300 : AppTheme.neutral400)),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -189,7 +165,7 @@ class Step2Beneficiaries extends ConsumerWidget {
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
                                         height: 1.3,
-                                        color: isAlreadyRegistered ? AppTheme.successColor : (isSelected ? AppTheme.primaryColor : AppTheme.neutral900),
+                                        color: isAlreadyRegistered ? AppTheme.successColor : (isSelected ? AppTheme.primaryColor : textColor),
                                         decoration: isAlreadyRegistered ? TextDecoration.lineThrough : null,
                                       ),
                                     ),
@@ -198,13 +174,13 @@ class Step2Beneficiaries extends ConsumerWidget {
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: AppTheme.neutral100,
+                                          color: isDark ? AppTheme.neutral700 : AppTheme.neutral100,
                                           borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
                                           beneficiary.memberType,
-                                          style: const TextStyle(
-                                            color: AppTheme.neutral600,
+                                          style: TextStyle(
+                                            color: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
                                             fontSize: 9,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -249,7 +225,7 @@ class Step2Beneficiaries extends ConsumerWidget {
                             onChanged: (_) => notifier.toggleBeneficiary(beneficiary),
                             activeColor: AppTheme.primaryColor,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                            side: BorderSide(color: AppTheme.neutral300),
+                            side: BorderSide(color: isDark ? AppTheme.neutral500 : AppTheme.neutral300),
                           ),
                         ]
                       ],
@@ -284,9 +260,9 @@ class Step2Beneficiaries extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 8),
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
-                        color: AppTheme.neutral100.withOpacity(0.5),
+                        color: altBgColor,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                        border: Border.all(color: borderColor),
                       ),
                       child: Row(
                         children: [
@@ -317,13 +293,13 @@ class Step2Beneficiaries extends ConsumerWidget {
                                         child: Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: AppTheme.neutral200,
+                                            color: isDark ? AppTheme.neutral700 : AppTheme.neutral200,
                                             borderRadius: BorderRadius.circular(4),
                                           ),
                                           child: Text(
                                             b.memberType,
-                                            style: const TextStyle(
-                                              color: AppTheme.neutral600,
+                                            style: TextStyle(
+                                              color: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
                                               fontSize: 9,
                                               fontWeight: FontWeight.bold,
                                             ),
@@ -356,8 +332,9 @@ class Step2Beneficiaries extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.neutral100,
+              color: altBgColor,
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+              border: isDark ? Border.all(color: AppTheme.neutral700) : null,
             ),
             child: Row(
               children: [
@@ -366,9 +343,9 @@ class Step2Beneficiaries extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     '${state.selectedParticipants.where((p) => p.isSocio).length} familiares seleccionados para inscripción.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.neutral700,
+                      color: textColor,
                       fontSize: 13,
                     ),
                   ),

@@ -28,7 +28,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
     'Otro'
   ];
 
-  void _addGuest(BuildContext modalContext) {
+  void _addGuest(BuildContext modalContext, [String? originalEmail]) {
     if (_formKey.currentState!.validate() && _selectedRelationship != null) {
       final state = ref.read(summerCourseProvider);
       final guest = Guest(
@@ -42,6 +42,9 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
             state.selectedTitular?.membershipNumber ?? 'N/A',
       );
 
+      if (originalEmail != null) {
+        ref.read(summerCourseProvider.notifier).removeParticipant(originalEmail);
+      }
       ref.read(summerCourseProvider.notifier).addGuest(guest);
       Navigator.pop(modalContext);
     } else if (_selectedRelationship == null) {
@@ -54,13 +57,24 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
     }
   }
 
-  void _showGuestModal() {
-    _nameController.clear();
-    _lastName1Controller.clear();
-    _lastName2Controller.clear();
-    _emailController.clear();
-    _phoneController.clear();
-    _selectedRelationship = null;
+  void _showGuestModal([Guest? guestToEdit]) {
+    if (guestToEdit != null) {
+      _nameController.text = guestToEdit.firstName;
+      _lastName1Controller.text = guestToEdit.lastName;
+      _lastName2Controller.text = guestToEdit.secondLastName ?? '';
+      _emailController.text = guestToEdit.email;
+      _phoneController.text = guestToEdit.phone;
+      _selectedRelationship = _relationships.contains(guestToEdit.relationship) 
+          ? guestToEdit.relationship 
+          : 'Otro';
+    } else {
+      _nameController.clear();
+      _lastName1Controller.clear();
+      _lastName2Controller.clear();
+      _emailController.clear();
+      _phoneController.clear();
+      _selectedRelationship = null;
+    }
 
     showModalBottomSheet(
       context: context,
@@ -92,7 +106,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Datos del Invitado',
+                              guestToEdit != null ? 'Editar Invitado' : 'Datos del Invitado',
                               style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20, color: Theme.of(context).colorScheme.onSurface),
                             ),
                             IconButton(
@@ -160,7 +174,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                               ),
                               const SizedBox(width: 8),
                               ElevatedButton(
-                                onPressed: () => _addGuest(modalContext),
+                                onPressed: () => _addGuest(modalContext, guestToEdit?.email),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context).colorScheme.primary,
                                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -190,6 +204,11 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
   Widget build(BuildContext context) {
     final state = ref.watch(summerCourseProvider);
     final notifier = ref.read(summerCourseProvider.notifier);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.neutral100 : AppTheme.neutral900;
+    final subTextColor = isDark ? AppTheme.neutral400 : AppTheme.neutral500;
+    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200;
 
     final guests = state.selectedParticipants.where((p) => p.isGuest).toList();
 
@@ -222,7 +241,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
-                color: AppTheme.neutral500,
+                color: subTextColor,
                 letterSpacing: 1.2,
               ),
             ),
@@ -253,14 +272,42 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                     style:
                         TextStyle(fontSize: 13, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6)),
                   ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.close_rounded,
-                        color: AppTheme.dangerColor, size: 20),
-                    onPressed: () => notifier.removeParticipant(guest.email),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppTheme.dangerColor.withOpacity(0.05),
-                    ),
+                  trailing: PopupMenuButton<String>(
+                    icon: Icon(Icons.more_vert_rounded, color: subTextColor),
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: Theme.of(context).colorScheme.surface,
+                    onSelected: (action) {
+                      if (action == 'edit') {
+                        _showGuestModal(guest);
+                      } else if (action == 'delete') {
+                        notifier.removeParticipant(guest.email);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit_rounded, color: AppTheme.primaryColor, size: 20),
+                            const SizedBox(width: 12),
+                            Text('Editar', style: TextStyle(fontWeight: FontWeight.w600, color: textColor)),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline_rounded, color: AppTheme.dangerColor, size: 20),
+                            const SizedBox(width: 12),
+                            const Text('Eliminar', style: TextStyle(fontWeight: FontWeight.w600, color: AppTheme.dangerColor)),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                  onTap: () => _showGuestModal(guest),
                 ),
               );
             }).toList(),
@@ -273,15 +320,15 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
               icon: const Icon(Icons.person_add_alt_1_rounded, size: 20),
               label: const Text('Añadir Invitado Extra', style: TextStyle(fontWeight: FontWeight.bold)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.neutral700,
-                side: BorderSide(color: AppTheme.neutral300, width: 1.5),
+                foregroundColor: isDark ? AppTheme.neutral200 : AppTheme.neutral700,
+                side: BorderSide(color: isDark ? AppTheme.neutral600 : AppTheme.neutral300, width: 1.5),
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
               ),
             ),
           ),
           const SizedBox(height: 32),
-          const Divider(height: 1, color: AppTheme.neutral200),
+          Divider(height: 1, color: borderColor),
           const SizedBox(height: 32),
           Row(
             children: [

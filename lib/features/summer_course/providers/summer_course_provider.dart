@@ -18,14 +18,24 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     state = state.copyWith(currentStep: step);
   }
 
-  void nextStep() {
+  Future<void> nextStep() async {
     if (state.currentStep < 3) {
+      if (state.currentStep == 1) {
+        state = state.copyWith(isLoading: true);
+        await refreshCosts();
+        state = state.copyWith(isLoading: false);
+      }
       state = state.copyWith(currentStep: state.currentStep + 1);
     }
   }
 
-  void previousStep() {
+  Future<void> previousStep() async {
     if (state.currentStep > 0) {
+      if (state.currentStep == 3) {
+        state = state.copyWith(isLoading: true);
+        await refreshCosts();
+        state = state.copyWith(isLoading: false);
+      }
       state = state.copyWith(currentStep: state.currentStep - 1);
     }
   }
@@ -66,6 +76,20 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     if (titular != null) {
       selectTitular(titular);
     }
+  }
+
+  Future<void> refreshCosts() async {
+    try {
+      final costs = await _service.getCosts();
+      state = state.copyWith(courseCosts: costs);
+      
+      final updatedParticipants = state.selectedParticipants.map((p) {
+        final newCost = _calculateCost(p.type, p.selectedWeekIds.length);
+        return p.copyWith(calculatedCost: newCost);
+      }).toList();
+      
+      state = state.copyWith(selectedParticipants: updatedParticipants);
+    } catch (_) {}
   }
 
   void toggleBeneficiary(Member beneficiary) {
