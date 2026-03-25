@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,9 @@ class ProfileView extends ConsumerStatefulWidget {
 class _ProfileViewState extends ConsumerState<ProfileView> {
   final ImagePicker _picker = ImagePicker();
 
+  bool _isSearchingCp = false;
+  String? _lastSearchedCp;
+
   // Controllers Flag
   bool _isInit = false;
 
@@ -40,6 +44,149 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   final TextEditingController _razonSocialCtrl = TextEditingController();
   final TextEditingController _regimenCtrl = TextEditingController();
   final TextEditingController _usoCfdiCtrl = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _cpCtrl.addListener(_onCpChanged);
+  }
+
+  void _onCpChanged() {
+    final cp = _cpCtrl.text.trim();
+    if (cp.length == 5 && int.tryParse(cp) != null && cp != _lastSearchedCp) {
+      _fetchAddressByCp(cp);
+    }
+  }
+
+  Future<void> _fetchAddressByCp(String cp) async {
+    if (!mounted) return;
+    setState(() => _isSearchingCp = true);
+    _lastSearchedCp = cp;
+
+    try {
+      final dio = Dio();
+      const apiKey = 'AIzaSyBAHAj21BJ9bkYfA8GlUsJdglNtCTl63kA';
+      final response = await dio.get(
+        'https://maps.googleapis.com/maps/api/geocode/json',
+        queryParameters: {
+          'components': 'postal_code:$cp|country:MX',
+          'key': apiKey,
+          'language': 'es',
+        },
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final data = response.data as Map<String, dynamic>;
+        
+        if (data['status'] == 'OK' && (data['results'] as List).isNotEmpty) {
+          final result = data['results'][0] as Map<String, dynamic>;
+          final components = result['address_components'] as List<dynamic>? ?? [];
+          
+          String estado = '';
+          String ciudad = '';
+          String coloniaSola = '';
+
+          for (var comp in components) {
+            final types = comp['types'] as List<dynamic>? ?? [];
+            if (types.contains('administrative_area_level_1')) {
+              estado = comp['long_name'];
+            }
+            // Locality means City, administrative_area_level_2 means Municipality
+            if (types.contains('locality') || types.contains('administrative_area_level_2')) {
+              ciudad = comp['long_name'];
+            }
+            if (types.contains('sublocality') || types.contains('neighborhood') || types.contains('sublocality_level_1')) {
+              coloniaSola = comp['long_name'];
+            }
+          }
+          
+          if (!mounted) return;
+          setState(() {
+            if (estado.isNotEmpty) _estadoCtrl.text = estado;
+            // Fallback for CDMX where locality is scarce
+            _ciudadCtrl.text = ciudad.isNotEmpty ? ciudad : estado;
+          });
+
+          // Google sometimes provides an array of localities inside the postal code area
+          final localities = result['postcode_localities'] as List<dynamic>?;
+          
+          if (localities != null && localities.isNotEmpty) {
+            final colonias = localities.map((e) => e.toString()).toList();
+            if (colonias.length == 1) {
+               setState(() => _coloniaCtrl.text = colonias[0]);
+            } else {
+               _showColoniaSelector(colonias);
+            }
+          } else if (coloniaSola.isNotEmpty) {
+            setState(() => _coloniaCtrl.text = coloniaSola);
+          }
+        } else {
+          throw Exception('No result geometry found');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching CP with Google Maps: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se encontró información extra para este código postal.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSearchingCp = false);
+      }
+    }
+  }
+
+  void _showColoniaSelector(List<String> colonias) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  'Selecciona tu Colonia',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: colonias.length,
+                  itemBuilder: (context, index) {
+                    final colonia = colonias[index];
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                      title: Text(colonia),
+                      leading: const Icon(Icons.location_city_rounded, color: AppTheme.primaryColor),
+                      onTap: () {
+                        setState(() {
+                          _coloniaCtrl.text = colonia;
+                        });
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -114,6 +261,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _ciudadCtrl.text = personalAddress['city'] ?? '';
     _estadoCtrl.text = personalAddress['state'] ?? '';
     _cpCtrl.text = personalAddress['zip_code'] ?? '';
+    _lastSearchedCp = _cpCtrl.text;
 
     final fiscalData = profile.fiscalData ?? {};
     _rfcCtrl.text = fiscalData['rfc'] ?? profile.rfc ?? '';
@@ -465,6 +613,31 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             context,
             child: Column(
               children: [
+                _buildSensitiveField(
+                  context, 
+                  'C.P.', 
+                  canEdit, 
+                  controller: _cpCtrl, 
+                  icon: Icons.markunread_mailbox_outlined,
+                  helperText: 'Ingresa tu C.P. para autocompletar tu dirección',
+                  suffixIcon: _isSearchingCp 
+                      ? const Padding(
+                          padding: EdgeInsets.all(12), 
+                          child: SizedBox(
+                            width: 20, 
+                            height: 20, 
+                            child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor)
+                          )
+                        ) 
+                      : null,
+                ),
+                const SizedBox(height: 16),
+                _buildSensitiveField(context, 'Estado', canEdit, controller: _estadoCtrl, icon: Icons.map_rounded, helperText: 'Autocompletado al ingresar el C.P.'),
+                const SizedBox(height: 16),
+                _buildSensitiveField(context, 'Ciudad o Municipio', canEdit, controller: _ciudadCtrl, icon: Icons.location_city_outlined, helperText: 'Autocompletado al ingresar el C.P.'),
+                const SizedBox(height: 16),
+                _buildSensitiveField(context, 'Colonia', canEdit, controller: _coloniaCtrl, icon: Icons.holiday_village_outlined, helperText: 'Autocompletado al ingresar el C.P.'),
+                const SizedBox(height: 16),
                 _buildSensitiveField(context, 'Calle', canEdit, controller: _streetCtrl, icon: Icons.map_outlined),
                 const SizedBox(height: 16),
                 Row(
@@ -474,14 +647,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     Expanded(child: _buildSensitiveField(context, 'No. Interior', canEdit, controller: _intNumCtrl)),
                   ],
                 ),
-                const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Colonia', canEdit, controller: _coloniaCtrl, icon: Icons.holiday_village_outlined),
-                const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Ciudad', canEdit, controller: _ciudadCtrl, icon: Icons.location_city_outlined),
-                const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Estado', canEdit, controller: _estadoCtrl, icon: Icons.map_rounded),
-                const SizedBox(height: 16),
-                _buildSensitiveField(context, 'C.P.', canEdit, controller: _cpCtrl, icon: Icons.markunread_mailbox_outlined),
                 if (canEdit) ...[
                   const SizedBox(height: 24),
                   SizedBox(
@@ -675,7 +840,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildSensitiveField(BuildContext context, String label, bool canEdit, {required TextEditingController controller, IconData? icon}) {
+  Widget _buildSensitiveField(BuildContext context, String label, bool canEdit, {required TextEditingController controller, IconData? icon, Widget? suffixIcon, String? helperText}) {
     return TextFormField(
       controller: controller,
       readOnly: !canEdit,
@@ -685,9 +850,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
       decoration: InputDecoration(
         labelText: label,
+        helperText: helperText,
+        helperStyle: helperText != null && helperText.contains('Autocompletado') 
+            ? const TextStyle(color: AppTheme.primaryColor, fontStyle: FontStyle.italic) 
+            : null,
         prefixIcon: icon != null 
             ? Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))
             : null,
+        suffixIcon: suffixIcon,
       ),
     );
   }
