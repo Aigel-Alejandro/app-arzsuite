@@ -13,7 +13,8 @@ import '../../auth/views/login_view.dart';
 import '../providers/profile_provider.dart';
 import '../models/profile_model.dart';
 import '../models/sub_member_model.dart';
-
+import '../../../core/providers/sat_catalogs_provider.dart';
+import '../../../core/models/sat_catalogs_model.dart';
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
@@ -45,23 +46,41 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   final TextEditingController _regimenCtrl = TextEditingController();
   final TextEditingController _usoCfdiCtrl = TextEditingController();
 
+  // Fiscal Address Controllers
+  bool _isSameAddress = true;
+  final TextEditingController _fiscalStreetCtrl = TextEditingController();
+  final TextEditingController _fiscalExtNumCtrl = TextEditingController();
+  final TextEditingController _fiscalIntNumCtrl = TextEditingController();
+  final TextEditingController _fiscalColoniaCtrl = TextEditingController();
+  final TextEditingController _fiscalCiudadCtrl = TextEditingController();
+  final TextEditingController _fiscalEstadoCtrl = TextEditingController();
+  final TextEditingController _fiscalCpCtrl = TextEditingController();
+  String? _lastSearchedFiscalCp;
+
   @override
   void initState() {
     super.initState();
-    _cpCtrl.addListener(_onCpChanged);
+    _cpCtrl.addListener(() => _onCpChanged(false));
+    _fiscalCpCtrl.addListener(() => _onCpChanged(true));
   }
 
-  void _onCpChanged() {
-    final cp = _cpCtrl.text.trim();
-    if (cp.length == 5 && int.tryParse(cp) != null && cp != _lastSearchedCp) {
-      _fetchAddressByCp(cp);
+  void _onCpChanged(bool isFiscal) {
+    final ctrl = isFiscal ? _fiscalCpCtrl : _cpCtrl;
+    final lastSearched = isFiscal ? _lastSearchedFiscalCp : _lastSearchedCp;
+    final cp = ctrl.text.trim();
+    if (cp.length == 5 && int.tryParse(cp) != null && cp != lastSearched) {
+      _fetchAddressByCp(cp, isFiscal);
     }
   }
 
-  Future<void> _fetchAddressByCp(String cp) async {
+  Future<void> _fetchAddressByCp(String cp, bool isFiscal) async {
     if (!mounted) return;
     setState(() => _isSearchingCp = true);
-    _lastSearchedCp = cp;
+    if (isFiscal) {
+      _lastSearchedFiscalCp = cp;
+    } else {
+      _lastSearchedCp = cp;
+    }
 
     try {
       final dio = Dio();
@@ -102,9 +121,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           
           if (!mounted) return;
           setState(() {
-            if (estado.isNotEmpty) _estadoCtrl.text = estado;
-            // Fallback for CDMX where locality is scarce
-            _ciudadCtrl.text = ciudad.isNotEmpty ? ciudad : estado;
+            if (isFiscal) {
+              if (estado.isNotEmpty) _fiscalEstadoCtrl.text = estado;
+              _fiscalCiudadCtrl.text = ciudad.isNotEmpty ? ciudad : estado;
+            } else {
+              if (estado.isNotEmpty) _estadoCtrl.text = estado;
+              _ciudadCtrl.text = ciudad.isNotEmpty ? ciudad : estado;
+            }
           });
 
           // Google sometimes provides an array of localities inside the postal code area
@@ -113,12 +136,24 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           if (localities != null && localities.isNotEmpty) {
             final colonias = localities.map((e) => e.toString()).toList();
             if (colonias.length == 1) {
-               setState(() => _coloniaCtrl.text = colonias[0]);
+               setState(() {
+                 if (isFiscal) {
+                   _fiscalColoniaCtrl.text = colonias[0];
+                 } else {
+                   _coloniaCtrl.text = colonias[0];
+                 }
+               });
             } else {
-               _showColoniaSelector(colonias);
+               _showColoniaSelector(colonias, isFiscal);
             }
           } else if (coloniaSola.isNotEmpty) {
-            setState(() => _coloniaCtrl.text = coloniaSola);
+            setState(() {
+              if (isFiscal) {
+                _fiscalColoniaCtrl.text = coloniaSola;
+              } else {
+                _coloniaCtrl.text = coloniaSola;
+              }
+            });
           }
         } else {
           throw Exception('No result geometry found');
@@ -137,7 +172,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }
   }
 
-  void _showColoniaSelector(List<String> colonias) {
+  void _showColoniaSelector(List<String> colonias, bool isFiscal) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -173,7 +208,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       leading: const Icon(Icons.location_city_rounded, color: AppTheme.primaryColor),
                       onTap: () {
                         setState(() {
-                          _coloniaCtrl.text = colonia;
+                          if (isFiscal) {
+                            _fiscalColoniaCtrl.text = colonia;
+                          } else {
+                            _coloniaCtrl.text = colonia;
+                          }
                         });
                         Navigator.pop(context);
                       },
@@ -183,6 +222,106 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _showGenericSelector(String title, List<String> options, TextEditingController controller, IconData icon) {
+    String searchQuery = '';
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.85,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (BuildContext context, StateSetter setModalState) {
+                final filteredOptions = options.where((o) => 
+                  o.toLowerCase().contains(searchQuery.toLowerCase())
+                ).toList();
+
+                return Container(
+                  padding: const EdgeInsets.only(top: 24, bottom: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Text(
+                          title,
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: TextField(
+                          autofocus: false,
+                          decoration: InputDecoration(
+                            hintText: 'Escribe para buscar...',
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                          ),
+                          onChanged: (value) {
+                            setModalState(() {
+                              searchQuery = value;
+                            });
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        child: ListView.builder(
+                          controller: scrollController,
+                          itemCount: filteredOptions.length,
+                          itemBuilder: (context, index) {
+                            final option = filteredOptions[index];
+                            final isSelected = controller.text == option;
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                              title: Text(
+                                option, 
+                                style: TextStyle(
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected ? AppTheme.primaryColor : null,
+                                )
+                              ),
+                              leading: Icon(
+                                icon, 
+                                color: isSelected ? AppTheme.primaryColor : AppTheme.neutral400
+                              ),
+                              trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryColor) : null,
+                              onTap: () {
+                                setState(() {
+                                  controller.text = option;
+                                });
+                                Navigator.pop(context);
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+            );
+          },
         );
       },
     );
@@ -201,6 +340,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _razonSocialCtrl.dispose();
     _regimenCtrl.dispose();
     _usoCfdiCtrl.dispose();
+    
+    _fiscalStreetCtrl.dispose();
+    _fiscalExtNumCtrl.dispose();
+    _fiscalIntNumCtrl.dispose();
+    _fiscalColoniaCtrl.dispose();
+    _fiscalCiudadCtrl.dispose();
+    _fiscalEstadoCtrl.dispose();
+    _fiscalCpCtrl.dispose();
     super.dispose();
   }
 
@@ -269,6 +416,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _razonSocialCtrl.text = fiscalData['business_name'] ?? '';
     _regimenCtrl.text = fiscalData['tax_regime'] ?? '';
     _usoCfdiCtrl.text = fiscalData['cfdi_use'] ?? '';
+    
+    _isSameAddress = fiscalData['is_same_address'] ?? true;
+    _fiscalStreetCtrl.text = fiscalData['street'] ?? '';
+    _fiscalExtNumCtrl.text = fiscalData['ext_number'] ?? '';
+    _fiscalIntNumCtrl.text = fiscalData['int_number'] ?? '';
+    _fiscalColoniaCtrl.text = fiscalData['neighborhood'] ?? '';
+    _fiscalCiudadCtrl.text = fiscalData['city'] ?? '';
+    _fiscalEstadoCtrl.text = fiscalData['state'] ?? '';
+    final initialFiscalCp = fiscalData['zip_code'] ?? '';
+    _lastSearchedFiscalCp = initialFiscalCp;
+    _fiscalCpCtrl.text = initialFiscalCp;
 
     _isInit = true;
   }
@@ -286,7 +444,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).updateProfile(personalAddress: updatedAddress);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dirección actualizada (pendiente de aprobación)')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dirección actualizada')));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
@@ -300,10 +458,29 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     updatedFiscal['tax_regime'] = _regimenCtrl.text.trim();
     updatedFiscal['cfdi_use'] = _usoCfdiCtrl.text.trim();
     
+    updatedFiscal['is_same_address'] = _isSameAddress;
+    if (!_isSameAddress) {
+      updatedFiscal['street'] = _fiscalStreetCtrl.text.trim();
+      updatedFiscal['ext_number'] = _fiscalExtNumCtrl.text.trim();
+      updatedFiscal['int_number'] = _fiscalIntNumCtrl.text.trim();
+      updatedFiscal['neighborhood'] = _fiscalColoniaCtrl.text.trim();
+      updatedFiscal['city'] = _fiscalCiudadCtrl.text.trim();
+      updatedFiscal['state'] = _fiscalEstadoCtrl.text.trim();
+      updatedFiscal['zip_code'] = _fiscalCpCtrl.text.trim();
+    } else {
+      updatedFiscal['street'] = _streetCtrl.text.trim();
+      updatedFiscal['ext_number'] = _extNumCtrl.text.trim();
+      updatedFiscal['int_number'] = _intNumCtrl.text.trim();
+      updatedFiscal['neighborhood'] = _coloniaCtrl.text.trim();
+      updatedFiscal['city'] = _ciudadCtrl.text.trim();
+      updatedFiscal['state'] = _estadoCtrl.text.trim();
+      updatedFiscal['zip_code'] = _cpCtrl.text.trim();
+    }
+    
     try {
       await ref.read(profileProvider.notifier).updateProfile(fiscalData: updatedFiscal);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos fiscales actualizados (pendiente de aprobación)')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos fiscales actualizados')));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
@@ -313,6 +490,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    ref.watch(satCatalogsProvider); // Trigger catalog fetch early
 
     return MainLayout(
       activeIndex: 2,
@@ -617,7 +795,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Dirección Personal', Icons.location_on_outlined, requiresApproval: true),
+          _buildSectionHeader(context, 'Dirección Personal', Icons.location_on_outlined),
           const SizedBox(height: 16),
           _buildCard(
             context,
@@ -677,7 +855,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Datos Fiscales', Icons.receipt_long_outlined, requiresApproval: true),
+          _buildSectionHeader(context, 'Datos Fiscales', Icons.receipt_long_outlined),
           const SizedBox(height: 16),
           _buildCard(
             context,
@@ -687,9 +865,101 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 const SizedBox(height: 16),
                 _buildSensitiveField(context, 'Razón Social', canEdit, controller: _razonSocialCtrl, icon: Icons.business_rounded),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Régimen Fiscal', canEdit, controller: _regimenCtrl, icon: Icons.account_balance_outlined),
+                _buildSensitiveField(
+                  context, 
+                  'Régimen Fiscal', 
+                  canEdit, 
+                  controller: _regimenCtrl, 
+                  icon: Icons.account_balance_outlined,
+                  onTap: () {
+                    final catalogs = ref.read(satCatalogsProvider).value;
+                    if (catalogs != null) {
+                      final options = catalogs.regimenesFiscales.map((e) => e.displayString).toList();
+                      _showGenericSelector('Selecciona tu Régimen Fiscal', options, _regimenCtrl, Icons.account_balance_rounded);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                    }
+                  },
+                ),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Uso CFDI', canEdit, controller: _usoCfdiCtrl, icon: Icons.receipt_long_outlined),
+                _buildSensitiveField(
+                  context, 
+                  'Uso CFDI', 
+                  canEdit, 
+                  controller: _usoCfdiCtrl, 
+                  icon: Icons.receipt_long_outlined,
+                  onTap: () {
+                    final catalogs = ref.read(satCatalogsProvider).value;
+                    if (catalogs != null) {
+                      final options = catalogs.usosCfdi.map((e) => e.displayString).toList();
+                      _showGenericSelector('Selecciona el Uso de CFDI', options, _usoCfdiCtrl, Icons.receipt_long_rounded);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                    }
+                  },
+                ),
+                const SizedBox(height: 24),
+                Theme(
+                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  child: ExpansionTile(
+                    tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+                    collapsedShape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: AppTheme.neutral200.withOpacity(0.5)),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                    ),
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    collapsedBackgroundColor: Theme.of(context).colorScheme.surface,
+                    iconColor: AppTheme.primaryColor,
+                    textColor: AppTheme.primaryColor,
+                    title: const Text(
+                      'Usar dirección fiscal diferente',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    initiallyExpanded: !_isSameAddress,
+                    onExpansionChanged: canEdit 
+                        ? (expanded) {
+                            setState(() => _isSameAddress = !expanded);
+                          }
+                        : null,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: [
+                            _buildSensitiveField(
+                              context, 
+                              'C.P. Fiscal', 
+                              canEdit, 
+                              controller: _fiscalCpCtrl, 
+                              icon: Icons.markunread_mailbox_outlined,
+                              helperText: 'Ingresa tu C.P. para autocompletar',
+                            ),
+                            const SizedBox(height: 16),
+                            _buildSensitiveField(context, 'Estado Fiscal', canEdit, controller: _fiscalEstadoCtrl, icon: Icons.map_rounded),
+                            const SizedBox(height: 16),
+                            _buildSensitiveField(context, 'Ciudad / Mpio. Fiscal', canEdit, controller: _fiscalCiudadCtrl, icon: Icons.location_city_outlined),
+                            const SizedBox(height: 16),
+                            _buildSensitiveField(context, 'Colonia Fiscal', canEdit, controller: _fiscalColoniaCtrl, icon: Icons.holiday_village_outlined),
+                            const SizedBox(height: 16),
+                            _buildSensitiveField(context, 'Calle Fiscal', canEdit, controller: _fiscalStreetCtrl, icon: Icons.map_outlined),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(child: _buildSensitiveField(context, 'No. Exterior', canEdit, controller: _fiscalExtNumCtrl, icon: Icons.numbers_rounded)),
+                                const SizedBox(width: 16),
+                                Expanded(child: _buildSensitiveField(context, 'No. Interior', canEdit, controller: _fiscalIntNumCtrl)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 if (canEdit) ...[
                   const SizedBox(height: 24),
                   SizedBox(
@@ -850,10 +1120,22 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildSensitiveField(BuildContext context, String label, bool canEdit, {required TextEditingController controller, IconData? icon, Widget? suffixIcon, String? helperText}) {
+  Widget _buildSensitiveField(
+    BuildContext context, 
+    String label, 
+    bool canEdit, 
+    {
+      required TextEditingController controller, 
+      IconData? icon, 
+      Widget? suffixIcon, 
+      String? helperText,
+      VoidCallback? onTap,
+    }
+  ) {
     return TextFormField(
       controller: controller,
-      readOnly: !canEdit,
+      readOnly: !canEdit || onTap != null,
+      onTap: canEdit ? onTap : null,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
             color: canEdit ? null : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
@@ -867,7 +1149,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         prefixIcon: icon != null 
             ? Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))
             : null,
-        suffixIcon: suffixIcon,
+        suffixIcon: suffixIcon ?? (onTap != null && canEdit ? const Icon(Icons.arrow_drop_down_rounded) : null),
       ),
     );
   }
