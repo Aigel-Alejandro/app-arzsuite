@@ -260,8 +260,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _coloniaCtrl.text = personalAddress['neighborhood'] ?? '';
     _ciudadCtrl.text = personalAddress['city'] ?? '';
     _estadoCtrl.text = personalAddress['state'] ?? '';
-    _cpCtrl.text = personalAddress['zip_code'] ?? '';
-    _lastSearchedCp = _cpCtrl.text;
+    final initialCp = personalAddress['zip_code'] ?? '';
+    _lastSearchedCp = initialCp;
+    _cpCtrl.text = initialCp;
 
     final fiscalData = profile.fiscalData ?? {};
     _rfcCtrl.text = fiscalData['rfc'] ?? profile.rfc ?? '';
@@ -323,9 +324,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           
           if (!_isInit) _initControllers(profile);
 
-          return DefaultTabController(
-            length: 3,
-            child: NestedScrollView(
+          return RefreshIndicator(
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            color: AppTheme.primaryColor,
+            onRefresh: () async {
+              _isInit = false; // Forzar que repueble los controladores con la información más reciente
+              await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
+            },
+            child: DefaultTabController(
+              length: 3,
+              child: NestedScrollView(
               headerSliverBuilder: (context, innerBoxIsScrolled) {
                 return [
                   SliverToBoxAdapter(
@@ -334,44 +342,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Mi Perfil',
-                                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.primary,
-                                    ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.logout_rounded, color: AppTheme.dangerColor),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) => AlertDialog(
-                                      title: const Text('Cerrar Sesión'),
-                                      content: const Text('¿Estás seguro de que deseas salir de tu cuenta?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(context),
-                                          child: const Text('Cancelar'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            Navigator.pop(context);
-                                            _onLogout();
-                                          },
-                                          style: TextButton.styleFrom(foregroundColor: AppTheme.dangerColor),
-                                          child: const Text('Salir'),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                                tooltip: 'Cerrar sesión',
-                              ),
-                            ],
+                          Text(
+                            'Mi Perfil',
+                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
                           ),
                           const SizedBox(height: 24),
                           _buildProfileHero(context, profile),
@@ -402,6 +378,37 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         ],
                       ),
                       Theme.of(context).scaffoldBackgroundColor,
+                      trailing: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          margin: const EdgeInsets.only(left: 4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white.withOpacity(0.1) 
+                                : Colors.white,
+                          ),
+                          child: IconButton(
+                            icon: const Icon(Icons.sync_rounded, size: 20),
+                            color: AppTheme.primaryColor,
+                            padding: const EdgeInsets.all(8),
+                            constraints: const BoxConstraints(),
+                            onPressed: () async {
+                              _isInit = false;
+                              await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Verificando permisos de edición...'),
+                                    duration: Duration(seconds: 2),
+                                  )
+                                );
+                              }
+                            },
+                            tooltip: 'Actualizar perfil',
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ];
@@ -413,6 +420,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   _buildSettingsTab(context, ref, profile),
                 ],
               ),
+            ),
             ),
           );
         },
@@ -520,6 +528,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         children: [
@@ -590,6 +599,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final bool canEdit = profile.canEditSensitiveData;
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -719,6 +729,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final themeMode = ref.watch(themeProvider);
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1108,10 +1119,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 }
 
 class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar, this.backgroundColor);
+  _SliverAppBarDelegate(this._tabBar, this.backgroundColor, {this.trailing});
 
   final TabBar _tabBar;
   final Color backgroundColor;
+  final Widget? trailing;
 
   @override
   double get minExtent => _tabBar.preferredSize.height + 16;
@@ -1129,13 +1141,20 @@ class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
           borderRadius: BorderRadius.circular(50),
         ),
         padding: const EdgeInsets.all(4),
-        child: _tabBar,
+        child: Row(
+          children: [
+            Expanded(child: _tabBar),
+            if (trailing != null) trailing!,
+          ],
+        ),
       ),
     );
   }
 
   @override
   bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return oldDelegate.backgroundColor != backgroundColor || oldDelegate._tabBar != _tabBar;
+    return oldDelegate.backgroundColor != backgroundColor || 
+           oldDelegate._tabBar != _tabBar ||
+           oldDelegate.trailing != trailing;
   }
 }
