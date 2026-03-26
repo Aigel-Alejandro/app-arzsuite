@@ -97,7 +97,10 @@ final healthProvider = FutureProvider.autoDispose<HealthData>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
   if (apiClient == null) throw Exception('API Client no disponible');
 
-  final response = await apiClient.dio.get('arzsuite/health');
+  final response = await apiClient.dio.get(
+    'arzsuite/health',
+    queryParameters: {'_t': DateTime.now().millisecondsSinceEpoch},
+  );
   
   var responseData = response.data;
   if (responseData is String) {
@@ -186,6 +189,8 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
        
        if (res.statusCode == 200 || res.statusCode == 201) {
           if (!mounted) return;
+          _isInit = false;
+          ref.invalidate(healthProvider);
           ToastAlerts.showSuccess(context, 'Información guardada correctamente');
        } else {
           throw Exception('Error al guardar');
@@ -204,16 +209,18 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Salud y Expediente', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 18)),
+        title: const Text('Salud y Expediente', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: theme.colorScheme.onSurface,
+        backgroundColor: theme.colorScheme.surface,
+        foregroundColor: theme.colorScheme.primary,
       ),
       body: healthAsyncValue.when(
         data: (data) {
-          _initControllers(data.healthInfo);
+          if (!healthAsyncValue.isLoading && !healthAsyncValue.isRefreshing) {
+            _initControllers(data.healthInfo);
+          }
           final isDark = theme.brightness == Brightness.dark;
 
           return Column(

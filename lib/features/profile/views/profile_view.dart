@@ -533,7 +533,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           _isInit = false;
                           await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
                           if (context.mounted) {
-                            ToastAlerts.showSuccess(context, 'Verificando permisos de edición...'), duration: Duration(seconds: 2);
+                            ToastAlerts.showSuccess(context, 'Verificando permisos de edición...');
                           }
                         },
                       ),
@@ -555,25 +555,25 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       context,
                       icon: Icons.person_rounded,
                       title: 'Información de la Cuenta',
-                      onTap: () => _navigateToSection(context, 'Información de la Cuenta', _buildAccountTab(context, profile)),
+                      onTap: () => _navigateToSection(context, 'Información de la Cuenta', (ctx, r, p) => _buildAccountTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.settings_rounded,
                       title: 'Ajustes de la App',
-                      onTap: () => _navigateToSection(context, 'Ajustes de Aplicación', _buildSettingsTab(context, ref, profile)),
+                      onTap: () => _navigateToSection(context, 'Ajustes de Aplicación', (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.family_restroom_rounded,
                       title: 'Beneficiarios Legales',
-                      onTap: () => _navigateToSection(context, 'Beneficiarios Legales', _buildBeneficiariesTab(context, profile)),
+                      onTap: () => _navigateToSection(context, 'Beneficiarios Legales', (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.directions_car_rounded,
                       title: 'Vehículos Registrados',
-                      onTap: () => _navigateToSection(context, 'Vehículos Registrados', _buildVehiclesTab(context, profile)),
+                      onTap: () => _navigateToSection(context, 'Vehículos Registrados', (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
@@ -593,20 +593,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _navigateToSection(BuildContext context, String title, Widget content) {
+  void _navigateToSection(BuildContext context, String title, Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            foregroundColor: Theme.of(context).colorScheme.primary,
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: SafeArea(child: content),
+        builder: (context) => Consumer(
+          builder: (context, ref, _) {
+            final profileAsync = ref.watch(profileProvider);
+            return profileAsync.when(
+              data: (profile) {
+                if (profile == null) return const Scaffold(body: Center(child: Text('Perfil no encontrado')));
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    centerTitle: true,
+                    elevation: 0,
+                    scrolledUnderElevation: 0,
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    foregroundColor: Theme.of(context).colorScheme.primary,
+                  ),
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  body: SafeArea(child: builder(context, ref, profile)),
+                );
+              },
+              loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))),
+              error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
+            );
+          },
         ),
       ),
     );
