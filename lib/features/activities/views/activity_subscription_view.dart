@@ -3,6 +3,7 @@ import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activity_terms_view.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class ActivitySubscriptionView extends StatefulWidget {
   const ActivitySubscriptionView({super.key});
@@ -147,9 +148,7 @@ class _ActivitySubscriptionViewState extends State<ActivitySubscriptionView> {
                     onPressed: (_selectedBeneficiary != null && _termsAccepted)
                         ? () {
                             // Acción de suscripción
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Inscripción exitosa. Se notificó al backend.')),
-                            );
+                            ToastAlerts.showSuccess(context, 'Inscripción exitosa. Se notificó al backend.');
                             Navigator.pop(context);
                           }
                         : null,

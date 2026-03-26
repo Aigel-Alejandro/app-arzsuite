@@ -16,6 +16,7 @@ import '../models/sub_member_model.dart';
 import '../../../core/providers/sat_catalogs_provider.dart';
 import '../../../core/models/sat_catalogs_model.dart';
 import 'health_view.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
@@ -163,9 +164,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     } catch (e) {
       debugPrint('Error fetching CP with Google Maps: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró información extra para este código postal.')),
-      );
+      ToastAlerts.showWarning(context, 'No se encontró información extra para este código postal.');
     } finally {
       if (mounted) {
         setState(() => _isSearchingCp = false);
@@ -378,23 +377,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (!mounted) return;
       
       // Mostrar feedback de carga
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Subiendo foto de perfil...')),
-      );
+      ToastAlerts.showWarning(context, 'Subiendo foto de perfil...');
 
       await ref.read(profileProvider.notifier).updateProfile(
         profilePictureBase64: dataUri,
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil actualizada')),
-      );
+      ToastAlerts.showSuccess(context, 'Foto de perfil actualizada');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al subir la foto: $e'), backgroundColor: AppTheme.dangerColor),
-      );
+      ToastAlerts.showError(context, 'Error al subir la foto: $e');
     }
   }
 
@@ -445,10 +438,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).updateProfile(personalAddress: updatedAddress);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dirección actualizada')));
+      ToastAlerts.showSuccess(context, 'Dirección actualizada');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      ToastAlerts.showError(context, 'Error: $e');
     }
   }
 
@@ -481,10 +474,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).updateProfile(fiscalData: updatedFiscal);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos fiscales actualizados')));
+      ToastAlerts.showSuccess(context, 'Datos fiscales actualizados');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      ToastAlerts.showError(context, 'Error: $e');
     }
   }
 
@@ -540,9 +533,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           _isInit = false;
                           await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Verificando permisos de edición...'), duration: Duration(seconds: 2))
-                            );
+                            ToastAlerts.showSuccess(context, 'Verificando permisos de edición...'), duration: Duration(seconds: 2);
                           }
                         },
                       ),
@@ -1020,7 +1011,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       final options = catalogs.regimenesFiscales.map((e) => e.displayString).toList();
                       _showGenericSelector('Selecciona tu Régimen Fiscal', options, _regimenCtrl, Icons.account_balance_rounded);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
@@ -1037,7 +1028,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       final options = catalogs.usosCfdi.map((e) => e.displayString).toList();
                       _showGenericSelector('Selecciona el Uso de CFDI', options, _usoCfdiCtrl, Icons.receipt_long_rounded);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
@@ -1615,7 +1606,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }).toList();
 
     if (availableFamily.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hay más miembros de familia disponibles para asignar.')));
+      ToastAlerts.showWarning(context, 'No hay más miembros de familia disponibles para asignar.');
       return;
     }
 
@@ -1657,11 +1648,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).addBeneficiary(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario asignado')));
+        ToastAlerts.showSuccess(context, 'Beneficiario asignado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1670,11 +1661,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).removeBeneficiary(int.parse(id.toString()));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario removido')));
+        ToastAlerts.showSuccess(context, 'Beneficiario removido');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1807,7 +1798,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                             onPressed: () {
                               final plates = platesCtrl.text.trim();
                               if (plates.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Las placas son obligatorias')));
+                                ToastAlerts.showWarning(context, 'Las placas son obligatorias');
                                 return;
                               }
                               final data = {
@@ -1846,11 +1837,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).addVehicle(data);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo registrado')));
+        ToastAlerts.showSuccess(context, 'Vehículo registrado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1859,11 +1850,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).editVehicle(int.parse(id.toString()), data);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo actualizado')));
+        ToastAlerts.showSuccess(context, 'Vehículo actualizado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1872,11 +1863,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).disableVehicle(int.parse(id.toString()));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo removido')));
+        ToastAlerts.showSuccess(context, 'Vehículo removido');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class MatchDetailView extends StatefulWidget {
   const MatchDetailView({super.key});
@@ -74,7 +75,7 @@ class _MatchDetailViewState extends State<MatchDetailView> {
                        isSelected: _isConfirmed == true,
                        onTap: () {
                          setState(() => _isConfirmed = true);
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Confirmada')));
+                         ToastAlerts.showSuccess(context, 'Notificado: Asistencia Confirmada');
                        },
                      ),
                      _ResponseButton(
@@ -84,7 +85,7 @@ class _MatchDetailViewState extends State<MatchDetailView> {
                        isSelected: _isConfirmed == false,
                        onTap: () {
                          setState(() => _isConfirmed = false);
-                         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Notificado: Asistencia Rechazada')));
+                         ToastAlerts.showSuccess(context, 'Notificado: Asistencia Rechazada');
                        },
                      )
                    ],

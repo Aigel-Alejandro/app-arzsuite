@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/guest.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class Step3Guests extends ConsumerStatefulWidget {
   const Step3Guests({super.key});
@@ -48,12 +49,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
       ref.read(summerCourseProvider.notifier).addGuest(guest);
       Navigator.pop(modalContext);
     } else if (_selectedRelationship == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona el parentesco con el titular.'),
-          backgroundColor: AppTheme.dangerColor,
-        ),
-      );
+      ToastAlerts.showWarning(context, 'Por favor selecciona el parentesco con el titular.');
     }
   }
 
