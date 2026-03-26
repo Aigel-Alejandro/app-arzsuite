@@ -488,6 +488,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
     ref.watch(satCatalogsProvider); // Trigger catalog fetch early
@@ -506,104 +507,165 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             backgroundColor: Theme.of(context).colorScheme.surface,
             color: AppTheme.primaryColor,
             onRefresh: () async {
-              _isInit = false; // Forzar que repueble los controladores con la información más reciente
+              _isInit = false;
               await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
             },
-            child: DefaultTabController(
-              length: 3,
-              child: NestedScrollView(
-              headerSliverBuilder: (context, innerBoxIsScrolled) {
-                return [
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mi Perfil',
-                            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 100),
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Mi Perfil',
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.primary,
                           ),
-                          const SizedBox(height: 24),
-                          _buildProfileHero(context, profile),
-                          const SizedBox(height: 32),
-                        ],
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white.withOpacity(0.1) 
+                            : Colors.white,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.sync_rounded),
+                        color: AppTheme.primaryColor,
+                        tooltip: 'Actualizar perfil',
+                        onPressed: () async {
+                          _isInit = false;
+                          await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Verificando permisos de edición...'), duration: Duration(seconds: 2))
+                            );
+                          }
+                        },
                       ),
                     ),
-                  ),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _SliverAppBarDelegate(
-                      TabBar(
-                        dividerColor: Colors.transparent,
-                        indicatorSize: TabBarIndicatorSize.label,
-                        indicatorColor: AppTheme.primaryColor,
-                        labelColor: AppTheme.primaryColor,
-                        unselectedLabelColor: AppTheme.neutral500,
-                        labelPadding: const EdgeInsets.symmetric(horizontal: 24),
-                        indicatorPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: -12),
-                        indicator: BoxDecoration(
-                          borderRadius: BorderRadius.circular(50),
-                          color: AppTheme.primaryColor.withOpacity(0.1),
-                        ),
-                        tabs: const [
-                          Tab(text: 'Acceso'),
-                          Tab(text: 'Cuenta'),
-                          Tab(text: 'Ajustes'),
-                        ],
-                      ),
-                      Theme.of(context).scaffoldBackgroundColor,
-                      trailing: Material(
-                        color: Colors.transparent,
-                        child: Container(
-                          margin: const EdgeInsets.only(left: 4),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white.withOpacity(0.1) 
-                                : Colors.white,
-                          ),
-                          child: IconButton(
-                            icon: const Icon(Icons.sync_rounded, size: 20),
-                            color: AppTheme.primaryColor,
-                            padding: const EdgeInsets.all(8),
-                            constraints: const BoxConstraints(),
-                            onPressed: () async {
-                              _isInit = false;
-                              await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Verificando permisos de edición...'),
-                                    duration: Duration(seconds: 2),
-                                  )
-                                );
-                              }
-                            },
-                            tooltip: 'Actualizar perfil',
-                          ),
-                        ),
-                      ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildProfileHero(context, profile),
+                const SizedBox(height: 32),
+                _buildAccessTab(context, profile), // QR inline
+                const SizedBox(height: 32),
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.95,
+                  children: [
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.person_rounded,
+                      title: 'Información de la Cuenta',
+                      onTap: () => _navigateToSection(context, 'Información de la Cuenta', _buildAccountTab(context, profile)),
                     ),
-                  ),
-                ];
-              },
-              body: TabBarView(
-                children: [
-                  _buildAccessTab(context, profile),
-                  _buildAccountTab(context, profile),
-                  _buildSettingsTab(context, ref, profile),
-                ],
-              ),
-            ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.settings_rounded,
+                      title: 'Ajustes de la App',
+                      onTap: () => _navigateToSection(context, 'Ajustes de Aplicación', _buildSettingsTab(context, ref, profile)),
+                    ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.family_restroom_rounded,
+                      title: 'Beneficiarios Legales',
+                      onTap: () => _navigateToSection(context, 'Beneficiarios Legales', _buildBeneficiariesTab(context, profile)),
+                    ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.directions_car_rounded,
+                      title: 'Vehículos Registrados',
+                      onTap: () => _navigateToSection(context, 'Vehículos Registrados', _buildVehiclesTab(context, profile)),
+                    ),
+                  ],
+                ),
+              ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (error, _) => Center(child: Text('Error: $error')),
+      ),
+    );
+  }
+
+  void _navigateToSection(BuildContext context, String title, Widget content) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            foregroundColor: Theme.of(context).colorScheme.primary,
+          ),
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+          body: SafeArea(child: content),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: AppTheme.primaryColor, size: 32),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title, 
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, height: 1.2),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -705,14 +767,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     final qrData = 'MEMBER:${profile.entityid}:${profile.id}';
     final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
-      child: Column(
-        children: [
-          _buildCard(
-            context,
-            padding: const EdgeInsets.all(32),
+    return _buildCard(
+      context,
+      padding: const EdgeInsets.all(32),
             child: Column(
               children: [
                 Container(
@@ -766,11 +823,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 120), // Padding for island menu
-        ],
-      ),
-    );
+          );
   }
 
   Widget _buildAccountTab(BuildContext context, ProfileModel profile) {
@@ -1398,45 +1451,343 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       ),
     );
   }
-}
+  Widget _buildBeneficiariesTab(BuildContext context, ProfileModel profile) {
+    final beneficiaries = profile.legalBeneficiaries;
+    final family = profile.associatedMembers.where((m) => m.id != profile.id).toList();
 
-class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
-  _SliverAppBarDelegate(this._tabBar, this.backgroundColor, {this.trailing});
-
-  final TabBar _tabBar;
-  final Color backgroundColor;
-  final Widget? trailing;
-
-  @override
-  double get minExtent => _tabBar.preferredSize.height + 16;
-  @override
-  double get maxExtent => _tabBar.preferredSize.height + 16;
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Container(
-      color: backgroundColor,
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 8),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.neutral100.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.2 : 1),
-          borderRadius: BorderRadius.circular(50),
-        ),
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          children: [
-            Expanded(child: _tabBar),
-            if (trailing != null) trailing!,
-          ],
-        ),
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Beneficiarios Legales', Icons.family_restroom_rounded),
+          const SizedBox(height: 16),
+          const Text('Asigna a miembros de tu familia autorizados en caso de fallecimiento (máximo 3).'),
+          const SizedBox(height: 16),
+          _buildCard(
+            context,
+            child: Column(
+              children: [
+                if (beneficiaries.isEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('No has asignado ningún beneficiario legal.'),
+                  )
+                ] else ...[
+                  for (var i = 0; i < beneficiaries.length; i++) ...[
+                    if (i > 0) const Divider(height: 0),
+                    ListTile(
+                      leading: const Icon(Icons.person, color: AppTheme.primaryColor),
+                      title: Text(
+                        family.firstWhere(
+                          (m) => m.id == beneficiaries[i]['beneficiary_socio_id'].toString(),
+                          orElse: () => SubMemberModel(id: '', fullname: 'Miembro desconocido', membershipNumber: '', memberType: ''),
+                        ).fullname,
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
+                        onPressed: () => _removeBeneficiary(beneficiaries[i]['id']),
+                      ),
+                    ),
+                  ],
+                ],
+                if (beneficiaries.length < 3) ...[
+                  const Divider(height: 0),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: const Text('Asignar Beneficiario'),
+                        onPressed: family.isEmpty ? null : () => _showAddBeneficiaryDialog(context, family, beneficiaries),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
+              ],
+            ),
+          ),
+          const SizedBox(height: 120),
+        ],
       ),
     );
   }
 
-  @override
-  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
-    return oldDelegate.backgroundColor != backgroundColor || 
-           oldDelegate._tabBar != _tabBar ||
-           oldDelegate.trailing != trailing;
+  void _showAddBeneficiaryDialog(BuildContext context, List<SubMemberModel> family, List<dynamic> currentBeneficiaries) {
+    final availableFamily = family.where((f) {
+      return !currentBeneficiaries.any((b) => b['beneficiary_socio_id'].toString() == f.id);
+    }).toList();
+
+    if (availableFamily.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hay más miembros de familia disponibles para asignar.')));
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Asignar Beneficiario'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: availableFamily.length,
+              itemBuilder: (context, index) {
+                final member = availableFamily[index];
+                return ListTile(
+                  title: Text(member.fullname),
+                  subtitle: Text(member.memberType),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _addBeneficiary(member.id);
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _addBeneficiary(String id) async {
+    try {
+      await ref.read(profileProvider.notifier).addBeneficiary(id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario asignado')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      }
+    }
+  }
+
+  Future<void> _removeBeneficiary(dynamic id) async {
+    try {
+      await ref.read(profileProvider.notifier).removeBeneficiary(int.parse(id.toString()));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario removido')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      }
+    }
+  }
+
+  Widget _buildVehiclesTab(BuildContext context, ProfileModel profile) {
+    final vehicles = profile.vehicles;
+
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
+          const SizedBox(height: 16),
+          const Text('Vehículos registrados para acceso al estacionamiento (máximo 5). Solo 1 puede estar en el estacionamiento a la vez.'),
+          const SizedBox(height: 16),
+          _buildCard(
+            context,
+            child: Column(
+              children: [
+                if (vehicles.isEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text('No has registrado ningún vehículo.'),
+                  )
+                ] else ...[
+                  for (var i = 0; i < vehicles.length; i++) ...[
+                    if (i > 0) const Divider(height: 0),
+                    ListTile(
+                      leading: Icon(Icons.directions_car, color: vehicles[i]['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
+                      title: Text('Placas: ${vehicles[i]['plates'] ?? ''}'),
+                      subtitle: Text('${vehicles[i]['make'] ?? ''} ${vehicles[i]['model'] ?? ''}'.trim()),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (vehicles[i]['is_in_parking'] == true)
+                            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () => _showVehicleDialog(context, vehicles[i]),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
+                            onPressed: () => _disableVehicle(vehicles[i]['id']),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+                if (vehicles.length < 5) ...[
+                  const Divider(height: 0),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: const Icon(Icons.add),
+                        label: const Text('Registrar Vehículo'),
+                        onPressed: () => _showVehicleDialog(context, null),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ]
+              ],
+            ),
+          ),
+          const SizedBox(height: 120),
+        ],
+      ),
+    );
+  }
+
+  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle) {
+    final isEditing = vehicle != null;
+    final platesCtrl = TextEditingController(text: vehicle?['plates']?.toString() ?? '');
+    final makeCtrl = TextEditingController(text: vehicle?['make']?.toString() ?? '');
+    final modelCtrl = TextEditingController(text: vehicle?['model']?.toString() ?? '');
+    final colorCtrl = TextEditingController(text: vehicle?['color']?.toString() ?? '');
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+            return Container(
+              padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isEditing ? 'Editar Vehículo' : 'Registrar Vehículo',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextField(controller: platesCtrl, decoration: const InputDecoration(labelText: 'Placas *', border: OutlineInputBorder())),
+                    const SizedBox(height: 16),
+                    TextField(controller: makeCtrl, decoration: const InputDecoration(labelText: 'Marca', border: OutlineInputBorder())),
+                    const SizedBox(height: 16),
+                    TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Modelo', border: OutlineInputBorder())),
+                    const SizedBox(height: 16),
+                    TextField(controller: colorCtrl, decoration: const InputDecoration(labelText: 'Color', border: OutlineInputBorder())),
+                    const SizedBox(height: 32),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancelar'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              final plates = platesCtrl.text.trim();
+                              if (plates.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Las placas son obligatorias')));
+                                return;
+                              }
+                              final data = {
+                                'plates': plates,
+                                'make': makeCtrl.text.trim(),
+                                'model': modelCtrl.text.trim(),
+                                'color': colorCtrl.text.trim(),
+                              };
+                              Navigator.pop(context);
+                              if (isEditing) {
+                                _editVehicle(vehicle['id'], data);
+                              } else {
+                                _addVehicle(data);
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Guardar'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+        );
+      },
+    );
+  }
+
+  Future<void> _addVehicle(Map<String, dynamic> data) async {
+    try {
+      await ref.read(profileProvider.notifier).addVehicle(data);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo registrado')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      }
+    }
+  }
+
+  Future<void> _editVehicle(dynamic id, Map<String, dynamic> data) async {
+    try {
+      await ref.read(profileProvider.notifier).editVehicle(int.parse(id.toString()), data);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo actualizado')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      }
+    }
+  }
+
+  Future<void> _disableVehicle(dynamic id) async {
+    try {
+      await ref.read(profileProvider.notifier).disableVehicle(int.parse(id.toString()));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo removido')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      }
+    }
   }
 }

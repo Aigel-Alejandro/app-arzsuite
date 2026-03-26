@@ -101,4 +101,85 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
       rethrow;
     }
   }
+
+  Future<void> addBeneficiary(String beneficiarySocioId) async {
+    try {
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/addBeneficiary',
+        data: {'beneficiary_socio_id': beneficiarySocioId},
+      );
+      if (response.data['success'] == true) {
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> removeBeneficiary(int id) async {
+    try {
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/removeBeneficiary',
+        data: {'id': id},
+      );
+      if (response.data['success'] == true) {
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> addVehicle(Map<String, dynamic> vehicleData) async {
+    try {
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/addVehicle',
+        data: vehicleData,
+      );
+      if (response.data['success'] == true) {
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> editVehicle(int id, Map<String, dynamic> vehicleData) async {
+    try {
+      vehicleData['id'] = id;
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/editVehicle',
+        data: vehicleData,
+      );
+      if (response.data['success'] == true) {
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> disableVehicle(int id) async {
+    try {
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/disableVehicle',
+        data: {'id': id},
+      );
+      if (response.data['success'] == true) {
+        await fetchProfile(isBackgroundRefresh: true);
+      } else {
+        throw Exception(response.data['message']);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -30,6 +30,16 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => SubMemberModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      legalBeneficiaries:
+          (json['legal_beneficiaries'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
+      vehicles:
+          (json['vehicles'] as List<dynamic>?)
+              ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
@@ -50,4 +60,6 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'fiscal_data': instance.fiscalData,
       'settings': instance.settings,
       'associated_members': instance.associatedMembers,
+      'legal_beneficiaries': instance.legalBeneficiaries,
+      'vehicles': instance.vehicles,
     };

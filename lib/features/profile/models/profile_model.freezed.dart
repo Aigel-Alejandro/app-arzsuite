@@ -46,6 +46,11 @@ mixin _$ProfileModel {
   @JsonKey(name: 'associated_members')
   List<SubMemberModel> get associatedMembers =>
       throw _privateConstructorUsedError;
+  @JsonKey(name: 'legal_beneficiaries')
+  List<Map<String, dynamic>> get legalBeneficiaries =>
+      throw _privateConstructorUsedError;
+  @JsonKey(name: 'vehicles')
+  List<Map<String, dynamic>> get vehicles => throw _privateConstructorUsedError;
 
   /// Serializes this ProfileModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -81,6 +86,9 @@ abstract class $ProfileModelCopyWith<$Res> {
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
     ProfileSettingsModel settings,
     @JsonKey(name: 'associated_members') List<SubMemberModel> associatedMembers,
+    @JsonKey(name: 'legal_beneficiaries')
+    List<Map<String, dynamic>> legalBeneficiaries,
+    @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
   });
 
   $ProfileSettingsModelCopyWith<$Res> get settings;
@@ -117,6 +125,8 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? fiscalData = freezed,
     Object? settings = null,
     Object? associatedMembers = null,
+    Object? legalBeneficiaries = null,
+    Object? vehicles = null,
   }) {
     return _then(
       _value.copyWith(
@@ -184,6 +194,14 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                 ? _value.associatedMembers
                 : associatedMembers // ignore: cast_nullable_to_non_nullable
                       as List<SubMemberModel>,
+            legalBeneficiaries: null == legalBeneficiaries
+                ? _value.legalBeneficiaries
+                : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
+            vehicles: null == vehicles
+                ? _value.vehicles
+                : vehicles // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
           )
           as $Val,
     );
@@ -226,6 +244,9 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
     ProfileSettingsModel settings,
     @JsonKey(name: 'associated_members') List<SubMemberModel> associatedMembers,
+    @JsonKey(name: 'legal_beneficiaries')
+    List<Map<String, dynamic>> legalBeneficiaries,
+    @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
   });
 
   @override
@@ -262,6 +283,8 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? fiscalData = freezed,
     Object? settings = null,
     Object? associatedMembers = null,
+    Object? legalBeneficiaries = null,
+    Object? vehicles = null,
   }) {
     return _then(
       _$ProfileModelImpl(
@@ -329,6 +352,14 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
             ? _value._associatedMembers
             : associatedMembers // ignore: cast_nullable_to_non_nullable
                   as List<SubMemberModel>,
+        legalBeneficiaries: null == legalBeneficiaries
+            ? _value._legalBeneficiaries
+            : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
+        vehicles: null == vehicles
+            ? _value._vehicles
+            : vehicles // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
       ),
     );
   }
@@ -356,9 +387,15 @@ class _$ProfileModelImpl implements _ProfileModel {
     required this.settings,
     @JsonKey(name: 'associated_members')
     final List<SubMemberModel> associatedMembers = const [],
+    @JsonKey(name: 'legal_beneficiaries')
+    final List<Map<String, dynamic>> legalBeneficiaries = const [],
+    @JsonKey(name: 'vehicles')
+    final List<Map<String, dynamic>> vehicles = const [],
   }) : _personalAddress = personalAddress,
        _fiscalData = fiscalData,
-       _associatedMembers = associatedMembers;
+       _associatedMembers = associatedMembers,
+       _legalBeneficiaries = legalBeneficiaries,
+       _vehicles = vehicles;
 
   factory _$ProfileModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileModelImplFromJson(json);
@@ -425,9 +462,28 @@ class _$ProfileModelImpl implements _ProfileModel {
     return EqualUnmodifiableListView(_associatedMembers);
   }
 
+  final List<Map<String, dynamic>> _legalBeneficiaries;
+  @override
+  @JsonKey(name: 'legal_beneficiaries')
+  List<Map<String, dynamic>> get legalBeneficiaries {
+    if (_legalBeneficiaries is EqualUnmodifiableListView)
+      return _legalBeneficiaries;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_legalBeneficiaries);
+  }
+
+  final List<Map<String, dynamic>> _vehicles;
+  @override
+  @JsonKey(name: 'vehicles')
+  List<Map<String, dynamic>> get vehicles {
+    if (_vehicles is EqualUnmodifiableListView) return _vehicles;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_vehicles);
+  }
+
   @override
   String toString() {
-    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, profilePicture: $profilePicture, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers)';
+    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, profilePicture: $profilePicture, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers, legalBeneficiaries: $legalBeneficiaries, vehicles: $vehicles)';
   }
 
   @override
@@ -466,7 +522,12 @@ class _$ProfileModelImpl implements _ProfileModel {
             const DeepCollectionEquality().equals(
               other._associatedMembers,
               _associatedMembers,
-            ));
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._legalBeneficiaries,
+              _legalBeneficiaries,
+            ) &&
+            const DeepCollectionEquality().equals(other._vehicles, _vehicles));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -489,6 +550,8 @@ class _$ProfileModelImpl implements _ProfileModel {
     const DeepCollectionEquality().hash(_fiscalData),
     settings,
     const DeepCollectionEquality().hash(_associatedMembers),
+    const DeepCollectionEquality().hash(_legalBeneficiaries),
+    const DeepCollectionEquality().hash(_vehicles),
   );
 
   /// Create a copy of ProfileModel
@@ -525,6 +588,9 @@ abstract class _ProfileModel implements ProfileModel {
     required final ProfileSettingsModel settings,
     @JsonKey(name: 'associated_members')
     final List<SubMemberModel> associatedMembers,
+    @JsonKey(name: 'legal_beneficiaries')
+    final List<Map<String, dynamic>> legalBeneficiaries,
+    @JsonKey(name: 'vehicles') final List<Map<String, dynamic>> vehicles,
   }) = _$ProfileModelImpl;
 
   factory _ProfileModel.fromJson(Map<String, dynamic> json) =
@@ -569,6 +635,12 @@ abstract class _ProfileModel implements ProfileModel {
   @override
   @JsonKey(name: 'associated_members')
   List<SubMemberModel> get associatedMembers;
+  @override
+  @JsonKey(name: 'legal_beneficiaries')
+  List<Map<String, dynamic>> get legalBeneficiaries;
+  @override
+  @JsonKey(name: 'vehicles')
+  List<Map<String, dynamic>> get vehicles;
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.
