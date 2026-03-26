@@ -4,12 +4,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/api_client_notifier.dart';
 import '../../../core/widgets/toast_alerts.dart';
+import 'package:flutter/services.dart';
+
+// ----- Validators & Formatters -----
+class PhoneInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String text = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (text.length > 10) text = text.substring(0, 10);
+    
+    String result = '';
+    for (int i = 0; i < text.length; i++) {
+      if (i == 2 || i == 6) result += '-';
+      result += text[i];
+    }
+    
+    // Attempt cursor preservation logic if typing at end, else clamp
+    int selectionIndex = newValue.selection.end;
+    if (selectionIndex >= newValue.text.length) {
+      selectionIndex = result.length;
+    } else {
+      // Basic approximation for UX
+      selectionIndex = result.length;
+    }
+
+    return TextEditingValue(
+      text: result,
+      selection: TextSelection.collapsed(offset: selectionIndex),
+    );
+  }
+}
+
 // ----- Models -----
 class HealthInfo {
   final String? bloodType;
   final String? allergies;
   final String? conditions;
   final String? medicalNotes;
+  final String? emergencySocioId;
   final String? emergencyContactName;
   final String? emergencyContactPhone;
 
@@ -18,6 +50,7 @@ class HealthInfo {
     this.allergies,
     this.conditions,
     this.medicalNotes,
+    this.emergencySocioId,
     this.emergencyContactName,
     this.emergencyContactPhone,
   });
@@ -28,6 +61,7 @@ class HealthInfo {
       allergies: json['allergies'],
       conditions: json['conditions'],
       medicalNotes: json['medical_notes'],
+      emergencySocioId: json['emergency_socio_id']?.toString(),
       emergencyContactName: json['emergency_contact_name'],
       emergencyContactPhone: json['emergency_contact_phone'],
     );
@@ -69,14 +103,42 @@ class MedicalRecord {
   }
 }
 
+class FamilyMember {
+  final int id;
+  final String name;
+  final int? age;
+  final String? phone;
+  final String? relationship;
+
+  FamilyMember({
+    required this.id,
+    required this.name,
+    this.age,
+    this.phone,
+    this.relationship,
+  });
+
+  factory FamilyMember.fromJson(Map<String, dynamic> json) {
+    return FamilyMember(
+      id: json['id'],
+      name: json['name'],
+      age: json['age'],
+      phone: json['phone'],
+      relationship: json['relationship'],
+    );
+  }
+}
+
 class HealthData {
   final HealthInfo? healthInfo;
   final List<MedicalRecord> medicalRecords;
+  final List<FamilyMember> familyMembers;
   final bool canEditMedicalData;
 
   HealthData({
     this.healthInfo, 
     required this.medicalRecords, 
+    required this.familyMembers,
     this.canEditMedicalData = false,
   });
 
@@ -86,6 +148,10 @@ class HealthData {
       canEditMedicalData: json['can_edit_medical_data'] == true,
       medicalRecords: (json['medical_records'] as List?)
               ?.map((e) => MedicalRecord.fromJson(e))
+              .toList() ??
+          [],
+      familyMembers: (json['family_members'] as List?)
+              ?.map((e) => FamilyMember.fromJson(e))
               .toList() ??
           [],
     );
@@ -138,6 +204,9 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
   // Expediente Controller
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+  DateTime? _selectedDateFilter;
+  
+  String? _selectedContactId;
 
   @override
   void initState() {
@@ -158,15 +227,40 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
     super.dispose();
   }
 
-  void _initControllers(HealthInfo? info) {
+  void _initControllers(HealthInfo? info, List<FamilyMember> familyMembers) {
     if (_isInit) return;
     if (info != null) {
        _bloodTypeCtrl.text = info.bloodType ?? '';
        _allergiesCtrl.text = info.allergies ?? '';
        _conditionsCtrl.text = info.conditions ?? '';
        _medicalNotesCtrl.text = info.medicalNotes ?? '';
-       _emergencyNameCtrl.text = info.emergencyContactName ?? '';
-       _emergencyPhoneCtrl.text = info.emergencyContactPhone ?? '';
+       
+       final eName = info.emergencyContactName ?? '';
+       _emergencyNameCtrl.text = eName;
+       
+       String phone = info.emergencyContactPhone ?? '';
+       phone = phone.replaceAll(RegExp(r'\D'), '');
+       if (phone.length > 10) phone = phone.substring(0, 10);
+       String formattedPhone = '';
+       for (int i = 0; i < phone.length; i++) {
+         if (i == 2 || i == 6) formattedPhone += '-';
+         formattedPhone += phone[i];
+       }
+       _emergencyPhoneCtrl.text = formattedPhone;
+       
+       if (info.emergencySocioId != null && info.emergencySocioId!.isNotEmpty) {
+           _selectedContactId = info.emergencySocioId;
+       } else if (eName.isNotEmpty) {
+           // Find in family by exact name match
+           final match = familyMembers.where((m) => m.name == eName).firstOrNull;
+           if (match != null) {
+               _selectedContactId = match.id.toString();
+           } else {
+               _selectedContactId = 'externo';
+           }
+       } else {
+           _selectedContactId = null;
+       }
     }
     _isInit = true;
   }
@@ -176,13 +270,19 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
        final apiClient = ref.read(apiClientNotifierProvider);
        if (apiClient == null) throw Exception('API no disponible');
        
+       if (_selectedContactId == null && (_emergencyNameCtrl.text.isNotEmpty || _emergencyPhoneCtrl.text.isNotEmpty)) {
+          ToastAlerts.showError(context, 'Por favor, selecciona un tipo de contacto de emergencia');
+          return;
+       }
+
        final data = {
           'blood_type': _bloodTypeCtrl.text.trim(),
           'allergies': _allergiesCtrl.text.trim(),
           'conditions': _conditionsCtrl.text.trim(),
           'medical_notes': _medicalNotesCtrl.text.trim(),
+          'emergency_socio_id': _selectedContactId == 'externo' ? null : _selectedContactId,
           'emergency_contact_name': _emergencyNameCtrl.text.trim(),
-          'emergency_contact_phone': _emergencyPhoneCtrl.text.trim(),
+          'emergency_contact_phone': _emergencyPhoneCtrl.text.replaceAll(RegExp(r'\D'), ''),
        };
        
        final res = await apiClient.dio.post('arzsuite/health/update', data: data);
@@ -219,7 +319,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
       body: healthAsyncValue.when(
         data: (data) {
           if (!healthAsyncValue.isLoading && !healthAsyncValue.isRefreshing) {
-            _initControllers(data.healthInfo);
+            _initControllers(data.healthInfo, data.familyMembers);
           }
           final isDark = theme.brightness == Brightness.dark;
 
@@ -290,7 +390,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildHealthInfoTab(data.healthInfo, data.canEditMedicalData),
+                    _buildHealthInfoTab(data.healthInfo, data.canEditMedicalData, data.familyMembers),
                     _buildMedicalRecordsTab(data.medicalRecords),
                   ],
                 ),
@@ -319,7 +419,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
   }
 
   // --- TAB: INFO MÉDICA ---
-  Widget _buildHealthInfoTab(HealthInfo? info, bool canEdit) {
+  Widget _buildHealthInfoTab(HealthInfo? info, bool canEdit, List<FamilyMember> familyMembers) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     // Mejor contraste para la alerta en light mode
@@ -412,9 +512,25 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
                    ],
                  ),
                  const SizedBox(height: 16),
-                 _buildSensitiveField('Nombre del Contacto', canEdit, controller: _emergencyNameCtrl, icon: Icons.person_outline),
+                 _buildContactTypeDropdown(canEdit, familyMembers),
+                 if (_selectedContactId == 'externo') ...[
+                     const SizedBox(height: 16),
+                     _buildSensitiveField('Nombre del Contacto Externo', canEdit, controller: _emergencyNameCtrl, icon: Icons.person_outline),
+                 ],
                  const SizedBox(height: 16),
-                 _buildSensitiveField('Teléfono de Emergencia', canEdit, controller: _emergencyPhoneCtrl, icon: Icons.phone_outlined),
+                 _buildSensitiveField('Teléfono de Emergencia', canEdit, controller: _emergencyPhoneCtrl, icon: Icons.phone_outlined, isPhone: true),
+                 
+                 if (_selectedContactId == 'externo') ...[
+                     const SizedBox(height: 12),
+                     const Row(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         children: [
+                             Icon(Icons.info_outline, color: AppTheme.warningColor, size: 16),
+                             SizedBox(width: 8),
+                             Expanded(child: Text('Se recomienda que el contacto de emergencia sea mayor a 18 años.', style: TextStyle(fontSize: 12, color: AppTheme.neutral500))),
+                         ],
+                     ),
+                 ],
                ],
              ),
            ),
@@ -441,10 +557,169 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
     );
   }
 
-  Widget _buildSensitiveField(String label, bool canEdit, {required TextEditingController controller, IconData? icon}) {
+  Widget _buildContactTypeDropdown(bool canEdit, List<FamilyMember> familyMembers) {
+      final items = <DropdownMenuItem<String>>[];
+      
+      for (final member in familyMembers) {
+          final isMinor = member.age != null && member.age! < 18;
+          items.add(DropdownMenuItem(
+              value: member.id.toString(),
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                          Icon(Icons.person, size: 20, color: isMinor ? AppTheme.neutral400 : AppTheme.neutral500),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                      Text(
+                                          member.name,
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 14,
+                                              color: isMinor ? AppTheme.neutral400 : null,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                      ),
+                                      if (isMinor)
+                                        Padding(
+                                            padding: const EdgeInsets.only(top: 2),
+                                            child: Text('${member.relationship ?? "Beneficiario"} (Menor de edad)', style: const TextStyle(fontSize: 11, color: AppTheme.dangerColor)),
+                                        )
+                                      else
+                                        Padding(
+                                            padding: const EdgeInsets.only(top: 2),
+                                            child: Text(member.relationship ?? 'Beneficiario', style: const TextStyle(fontSize: 11, color: AppTheme.neutral400)),
+                                        ),
+                                  ],
+                              ),
+                          ),
+                      ],
+                  ),
+              ),
+          ));
+      }
+      
+      items.add(const DropdownMenuItem(
+          value: 'externo',
+          child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                  children: [
+                      Icon(Icons.person_add_alt_1, size: 20, color: AppTheme.primaryColor),
+                      SizedBox(width: 10),
+                      Text('Contacto Externo / Otro', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14)),
+                  ],
+              ),
+          ),
+      ));
+
+      return DropdownButtonFormField<String>(
+          value: _selectedContactId,
+          decoration: InputDecoration(
+            labelText: 'Seleccionar Beneficiario',
+            labelStyle: const TextStyle(fontSize: 13),
+            filled: true,
+            fillColor: Theme.of(context).colorScheme.surface,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: AppTheme.neutral200.withOpacity(0.6)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          isExpanded: true,
+          itemHeight: null,
+          items: items,
+          selectedItemBuilder: (BuildContext context) {
+              return items.map((DropdownMenuItem<String> item) {
+                  final String id = item.value!;
+                  if (id == 'externo') {
+                      return const Row(
+                          children: [
+                              Icon(Icons.person_add_alt_1, size: 20, color: AppTheme.primaryColor),
+                              SizedBox(width: 10),
+                              Expanded(child: Text('Contacto Externo / Otro', style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14), overflow: TextOverflow.ellipsis)),
+                          ],
+                      );
+                  }
+                  final match = familyMembers.where((m) => m.id.toString() == id).firstOrNull;
+                  if (match == null) return const SizedBox.shrink();
+                  
+                  final isMinor = match.age != null && match.age! < 18;
+                  return Row(
+                      children: [
+                          Icon(Icons.person, size: 20, color: isMinor ? AppTheme.neutral400 : AppTheme.neutral500),
+                          const SizedBox(width: 10),
+                          Expanded(
+                              child: Text(
+                                  match.name,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                      color: isMinor ? AppTheme.neutral400 : null,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                              ),
+                          ),
+                      ],
+                  );
+              }).toList();
+          },
+          onChanged: canEdit 
+              ? (val) {
+                  if (val == null) return;
+                  
+                  if (val != 'externo') {
+                      final match = familyMembers.where((m) => m.id.toString() == val).firstOrNull;
+                      if (match != null) {
+                          if (match.age != null && match.age! < 18) {
+                              ToastAlerts.showError(context, 'No puedes seleccionar a un beneficiario menor de 18 años como contacto de emergencia.');
+                              // Do not update the state to the invalid selection
+                              return;
+                          }
+                          _emergencyNameCtrl.text = match.name;
+                          if (match.phone != null && match.phone!.isNotEmpty) {
+                              String phone = match.phone!.replaceAll(RegExp(r'\D'), '');
+                              if (phone.length > 10) phone = phone.substring(0, 10);
+                              String formattedPhone = '';
+                              for (int i = 0; i < phone.length; i++) {
+                                  if (i == 2 || i == 6) formattedPhone += '-';
+                                  formattedPhone += phone[i];
+                              }
+                              _emergencyPhoneCtrl.text = formattedPhone;
+                          } else {
+                              _emergencyPhoneCtrl.text = '';
+                          }
+                      }
+                  } else {
+                      _emergencyNameCtrl.text = '';
+                      _emergencyPhoneCtrl.text = '';
+                  }
+                  
+                  setState(() {
+                      _selectedContactId = val;
+                  });
+              }
+              : null,
+      );
+  }
+
+  Widget _buildSensitiveField(String label, bool canEdit, {required TextEditingController controller, IconData? icon, bool isPhone = false}) {
     return TextFormField(
       controller: controller,
       readOnly: !canEdit,
+      keyboardType: isPhone ? TextInputType.number : null,
+      inputFormatters: isPhone ? [PhoneInputFormatter()] : null,
       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: label,
@@ -471,35 +746,113 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
   // --- TAB: EXPEDIENTE ---
   Widget _buildMedicalRecordsTab(List<MedicalRecord> records) {
     final filtered = records.where((r) {
-       if (_searchQuery.isEmpty) return true;
-       final q = _searchQuery.toLowerCase();
-       return (r.diagnosis?.toLowerCase().contains(q) ?? false) ||
-              (r.visitReason?.toLowerCase().contains(q) ?? false) ||
-              (r.medicalPersonnel?.toLowerCase().contains(q) ?? false) ||
-              (r.attentionType?.toLowerCase().contains(q) ?? false);
+       bool matchesText = true;
+       if (_searchQuery.isNotEmpty) {
+           final q = _searchQuery.toLowerCase();
+           matchesText = (r.diagnosis?.toLowerCase().contains(q) ?? false) ||
+                  (r.visitReason?.toLowerCase().contains(q) ?? false) ||
+                  (r.medicalPersonnel?.toLowerCase().contains(q) ?? false) ||
+                  (r.attentionType?.toLowerCase().contains(q) ?? false);
+       }
+
+       bool matchesDate = true;
+       if (_selectedDateFilter != null) {
+           final dateStr = "${_selectedDateFilter!.year}-${_selectedDateFilter!.month.toString().padLeft(2, '0')}-${_selectedDateFilter!.day.toString().padLeft(2, '0')}";
+           matchesDate = r.visitDate != null && r.visitDate!.startsWith(dateStr);
+       }
+
+       return matchesText && matchesDate;
     }).toList();
 
     // Limit to 5 if not searching, to avoid clutter
-    final toShow = _searchQuery.isEmpty ? filtered.take(5).toList() : filtered;
+    final bool isSearching = _searchQuery.isNotEmpty || _selectedDateFilter != null;
+    final toShow = !isSearching ? filtered.take(5).toList() : filtered;
 
     return Column(
       children: [
-         Padding(
-           padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, AppTheme.spacingLarge, AppTheme.spacingLarge, 8),
-           child: TextField(
-             controller: _searchCtrl,
-             onChanged: (val) => setState(() => _searchQuery = val),
-             decoration: InputDecoration(
-               hintText: 'Buscar (diagnóstico, motivo)...',
-               hintStyle: const TextStyle(fontSize: 14),
-               prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryColor),
-               filled: true,
-               fillColor: Theme.of(context).colorScheme.surface,
-               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.neutral200.withOpacity(0.5))),
-               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.neutral200.withOpacity(0.5))),
-             ),
-           ),
-         ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, AppTheme.spacingLarge, AppTheme.spacingLarge, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _searchCtrl,
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar diagnóstico, médico...',
+                      hintStyle: const TextStyle(fontSize: 14),
+                      prefixIcon: const Icon(Icons.search_rounded, color: AppTheme.primaryColor),
+                      filled: true,
+                      fillColor: Theme.of(context).colorScheme.surface,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.neutral200.withOpacity(0.5))),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppTheme.neutral200.withOpacity(0.5))),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                  ),
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    icon: Icon(
+                      _selectedDateFilter == null ? Icons.calendar_month_outlined : Icons.event_busy,
+                      color: _selectedDateFilter == null ? AppTheme.primaryColor : AppTheme.dangerColor,
+                    ),
+                    tooltip: 'Filtrar por fecha',
+                    onPressed: () async {
+                      if (_selectedDateFilter != null) {
+                        setState(() => _selectedDateFilter = null);
+                        return;
+                      }
+                      final dt = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime.now(),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: Theme.of(context).colorScheme.copyWith(
+                                primary: AppTheme.primaryColor,
+                              ),
+                            ),
+                            child: child!,
+                          );
+                        },
+                      );
+                      if (dt != null) {
+                        setState(() => _selectedDateFilter = dt);
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_selectedDateFilter != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: InputChip(
+                  backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                  side: BorderSide.none,
+                  label: Text(
+                    'Fecha: ${_selectedDateFilter!.day.toString().padLeft(2, '0')}/${_selectedDateFilter!.month.toString().padLeft(2, '0')}/${_selectedDateFilter!.year}',
+                    style: const TextStyle(color: AppTheme.primaryColor, fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                  onDeleted: () => setState(() => _selectedDateFilter = null),
+                  deleteIconColor: AppTheme.primaryColor,
+                ),
+              ),
+            ),
          if (toShow.isEmpty)
            Expanded(
              child: Padding(
@@ -511,7 +864,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
            Expanded(
              child: ListView.builder(
                padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 8),
-               itemCount: toShow.length + (_searchQuery.isEmpty && filtered.length > 5 ? 1 : 0),
+               itemCount: toShow.length + (!isSearching && filtered.length > 5 ? 1 : 0),
                itemBuilder: (context, index) {
                   if (index == toShow.length) {
                      return const Padding(
