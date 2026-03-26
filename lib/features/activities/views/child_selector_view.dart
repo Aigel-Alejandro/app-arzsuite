@@ -13,7 +13,7 @@ class ChildSelectorView extends StatelessWidget {
     return MainLayout(
       activeIndex: 1,
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Comunidad Familiar', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
           centerTitle: true,
@@ -82,6 +82,12 @@ class ChildSelectorView extends StatelessWidget {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium)),
                     ),
                   ),
+                 ),
+                 Builder(
+                   builder: (context) {
+                     final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
+                     return SizedBox(height: isMobile ? 120 : 32);
+                   }
                  ),
               ],
             ),

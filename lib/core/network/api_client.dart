@@ -1,13 +1,16 @@
 import 'package:dio/dio.dart';
 
-/// Cliente API para consumir el backend externo de CakePHP 5 (centro-backend)
 class ApiClient {
   final Dio _dio;
+  final String baseUrl;
+  String? _token;
 
   ApiClient({
-    required String baseUrl,
+    required this.baseUrl,
     Map<String, String>? additionalHeaders,
-  }) : _dio = Dio(BaseOptions(
+    String? token,
+  })  : _token = token,
+        _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 15),
@@ -20,8 +23,17 @@ class ApiClient {
     // Interceptores para manejo de tokens, logging, etc.
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        // Añadir token de autenticación (Ej. JWT) aquí si es necesario
-        // options.headers['Authorization'] = 'Bearer $token';
+        if (_token != null && _token!.isNotEmpty) {
+          final cleanToken = _token!.trim();
+          options.headers['Authorization'] = 'Bearer $cleanToken';
+          options.headers['X-Authorization'] = 'Bearer $cleanToken';
+          // Debug log
+          // ignore: avoid_print
+          print('ApiClient: Adding Authorization headers with token: $cleanToken');
+        } else {
+          // ignore: avoid_print
+          print('ApiClient: No token set for request to ${options.path}');
+        }
         return handler.next(options);
       },
       onResponse: (response, handler) {
@@ -34,5 +46,11 @@ class ApiClient {
     ));
   }
 
+  // Method to update token after login
+  void updateToken(String token) {
+    _token = token;
+  }
+
   Dio get dio => _dio;
+  String? get token => _token;
 }

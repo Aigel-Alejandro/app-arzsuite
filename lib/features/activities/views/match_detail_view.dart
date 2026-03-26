@@ -19,7 +19,7 @@ class _MatchDetailViewState extends State<MatchDetailView> {
     return MainLayout(
       activeIndex: 1,
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Detalle de Partido'),
           centerTitle: true,

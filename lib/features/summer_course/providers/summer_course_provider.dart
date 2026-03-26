@@ -4,9 +4,12 @@ import '../models/member.dart';
 import '../models/guest.dart';
 import '../models/registration_participant.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../services/summer_course_service.dart';
 
 class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
-  SummerCourseNotifier(Member? loggedInUser) : super(const SummerCourseState()) {
+  final SummerCourseService _service;
+
+  SummerCourseNotifier(this._service, Member? loggedInUser) : super(const SummerCourseState()) {
     if (loggedInUser != null) {
       selectTitular(loggedInUser);
     }
@@ -15,53 +18,78 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     state = state.copyWith(currentStep: step);
   }
 
-  void nextStep() {
+  Future<void> nextStep() async {
     if (state.currentStep < 3) {
+      if (state.currentStep == 1) {
+        state = state.copyWith(isLoading: true);
+        await refreshCosts();
+        state = state.copyWith(isLoading: false);
+      }
       state = state.copyWith(currentStep: state.currentStep + 1);
     }
   }
 
-  void previousStep() {
+  Future<void> previousStep() async {
     if (state.currentStep > 0) {
+      if (state.currentStep == 3) {
+        state = state.copyWith(isLoading: true);
+        await refreshCosts();
+        state = state.copyWith(isLoading: false);
+      }
       state = state.copyWith(currentStep: state.currentStep - 1);
     }
   }
 
-  void selectTitular(Member titular) {
+  Future<void> selectTitular(Member titular) async {
     state = state.copyWith(
       selectedTitular: titular,
-      // Clear previous family selections when changing titular
       selectedParticipants: [], 
+      isLoading: true,
+      errorMessage: null,
+      activeRegistration: null,
+      courseCosts: [],
     );
-    // TODO: In a real implementation, this would trigger fetching beneficiaries
-    // For now we'll have a method to mock this or provide it.
-    _mockBeneficiariesFor(titular);
+    
+    try {
+      final beneficiaries = await _service.getBeneficiaries(titular.id);
+      final activeReg = await _service.getActiveRegistration(titular.id);
+      final costs = await _service.getCosts();
+
+      state = state.copyWith(
+        beneficiariesList: beneficiaries,
+        activeRegistration: activeReg,
+        courseCosts: costs,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: 'Error al obtener datos: $e',
+        beneficiariesList: [],
+      );
+    }
   }
 
-  void _mockBeneficiariesFor(Member titular) {
-    // Logic: members with same base excluding '00'
-    final base = titular.membershipNumber.substring(0, titular.membershipNumber.length - 2);
-    final mockBeneficiaries = [
-      Member(
-        id: '${titular.id}01',
-        membershipNumber: '${base}01',
-        firstName: 'Martha Silvia',
-        lastName: 'Martínez',
-        secondLastName: 'Vázquez',
-        memberType: '2',
-        isTitular: false,
-      ),
-      Member(
-        id: '${titular.id}02',
-        membershipNumber: '${base}02',
-        firstName: 'Juan Pablo',
-        lastName: 'Ferez',
-        secondLastName: 'Martínez',
-        memberType: '2',
-        isTitular: false,
-      ),
-    ];
-    state = state.copyWith(beneficiariesList: mockBeneficiaries);
+  void reset() {
+    final titular = state.selectedTitular;
+    state = const SummerCourseState();
+    if (titular != null) {
+      selectTitular(titular);
+    }
+  }
+
+  Future<void> refreshCosts() async {
+    try {
+      final costs = await _service.getCosts();
+      state = state.copyWith(courseCosts: costs);
+      
+      final updatedParticipants = state.selectedParticipants.map((p) {
+        final newCost = _calculateCost(p.type, p.selectedWeekIds.length);
+        return p.copyWith(calculatedCost: newCost);
+      }).toList();
+      
+      state = state.copyWith(selectedParticipants: updatedParticipants);
+    } catch (_) {}
   }
 
   void toggleBeneficiary(Member beneficiary) {
@@ -100,11 +128,34 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     );
   }
 
+  double _calculateCost(ParticipantType type, int weeksCount) {
+    if (weeksCount == 0 || state.courseCosts.isEmpty) return 0.0;
+    
+    final costEntry = state.courseCosts.firstWhere(
+      (c) => c['weeks_count'] == weeksCount, 
+      orElse: () => <String, dynamic>{}
+    );
+    
+    if (costEntry.isEmpty) return 0.0;
+
+    switch (type) {
+      case ParticipantType.socio:
+        return double.tryParse(costEntry['socio'].toString()) ?? 0.0;
+      case ParticipantType.invitado:
+        return double.tryParse(costEntry['invitado'].toString()) ?? 0.0;
+      case ParticipantType.colaborador:
+        return double.tryParse(costEntry['colaborador'].toString()) ?? 0.0;
+      case ParticipantType.invColaborador:
+        return double.tryParse(costEntry['inv_colaborador'].toString()) ?? 0.0;
+    }
+  }
+
   void updateWeeks(String identifier, List<int> weeks) {
     state = state.copyWith(
       selectedParticipants: state.selectedParticipants.map((p) {
         if (p.identifier == identifier) {
-          return p.copyWith(selectedWeekIds: weeks);
+          final newCost = _calculateCost(p.type, weeks.length);
+          return p.copyWith(selectedWeekIds: weeks, calculatedCost: newCost);
         }
         return p;
       }).toList(),
@@ -112,14 +163,37 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
   }
 
   Future<void> submitRegistration() async {
+    if (state.selectedTitular == null) return;
+
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
-      // TODO: Call API to generate NetSuite Order
-      await Future.delayed(const Duration(seconds: 2)); // Simulate API call
+      final registrationData = {
+        'titular_id': state.selectedTitular?.id,
+        'membership_number': state.selectedTitular?.membershipNumber,
+        'participants': state.selectedParticipants.map((p) => {
+          'id': p.member?.id ?? p.guest?.email,
+          'fullName': p.fullName,
+          'member_id': p.member?.id,
+          'guest': p.guest != null ? {
+            'first_name': p.guest!.firstName,
+            'last_name': p.guest!.lastName,
+            'email': p.guest!.email,
+            'phone': p.guest!.phone,
+          } : null,
+          'type': p.type.name,
+          'weeks': p.selectedWeekIds,
+          'total_cost': p.totalCost,
+        }).toList(),
+        'total_amount': state.totalGeneral,
+      };
+
+      final resultPayload = await _service.register(registrationData);
+      
       state = state.copyWith(
         isLoading: false, 
-        salesOrderId: 'SO-2026-00123',
-        // Permanecemos en el paso actual (3) para mostrar el éxito
+        salesOrderId: resultPayload['sales_order_id']?.toString() ?? 'N/A',
+        masterToken: resultPayload['master_token']?.toString(),
+        pickUpTokens: resultPayload['pick_up_tokens'] as List<dynamic>?,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
@@ -129,5 +203,6 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
 
 final summerCourseProvider = StateNotifierProvider.autoDispose<SummerCourseNotifier, SummerCourseState>((ref) {
   final user = ref.watch(authProvider);
-  return SummerCourseNotifier(user);
+  final service = ref.watch(summerCourseServiceProvider);
+  return SummerCourseNotifier(service, user);
 });

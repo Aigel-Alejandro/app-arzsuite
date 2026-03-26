@@ -34,6 +34,8 @@ mixin _$Member {
   String? get photoUrl => throw _privateConstructorUsedError;
   String? get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
+  String? get token => throw _privateConstructorUsedError;
+  int? get age => throw _privateConstructorUsedError;
 
   /// Serializes this Member to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -60,6 +62,8 @@ abstract class $MemberCopyWith<$Res> {
     String? photoUrl,
     String? email,
     String? phone,
+    String? token,
+    int? age,
   });
 }
 
@@ -88,6 +92,8 @@ class _$MemberCopyWithImpl<$Res, $Val extends Member>
     Object? photoUrl = freezed,
     Object? email = freezed,
     Object? phone = freezed,
+    Object? token = freezed,
+    Object? age = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -131,6 +137,14 @@ class _$MemberCopyWithImpl<$Res, $Val extends Member>
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
                       as String?,
+            token: freezed == token
+                ? _value.token
+                : token // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            age: freezed == age
+                ? _value.age
+                : age // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -156,6 +170,8 @@ abstract class _$$MemberImplCopyWith<$Res> implements $MemberCopyWith<$Res> {
     String? photoUrl,
     String? email,
     String? phone,
+    String? token,
+    int? age,
   });
 }
 
@@ -183,6 +199,8 @@ class __$$MemberImplCopyWithImpl<$Res>
     Object? photoUrl = freezed,
     Object? email = freezed,
     Object? phone = freezed,
+    Object? token = freezed,
+    Object? age = freezed,
   }) {
     return _then(
       _$MemberImpl(
@@ -226,6 +244,14 @@ class __$$MemberImplCopyWithImpl<$Res>
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
                   as String?,
+        token: freezed == token
+            ? _value.token
+            : token // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        age: freezed == age
+            ? _value.age
+            : age // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -245,6 +271,8 @@ class _$MemberImpl extends _Member {
     this.photoUrl,
     this.email,
     this.phone,
+    this.token,
+    this.age,
   }) : super._();
 
   factory _$MemberImpl.fromJson(Map<String, dynamic> json) =>
@@ -274,10 +302,14 @@ class _$MemberImpl extends _Member {
   final String? email;
   @override
   final String? phone;
+  @override
+  final String? token;
+  @override
+  final int? age;
 
   @override
   String toString() {
-    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone)';
+    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone, token: $token, age: $age)';
   }
 
   @override
@@ -301,7 +333,9 @@ class _$MemberImpl extends _Member {
             (identical(other.photoUrl, photoUrl) ||
                 other.photoUrl == photoUrl) &&
             (identical(other.email, email) || other.email == email) &&
-            (identical(other.phone, phone) || other.phone == phone));
+            (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.token, token) || other.token == token) &&
+            (identical(other.age, age) || other.age == age));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -318,6 +352,8 @@ class _$MemberImpl extends _Member {
     photoUrl,
     email,
     phone,
+    token,
+    age,
   );
 
   /// Create a copy of Member
@@ -346,6 +382,8 @@ abstract class _Member extends Member {
     final String? photoUrl,
     final String? email,
     final String? phone,
+    final String? token,
+    final int? age,
   }) = _$MemberImpl;
   const _Member._() : super._();
 
@@ -371,6 +409,10 @@ abstract class _Member extends Member {
   String? get email;
   @override
   String? get phone;
+  @override
+  String? get token;
+  @override
+  int? get age;
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.

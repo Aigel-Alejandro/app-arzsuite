@@ -9,6 +9,8 @@ import '../../home/views/home_view.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../summer_course/models/member.dart';
 import 'package:app_arzsuite/core/auth/biometric_auth.dart';
+import '../../../core/providers/api_client_notifier.dart';
+import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Pantalla de login moderna con flujo de dos pasos para Socios.
@@ -63,6 +65,12 @@ class _LoginViewState extends ConsumerState<LoginView> {
       if (didAuthenticate && mounted) {
         final prefs = await SharedPreferences.getInstance();
         final savedUser = prefs.getString('saved_username') ?? '2270600';
+        final savedToken = prefs.getString('saved_token');
+
+        // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+        if (savedToken != null) {
+          ref.read(apiClientNotifierProvider.notifier).updateToken(savedToken);
+        }
 
         ref.read(authProvider.notifier).setLoggedInMember(
           Member(
@@ -73,6 +81,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             secondLastName: '',
             memberType: 'Titular',
             isTitular: true,
+            token: savedToken, // <-- Cargar el token guardado
           ),
         );
         Navigator.of(context).pushReplacement(
@@ -158,13 +167,17 @@ class _LoginViewState extends ConsumerState<LoginView> {
             isTitular: true,
             email: socioData['email'],
             phone: socioData['phone'],
+            token: response.data['data']['access_token'],
           );
+          // 1. Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+          ref.read(apiClientNotifierProvider.notifier).updateToken(response.data['data']['access_token']);
+
+          // 2. Notificar al sistema del nuevo usuario. El AuthNotifier ahora guarda automáticamente en SharedPreferences.
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
           if (_rememberMe) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('use_biometrics', true);
-            await prefs.setString('saved_username', username);
           }
 
           Navigator.of(context).pushReplacement(
@@ -228,15 +241,35 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
                             
-                            TextFormField(
-                              controller: _userController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Número de Membresía',
-                                prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                            if (!_codeSent)
+                              TextFormField(
+                                controller: _userController,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  labelText: 'Número de Membresía',
+                                  prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                ),
+                                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                              )
+                            else
+                              Card(
+                                elevation: 0,
+                                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                                child: ListTile(
+                                  dense: true,
+                                  leading: const Icon(Icons.person_pin_circle_outlined),
+                                  title: Text(
+                                    _userController.text,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  trailing: TextButton(
+                                    child: const Text("Editar"),
+                                    onPressed: () => setState(() => _codeSent = false),
+                                  ),
+                                ),
                               ),
-                              validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                            ),
                             const SizedBox(height: AppTheme.spacingMedium),
 
                             if (_codeSent) ...[

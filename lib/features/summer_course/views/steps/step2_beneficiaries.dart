@@ -16,9 +16,16 @@ class Step2Beneficiaries extends ConsumerWidget {
       return const Center(child: Text('Selecciona un titular primero'));
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? AppTheme.neutral100 : AppTheme.neutral900;
+    final subtitleColor = isDark ? AppTheme.neutral400 : AppTheme.neutral600;
+    final cardBgColor = isDark ? AppTheme.neutral800 : Colors.white;
+    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200.withOpacity(0.8);
+    final altBgColor = isDark ? AppTheme.neutral800.withOpacity(0.5) : AppTheme.neutral100;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.all(AppTheme.spacingLarge),
+      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -43,8 +50,8 @@ class Step2Beneficiaries extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        titular.fullName, 
-                        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: AppTheme.neutral900),
+                        titular.fullName.replaceAll(RegExp(r'[0-9]'), '').trim(), 
+                        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17, color: textColor),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -58,78 +65,266 @@ class Step2Beneficiaries extends ConsumerWidget {
             ),
           ),
           
+
+          
           const SizedBox(height: 32),
           
           Text(
             'Beneficiarios Directos',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: AppTheme.neutral900,
+                  color: textColor,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Selecciona a los miembros de la familia que participarán:',
+            'Selecciona a los miembros de la familia que participarán (Rango: 3 a 15 años):',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: AppTheme.neutral600,
+                  color: subtitleColor,
+                  height: 1.4,
                 ),
           ),
           
           const SizedBox(height: 24),
 
-          if (state.beneficiariesList.isEmpty)
+          if (state.isLoading)
+             const Padding(
+                padding: EdgeInsets.symmetric(vertical: 40),
+                child: Center(child: CircularProgressIndicator()),
+              )
+          else if (state.beneficiariesList.isEmpty)
              const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
                 child: Center(child: Text('No hay beneficiarios registrados bajo esta acción.')),
               )
-          else
-            ...state.beneficiariesList.map((beneficiary) {
+          else ...[
+            ...state.beneficiariesList.where((b) {
+              final isWithinAgeRange = b.age != null && b.age! >= 3 && b.age! <= 15;
+              return isWithinAgeRange;
+            }).map((beneficiary) {
+              final activeReg = state.activeRegistration;
+              final registeredSociosRaw = activeReg?['registered_socios'];
+              final registeredSociosList = registeredSociosRaw != null ? (registeredSociosRaw as List).map((e) => e.toString()).toList() : [];
+              
+              final isAlreadyRegistered = registeredSociosList.contains(beneficiary.id);
+              final canSelect = !isAlreadyRegistered;
+              
               final isSelected = state.selectedParticipants.any((p) => p.member?.id == beneficiary.id);
               
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isAlreadyRegistered ? AppTheme.successColor.withOpacity(isDark ? 0.05 : 0.02) : cardBgColor,
                   borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                  border: Border.all(
+                    color: isAlreadyRegistered 
+                        ? AppTheme.successColor.withOpacity(0.3) 
+                        : (isSelected ? AppTheme.primaryColor : borderColor)
+                  ),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.03),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
+                    if (!isAlreadyRegistered && !isDark)
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
                   ],
                 ),
-                child: CheckboxListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                  ),
-                  activeColor: AppTheme.primaryColor,
-                  controlAffinity: ListTileControlAffinity.trailing,
-                  value: isSelected,
-                  onChanged: (_) => notifier.toggleBeneficiary(beneficiary),
-                  title: Text(
-                    beneficiary.fullName,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? AppTheme.primaryColor : AppTheme.neutral900,
-                    ),
-                  ),
-                  subtitle: Text(
-                    'No. Credencial: ${beneficiary.membershipNumber}',
-                    style: const TextStyle(fontSize: 13, color: AppTheme.neutral500),
-                  ),
-                  secondary: CircleAvatar(
-                    backgroundColor: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : AppTheme.neutral50,
-                    child: Icon(
-                      Icons.family_restroom_rounded, 
-                      size: 20, 
-                      color: isSelected ? AppTheme.primaryColor : AppTheme.neutral300,
+                child: InkWell(
+                  onTap: canSelect ? () => notifier.toggleBeneficiary(beneficiary) : null,
+                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        CircleAvatar(
+                          radius: 18,
+                          backgroundColor: isAlreadyRegistered
+                              ? AppTheme.successColor.withOpacity(0.1)
+                              : (isSelected ? AppTheme.primaryColor.withOpacity(0.1) : (isDark ? AppTheme.neutral700 : AppTheme.neutral50)),
+                          child: Icon(
+                            isAlreadyRegistered ? Icons.check_circle_rounded : Icons.person_outline_rounded, 
+                            size: 18, 
+                            color: isAlreadyRegistered
+                                ? AppTheme.successColor
+                                : (isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral300 : AppTheme.neutral400)),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: '${beneficiary.fullName}  ',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        height: 1.3,
+                                        color: isAlreadyRegistered ? AppTheme.successColor : (isSelected ? AppTheme.primaryColor : textColor),
+                                        decoration: isAlreadyRegistered ? TextDecoration.lineThrough : null,
+                                      ),
+                                    ),
+                                    WidgetSpan(
+                                      alignment: PlaceholderAlignment.middle,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: isDark ? AppTheme.neutral700 : AppTheme.neutral100,
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          beneficiary.memberType,
+                                          style: TextStyle(
+                                            color: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Wrap(
+                                spacing: 12,
+                                runSpacing: 4,
+                                children: [
+                                  Text(
+                                    'No. Credencial: ${beneficiary.membershipNumber}',
+                                    style: const TextStyle(fontSize: 12, color: AppTheme.neutral500),
+                                  ),
+                                  Text(
+                                    'Edad: ${beneficiary.age != null ? '${beneficiary.age} años' : 'N/A'}',
+                                    style: const TextStyle(
+                                      fontSize: 12, 
+                                      color: AppTheme.neutral500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (isAlreadyRegistered) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Ya inscrito en el evento',
+                                  style: TextStyle(fontSize: 11, color: AppTheme.successColor, fontWeight: FontWeight.bold),
+                                ),
+                              ]
+                            ],
+                          ),
+                        ),
+                        if (canSelect) ...[
+                          const SizedBox(width: 12),
+                          Checkbox(
+                            value: isSelected,
+                            onChanged: (_) => notifier.toggleBeneficiary(beneficiary),
+                            activeColor: AppTheme.primaryColor,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            side: BorderSide(color: isDark ? AppTheme.neutral500 : AppTheme.neutral300),
+                          ),
+                        ]
+                      ],
                     ),
                   ),
                 ),
               );
-            }).toList(),
+            }),
+            
+            const SizedBox(height: 24),
+
+            // ACORDEÓN PARA MIEMBROS FUERA DE RANGO DE EDAD
+            Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                iconColor: AppTheme.neutral500,
+                title: Text(
+                  'OTROS FAMILIARES (NO APLICAN)',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.neutral500,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+                children: [
+                  ...state.beneficiariesList.where((b) {
+                    final isWithinAgeRange = b.age != null && b.age! >= 3 && b.age! <= 15;
+                    return !isWithinAgeRange;
+                  }).map((b) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: altBgColor,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.info_outline_rounded, 
+                            color: AppTheme.neutral400, 
+                            size: 20
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text.rich(
+                                  TextSpan(
+                                    children: [
+                                      TextSpan(
+                                        text: '${b.fullName}  ',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold, 
+                                          color: AppTheme.neutral600, 
+                                          fontSize: 13,
+                                          height: 1.3,
+                                        ),
+                                      ),
+                                      WidgetSpan(
+                                        alignment: PlaceholderAlignment.middle,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: isDark ? AppTheme.neutral700 : AppTheme.neutral200,
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            b.memberType,
+                                            style: TextStyle(
+                                              color: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  b.age == null ? 'Edad no registrada' : 'Edad: ${b.age} años (Solo de 3 a 15)',
+                                  style: const TextStyle(fontSize: 11, color: AppTheme.neutral500),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
           
           const SizedBox(height: 32),
           
@@ -137,8 +332,9 @@ class Step2Beneficiaries extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.neutral100,
+              color: altBgColor,
               borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+              border: isDark ? Border.all(color: AppTheme.neutral700) : null,
             ),
             child: Row(
               children: [
@@ -147,9 +343,9 @@ class Step2Beneficiaries extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     '${state.selectedParticipants.where((p) => p.isSocio).length} familiares seleccionados para inscripción.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: AppTheme.neutral700,
+                      color: textColor,
                       fontSize: 13,
                     ),
                   ),

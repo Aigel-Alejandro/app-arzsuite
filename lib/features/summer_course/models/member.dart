@@ -16,6 +16,8 @@ class Member with _$Member {
     String? photoUrl,
     String? email,
     String? phone,
+    String? token,
+    int? age,
   }) = _Member;
 
   factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);

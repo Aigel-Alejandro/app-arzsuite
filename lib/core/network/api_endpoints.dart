@@ -46,11 +46,11 @@ class ApiEndpoints {
   // ---------------------------------------------------------------------------
   // CURSO DE VERANO
   // ---------------------------------------------------------------------------
-  static const String summerCourseSearchTitular = "/api/v1/summer-course/titular";
-  static const String summerCourseRelationships = "/api/v1/summer-course/relationships";
-  static const String summerCourseFamily = "/api/v1/summer-course/titular/{id}/family";
-  static const String summerCourseGuest = "/api/v1/summer-course/guest";
-  static const String summerCourseRegister = "/api/v1/summer-course/registration";
+  static const String summerCourseSearchTitular = "deportivo/summer-course/titular";
+  static const String summerCourseRelationships = "deportivo/summer-course/relationships";
+  static const String summerCourseFamily = "deportivo/summer-course/titular/{id}/family";
+  static const String summerCourseGuest = "deportivo/summer-course/guest";
+  static const String summerCourseRegister = "deportivo/summer-course/registration";
   
   // ---------------------------------------------------------------------------
   // TÉRMINOS Y CONDICIONES

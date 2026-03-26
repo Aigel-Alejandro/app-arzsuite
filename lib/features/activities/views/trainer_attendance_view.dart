@@ -17,7 +17,7 @@ class TrainerAttendanceView extends StatelessWidget {
     return MainLayout(
       activeIndex: 1,
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
           title: const Text('Pase de Lista'),
           centerTitle: true,

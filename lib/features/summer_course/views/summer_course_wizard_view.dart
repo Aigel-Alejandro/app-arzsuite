@@ -19,10 +19,23 @@ class SummerCourseWizardView extends ConsumerWidget {
     final state = ref.watch(summerCourseProvider);
     final notifier = ref.read(summerCourseProvider.notifier);
 
+    // Escuchar errores y mostrarlos
+    ref.listen<SummerCourseState>(summerCourseProvider, (previous, next) {
+      if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(next.errorMessage!),
+            backgroundColor: AppTheme.dangerColor,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    });
+
     return MainLayout(
       activeIndex: -1,
       child: Scaffold(
-        backgroundColor: AppTheme.neutral50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: ResponsiveContainer(
           padding: 0,
@@ -118,6 +131,8 @@ class SummerCourseWizardView extends ConsumerWidget {
   Widget _buildNavigation(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier) {
     if (state.salesOrderId != null) return const SizedBox.shrink(); // No nav in success state
     
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         AppTheme.spacingLarge,
@@ -135,10 +150,10 @@ class SummerCourseWizardView extends ConsumerWidget {
             Expanded(
               flex: 1,
               child: OutlinedButton(
-                onPressed: () => notifier.previousStep(),
+                onPressed: state.isLoading ? null : () => notifier.previousStep(),
                 style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: AppTheme.neutral200),
-                  foregroundColor: AppTheme.neutral600,
+                  side: BorderSide(color: isDark ? AppTheme.neutral700 : AppTheme.neutral200),
+                  foregroundColor: isDark ? AppTheme.neutral300 : AppTheme.neutral600,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text('Anterior', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -153,19 +168,26 @@ class SummerCourseWizardView extends ConsumerWidget {
           Expanded(
             flex: 2,
             child: ElevatedButton(
-              onPressed: _isNextDisabled(state) 
+              onPressed: (_isNextDisabled(state) || state.isLoading)
                   ? null 
                   : (state.currentStep == 3 ? () => notifier.submitRegistration() : () => notifier.nextStep()),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
                 backgroundColor: AppTheme.primaryColor,
-                disabledBackgroundColor: AppTheme.neutral200,
+                disabledBackgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
+                disabledForegroundColor: isDark ? AppTheme.neutral500 : AppTheme.neutral400,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(
-                state.currentStep == 3 ? 'Generar Orden de Venta' : 'Continuar',
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-              ),
+              child: state.isLoading && state.currentStep == 3
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : Text(
+                      state.currentStep == 3 ? 'Generar Orden de Venta' : 'Continuar',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                    ),
             ),
           ),
         ],

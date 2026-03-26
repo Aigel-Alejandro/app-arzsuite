@@ -6,6 +6,8 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
+import 'package:app_arzsuite/features/summer_course/widgets/access_card.dart';
+
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
@@ -19,8 +21,8 @@ class HomeView extends StatelessWidget {
           // Sticky/Fixed Integrated Header
           Container(
             padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 24),
-            decoration: const BoxDecoration(
-              color: AppTheme.neutral50, // Matches scaffold to blend seamlessly
+            decoration: BoxDecoration(
+              color: Theme.of(context).scaffoldBackgroundColor, // Matches scaffold to blend seamlessly
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -34,7 +36,7 @@ class HomeView extends StatelessWidget {
                       Text(
                         'Buen día,',
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: AppTheme.neutral500,
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                               fontWeight: FontWeight.w500,
                             ),
                       ),
@@ -43,7 +45,7 @@ class HomeView extends StatelessWidget {
                         '¡Bienvenido!',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: AppTheme.neutral900,
+                              color: Theme.of(context).colorScheme.onSurface,
                               letterSpacing: -0.5,
                             ),
                       ),
@@ -53,17 +55,17 @@ class HomeView extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
+                        color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05),
                         blurRadius: 10,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Icon(Icons.notifications_none_rounded, color: AppTheme.neutral900),
+                  child: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
                 ),
               ],
             ),
@@ -78,7 +80,11 @@ class HomeView extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 32), // Breathing room after header
+                    const SizedBox(height: 32),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                      child: SummerCourseAccessCard(),
+                    ),
                     // Hero: Summer Course 2026
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
@@ -190,19 +196,20 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
   }
 
   Widget _buildListLayout(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: AppTheme.neutral200.withValues(alpha: 0.5),
+          color: isDark ? AppTheme.neutral700 : AppTheme.neutral200.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
@@ -232,7 +239,7 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
                         widget.title,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppTheme.neutral900,
+                              color: Theme.of(context).colorScheme.onSurface,
                               fontSize: 15,
                             ),
                       ),
@@ -249,9 +256,9 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
                     ],
                   ),
                 ),
-                const Icon(
+                Icon(
                   Icons.arrow_forward_ios_rounded,
-                  color: AppTheme.neutral400,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                   size: 16,
                 ),
               ],
@@ -263,6 +270,7 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
   }
 
   Widget _buildCardLayout(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
@@ -274,17 +282,21 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
           duration: const Duration(milliseconds: 300),
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.15 : 0.06),
+                color: isDark 
+                    ? Colors.black.withValues(alpha: _isHovered ? 0.4 : 0.2)
+                    : AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.15 : 0.06),
                 blurRadius: _isHovered ? 30 : 20,
                 offset: Offset(0, _isHovered ? 12 : 8),
               ),
             ],
             border: Border.all(
-              color: AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.3 : 0.1),
+              color: isDark
+                  ? (_isHovered ? AppTheme.primaryColor.withValues(alpha: 0.5) : AppTheme.neutral700)
+                  : AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.3 : 0.1),
               width: 1,
             ),
           ),
@@ -324,14 +336,14 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
                       widget.title,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.w900,
-                            color: AppTheme.neutral900,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       widget.description,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: AppTheme.neutral600,
+                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                             height: 1.4,
                           ),
                     ),
@@ -352,11 +364,11 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
                             )
                         ],
                       ),
-                      child: const Center(
+                      child: Center(
                         child: Text(
                           'Comenzar Registro',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.w900,
                             fontSize: 14,
                           ),
