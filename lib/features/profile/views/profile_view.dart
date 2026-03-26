@@ -15,6 +15,7 @@ import '../models/profile_model.dart';
 import '../models/sub_member_model.dart';
 import '../../../core/providers/sat_catalogs_provider.dart';
 import '../../../core/models/sat_catalogs_model.dart';
+import 'health_view.dart';
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
@@ -550,16 +551,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ),
                 const SizedBox(height: 24),
                 _buildProfileHero(context, profile),
-                const SizedBox(height: 32),
-                _buildAccessTab(context, profile), // QR inline
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 0.95,
+                  childAspectRatio: 1.15,
                   children: [
                     _buildPremiumMenuTile(
                       context,
@@ -584,6 +583,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       icon: Icons.directions_car_rounded,
                       title: 'Vehículos Registrados',
                       onTap: () => _navigateToSection(context, 'Vehículos Registrados', _buildVehiclesTab(context, profile)),
+                    ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.monitor_heart_rounded,
+                      title: 'Información de Salud',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthView())),
                     ),
                   ],
                 ),
@@ -647,14 +652,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: AppTheme.primaryColor, size: 32),
+                  child: Icon(icon, color: AppTheme.primaryColor, size: 28),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   title, 
                   textAlign: TextAlign.center,
@@ -758,72 +763,157 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          _buildSmallQr(context, profile),
         ],
       ),
     );
   }
 
-  Widget _buildAccessTab(BuildContext context, ProfileModel profile) {
+  Widget _buildSmallQr(BuildContext context, ProfileModel profile) {
     final qrData = 'MEMBER:${profile.entityid}:${profile.id}';
     final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
-    return _buildCard(
-      context,
-      padding: const EdgeInsets.all(32),
-            child: Column(
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                  ),
-                  child: QrImageView(
-                    data: qrData,
-                    version: QrVersions.auto,
-                    size: 220.0,
-                    eyeStyle: const QrEyeStyle(
-                      eyeShape: QrEyeShape.circle,
-                      color: Colors.black,
+                Hero(
+                  tag: 'qr-code-hero',
+                  flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+                    return DefaultTextStyle(
+                      style: DefaultTextStyle.of(toHeroContext).style,
+                      child: toHeroContext.widget,
+                    );
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          QrImageView(
+                            data: qrData,
+                            version: QrVersions.auto,
+                            size: 250.0,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.circle,
+                              color: Colors.black,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.circle,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'CARNET DIGITAL',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                              color: AppTheme.neutral500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            cleanName.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Utiliza este código para acceder a las instalaciones del club.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppTheme.neutral500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    dataModuleStyle: const QrDataModuleStyle(
-                      dataModuleShape: QrDataModuleShape.circle,
-                      color: Colors.black,
+                  ),
+                ),
+                Positioned(
+                  top: -20,
+                  right: -20,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                      ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'CARNET DIGITAL',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                    color: AppTheme.neutral500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  cleanName.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Utiliza este código para acceder a las instalaciones del club. Llévalo siempre contigo.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppTheme.neutral500,
-                    fontSize: 13,
-                    height: 1.5,
                   ),
                 ),
               ],
             ),
-          );
+          ),
+        );
+      },
+      child: Hero(
+        tag: 'qr-code-hero',
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: QrImageView(
+              data: qrData,
+              version: QrVersions.auto,
+              size: 56.0,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.circle,
+                color: Colors.black,
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.circle,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildAccountTab(BuildContext context, ProfileModel profile) {
