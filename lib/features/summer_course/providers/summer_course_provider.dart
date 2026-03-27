@@ -54,11 +54,13 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       final beneficiaries = await _service.getBeneficiaries(titular.id);
       final activeReg = await _service.getActiveRegistration(titular.id);
       final costs = await _service.getCosts();
+      final intensiveActivities = await _service.getIntensiveActivities();
 
       state = state.copyWith(
         beneficiariesList: beneficiaries,
         activeRegistration: activeReg,
         courseCosts: costs,
+        intensiveActivities: intensiveActivities,
         isLoading: false,
       );
     } catch (e) {
@@ -81,10 +83,11 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
   Future<void> refreshCosts() async {
     try {
       final costs = await _service.getCosts();
-      state = state.copyWith(courseCosts: costs);
+      final intensiveActivities = await _service.getIntensiveActivities();
+      state = state.copyWith(courseCosts: costs, intensiveActivities: intensiveActivities);
       
       final updatedParticipants = state.selectedParticipants.map((p) {
-        final newCost = _calculateCost(p.type, p.selectedWeekIds.length);
+        final newCost = _calculateCost(p.type, p.selectedWeekIds.length, p.intensiveActivityId);
         return p.copyWith(calculatedCost: newCost);
       }).toList();
       
@@ -128,34 +131,65 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     );
   }
 
-  double _calculateCost(ParticipantType type, int weeksCount) {
-    if (weeksCount == 0 || state.courseCosts.isEmpty) return 0.0;
+  double _calculateCost(ParticipantType type, int weeksCount, [int? intensiveActivityId]) {
+    double baseCost = 0.0;
     
-    final costEntry = state.courseCosts.firstWhere(
-      (c) => c['weeks_count'] == weeksCount, 
-      orElse: () => <String, dynamic>{}
-    );
-    
-    if (costEntry.isEmpty) return 0.0;
-
-    switch (type) {
-      case ParticipantType.socio:
-        return double.tryParse(costEntry['socio'].toString()) ?? 0.0;
-      case ParticipantType.invitado:
-        return double.tryParse(costEntry['invitado'].toString()) ?? 0.0;
-      case ParticipantType.colaborador:
-        return double.tryParse(costEntry['colaborador'].toString()) ?? 0.0;
-      case ParticipantType.invColaborador:
-        return double.tryParse(costEntry['inv_colaborador'].toString()) ?? 0.0;
+    if (weeksCount > 0 && state.courseCosts.isNotEmpty) {
+      final costEntry = state.courseCosts.firstWhere(
+        (c) => c['weeks_count'] == weeksCount, 
+        orElse: () => <String, dynamic>{}
+      );
+      
+      if (costEntry.isNotEmpty) {
+        switch (type) {
+          case ParticipantType.socio:
+            baseCost = double.tryParse(costEntry['socio'].toString()) ?? 0.0;
+            break;
+          case ParticipantType.invitado:
+            baseCost = double.tryParse(costEntry['invitado'].toString()) ?? 0.0;
+            break;
+          case ParticipantType.colaborador:
+            baseCost = double.tryParse(costEntry['colaborador'].toString()) ?? 0.0;
+            break;
+          case ParticipantType.invColaborador:
+            baseCost = double.tryParse(costEntry['inv_colaborador'].toString()) ?? 0.0;
+            break;
+        }
+      }
     }
+
+    double extraCost = 0.0;
+    if (intensiveActivityId != null && state.intensiveActivities.isNotEmpty) {
+      final activity = state.intensiveActivities.firstWhere(
+        (a) => a['id'] == intensiveActivityId,
+        orElse: () => <String, dynamic>{}
+      );
+      if (activity.isNotEmpty) {
+        extraCost = double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
+      }
+    }
+
+    return baseCost + extraCost;
   }
 
   void updateWeeks(String identifier, List<int> weeks) {
     state = state.copyWith(
       selectedParticipants: state.selectedParticipants.map((p) {
         if (p.identifier == identifier) {
-          final newCost = _calculateCost(p.type, weeks.length);
+          final newCost = _calculateCost(p.type, weeks.length, p.intensiveActivityId);
           return p.copyWith(selectedWeekIds: weeks, calculatedCost: newCost);
+        }
+        return p;
+      }).toList(),
+    );
+  }
+
+  void updateIntensiveActivity(String identifier, int? activityId) {
+    state = state.copyWith(
+      selectedParticipants: state.selectedParticipants.map((p) {
+        if (p.identifier == identifier) {
+          final newCost = _calculateCost(p.type, p.selectedWeekIds.length, activityId);
+          return p.copyWith(intensiveActivityId: activityId, calculatedCost: newCost);
         }
         return p;
       }).toList(),
@@ -182,6 +216,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
           } : null,
           'type': p.type.name,
           'weeks': p.selectedWeekIds,
+          'intensive_activity_id': p.intensiveActivityId,
           'total_cost': p.totalCost,
         }).toList(),
         'total_amount': state.totalGeneral,

@@ -20,6 +20,7 @@ class RegistrationParticipant with _$RegistrationParticipant {
     required ParticipantType type,
     @Default([]) List<int> selectedWeekIds, // IDs 1 to 5
     @Default(0.0) double calculatedCost,
+    int? intensiveActivityId, // Optional ID of the selected intensive activity
   }) = _RegistrationParticipant;
 
   factory RegistrationParticipant.fromJson(Map<String, dynamic> json) => 

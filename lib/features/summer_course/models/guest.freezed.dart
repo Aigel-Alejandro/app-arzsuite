@@ -26,9 +26,13 @@ mixin _$Guest {
   String? get secondLastName => throw _privateConstructorUsedError;
   String get email => throw _privateConstructorUsedError;
   String get phone => throw _privateConstructorUsedError;
+  String? get birthDate =>
+      throw _privateConstructorUsedError; // Added for RFC generation
   String get relationship =>
       throw _privateConstructorUsedError; // Hijo(a), Sobrino(a), etc.
-  String get titularMembershipNumber => throw _privateConstructorUsedError;
+  String get titularMembershipNumber =>
+      throw _privateConstructorUsedError; // Reference to the titular
+  String get rfc => throw _privateConstructorUsedError;
 
   /// Serializes this Guest to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -50,8 +54,10 @@ abstract class $GuestCopyWith<$Res> {
     String? secondLastName,
     String email,
     String phone,
+    String? birthDate,
     String relationship,
     String titularMembershipNumber,
+    String rfc,
   });
 }
 
@@ -75,8 +81,10 @@ class _$GuestCopyWithImpl<$Res, $Val extends Guest>
     Object? secondLastName = freezed,
     Object? email = null,
     Object? phone = null,
+    Object? birthDate = freezed,
     Object? relationship = null,
     Object? titularMembershipNumber = null,
+    Object? rfc = null,
   }) {
     return _then(
       _value.copyWith(
@@ -100,6 +108,10 @@ class _$GuestCopyWithImpl<$Res, $Val extends Guest>
                 ? _value.phone
                 : phone // ignore: cast_nullable_to_non_nullable
                       as String,
+            birthDate: freezed == birthDate
+                ? _value.birthDate
+                : birthDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
             relationship: null == relationship
                 ? _value.relationship
                 : relationship // ignore: cast_nullable_to_non_nullable
@@ -107,6 +119,10 @@ class _$GuestCopyWithImpl<$Res, $Val extends Guest>
             titularMembershipNumber: null == titularMembershipNumber
                 ? _value.titularMembershipNumber
                 : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
+                      as String,
+            rfc: null == rfc
+                ? _value.rfc
+                : rfc // ignore: cast_nullable_to_non_nullable
                       as String,
           )
           as $Val,
@@ -128,8 +144,10 @@ abstract class _$$GuestImplCopyWith<$Res> implements $GuestCopyWith<$Res> {
     String? secondLastName,
     String email,
     String phone,
+    String? birthDate,
     String relationship,
     String titularMembershipNumber,
+    String rfc,
   });
 }
 
@@ -152,8 +170,10 @@ class __$$GuestImplCopyWithImpl<$Res>
     Object? secondLastName = freezed,
     Object? email = null,
     Object? phone = null,
+    Object? birthDate = freezed,
     Object? relationship = null,
     Object? titularMembershipNumber = null,
+    Object? rfc = null,
   }) {
     return _then(
       _$GuestImpl(
@@ -177,6 +197,10 @@ class __$$GuestImplCopyWithImpl<$Res>
             ? _value.phone
             : phone // ignore: cast_nullable_to_non_nullable
                   as String,
+        birthDate: freezed == birthDate
+            ? _value.birthDate
+            : birthDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
         relationship: null == relationship
             ? _value.relationship
             : relationship // ignore: cast_nullable_to_non_nullable
@@ -184,6 +208,10 @@ class __$$GuestImplCopyWithImpl<$Res>
         titularMembershipNumber: null == titularMembershipNumber
             ? _value.titularMembershipNumber
             : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
+                  as String,
+        rfc: null == rfc
+            ? _value.rfc
+            : rfc // ignore: cast_nullable_to_non_nullable
                   as String,
       ),
     );
@@ -199,8 +227,10 @@ class _$GuestImpl extends _Guest {
     required this.secondLastName,
     required this.email,
     required this.phone,
+    required this.birthDate,
     required this.relationship,
     required this.titularMembershipNumber,
+    required this.rfc,
   }) : super._();
 
   factory _$GuestImpl.fromJson(Map<String, dynamic> json) =>
@@ -217,14 +247,20 @@ class _$GuestImpl extends _Guest {
   @override
   final String phone;
   @override
+  final String? birthDate;
+  // Added for RFC generation
+  @override
   final String relationship;
   // Hijo(a), Sobrino(a), etc.
   @override
   final String titularMembershipNumber;
+  // Reference to the titular
+  @override
+  final String rfc;
 
   @override
   String toString() {
-    return 'Guest(firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, email: $email, phone: $phone, relationship: $relationship, titularMembershipNumber: $titularMembershipNumber)';
+    return 'Guest(firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, email: $email, phone: $phone, birthDate: $birthDate, relationship: $relationship, titularMembershipNumber: $titularMembershipNumber, rfc: $rfc)';
   }
 
   @override
@@ -240,13 +276,16 @@ class _$GuestImpl extends _Guest {
                 other.secondLastName == secondLastName) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.phone, phone) || other.phone == phone) &&
+            (identical(other.birthDate, birthDate) ||
+                other.birthDate == birthDate) &&
             (identical(other.relationship, relationship) ||
                 other.relationship == relationship) &&
             (identical(
                   other.titularMembershipNumber,
                   titularMembershipNumber,
                 ) ||
-                other.titularMembershipNumber == titularMembershipNumber));
+                other.titularMembershipNumber == titularMembershipNumber) &&
+            (identical(other.rfc, rfc) || other.rfc == rfc));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -258,8 +297,10 @@ class _$GuestImpl extends _Guest {
     secondLastName,
     email,
     phone,
+    birthDate,
     relationship,
     titularMembershipNumber,
+    rfc,
   );
 
   /// Create a copy of Guest
@@ -283,8 +324,10 @@ abstract class _Guest extends Guest {
     required final String? secondLastName,
     required final String email,
     required final String phone,
+    required final String? birthDate,
     required final String relationship,
     required final String titularMembershipNumber,
+    required final String rfc,
   }) = _$GuestImpl;
   const _Guest._() : super._();
 
@@ -301,9 +344,13 @@ abstract class _Guest extends Guest {
   @override
   String get phone;
   @override
+  String? get birthDate; // Added for RFC generation
+  @override
   String get relationship; // Hijo(a), Sobrino(a), etc.
   @override
-  String get titularMembershipNumber;
+  String get titularMembershipNumber; // Reference to the titular
+  @override
+  String get rfc;
 
   /// Create a copy of Guest
   /// with the given fields replaced by the non-null parameter values.

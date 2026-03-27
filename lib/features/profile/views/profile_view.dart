@@ -19,6 +19,16 @@ import '../../../core/models/sat_catalogs_model.dart';
 import 'health_view.dart';
 import '../../../core/widgets/custom_premium_app_bar.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+
+final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final apiClient = ref.watch(apiClientNotifierProvider);
+  final response = await apiClient.dio.get('/deportivo/payments/my-payments');
+  if (response.statusCode == 200 && response.data['success'] == true) {
+    return response.data['data'] as Map<String, dynamic>;
+  }
+  throw Exception('No se pudieron obtener las finanzas');
+});
+
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
@@ -577,12 +587,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       title: 'Vehículos Registrados',
                       onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Autos con acceso autorizado', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                     ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.monitor_heart_rounded,
-                      title: 'Información de Salud',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthView())),
-                    ),
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.monitor_heart_rounded,
+                        title: 'Información de Salud',
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthView())),
+                      ),
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.account_balance_wallet_rounded,
+                        title: 'Saldos y Finanzas',
+                        onTap: () => _navigateToSection(context, 'Finanzas', 'Consulta de saldos y cargos', Icons.account_balance_wallet_outlined, (ctx, r, p) => _buildFinancesTab(ctx, r, p)),
+                      ),
                   ],
                 ),
               ],
@@ -2026,5 +2042,217 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         ToastAlerts.showError(context, 'Error: $e');
       }
     }
+  }
+
+  Widget _buildFinancesTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final paymentsAsync = ref.watch(userPaymentsProvider);
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: paymentsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (data) {
+          final pendingBalance = data['pending_balance'] ?? 0;
+          final nextCharge = data['next_charge_amount'] ?? 0;
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Resumen Financiero',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Saldo actual, transacciones y estado de cuenta',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 32),
+              
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.95,
+                children: [
+                  _buildFinanceCard(
+                    context, 
+                    icon: Icons.account_balance_wallet_rounded, 
+                    title: 'Saldo Por Pagar', 
+                    value: '\$${pendingBalance.toString()}',
+                    isPrimary: true,
+                  ),
+                  _buildFinanceCard(
+                    context, 
+                    icon: Icons.calendar_today_rounded, 
+                    title: 'Próximo cargo', 
+                    value: nextCharge > 0 ? '\$${nextCharge.toString()}' : '--',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildFinanceCard(
+                context, 
+                icon: Icons.credit_card_rounded, 
+                title: 'Estado de membresía', 
+                value: 'Activa',
+                isStatus: true,
+                fullWidth: true,
+              ),
+
+              const SizedBox(height: 32),
+              const Text(
+                'Historial y Cargos Recientes',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+              ),
+              const SizedBox(height: 16),
+
+              if ((data['history'] as List).isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text('Sin movimientos', style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                  ),
+                )
+              else
+                ...((data['history'] as List).map((h) {
+                    final isPending = h['status'] == 'pending';
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.neutral900 : AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isPending 
+                            ? AppTheme.warningColor.withOpacity(isDark ? 0.3 : 0.6)
+                            : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isPending 
+                                ? AppTheme.warningColor.withOpacity(0.1)
+                                : AppTheme.successColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isPending ? Icons.access_time_filled_rounded : Icons.check_circle_rounded,
+                              color: isPending ? AppTheme.warningColor : AppTheme.successColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  h['sales_order_id'] ?? 'Movimiento',
+                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  (h['module'] ?? '').toString().replaceAll('_', ' ').toUpperCase(),
+                                  style: TextStyle(fontSize: 11, color: AppTheme.neutral500.withOpacity(0.8), fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '\$${h['amount']}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    );
+                })),
+                
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFinanceCard(
+    BuildContext context, {
+    required IconData icon, 
+    required String title, 
+    required String value, 
+    bool isStatus = false,
+    bool isPrimary = false,
+    bool fullWidth = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      width: fullWidth ? double.infinity : null,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isPrimary ? AppTheme.vibrantGold.withOpacity(0.15) : AppTheme.primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isPrimary ? AppTheme.vibrantGold : AppTheme.primaryColor, size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (isStatus)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('Activa', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+            )
+          else
+            Text(
+              value,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: isPrimary ? AppTheme.vibrantGold : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

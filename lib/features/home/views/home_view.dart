@@ -7,6 +7,7 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/access_card.dart';
+import 'package:app_arzsuite/features/summer_course/views/summer_course_scanner_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -121,6 +122,17 @@ class HomeView extends StatelessWidget {
                             onTap: () {
                               Navigator.of(context).push(
                                 MaterialPageRoute(builder: (_) => const ActivitiesDashboardView()),
+                              );
+                            },
+                          ),
+                          _HeroFeatureCard(
+                            title: 'Control de Acceso',
+                            subtitle: 'Staff & Instructores',
+                            description: 'Validar códigos QR / Tokens para Check-In y Check-Out de menores.',
+                            icon: Icons.qr_code_scanner_rounded,
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
                               );
                             },
                           ),

@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
+import 'package:app_arzsuite/features/summer_course/providers/summer_course_token_provider.dart';
+import 'package:app_arzsuite/features/summer_course/providers/active_registration_provider.dart';
 
 class Step5Confirmation extends ConsumerWidget {
   const Step5Confirmation({super.key});
@@ -20,7 +22,7 @@ class Step5Confirmation extends ConsumerWidget {
     final subTextColor = isDark ? AppTheme.neutral400 : AppTheme.neutral600;
 
     if (state.salesOrderId != null) {
-      return _buildSuccess(context, state, notifier, state.salesOrderId!, state.pickUpTokens);
+      return _buildSuccess(context, state, notifier, state.salesOrderId!, state.pickUpTokens, ref);
     }
 
     if (state.isLoading) {
@@ -138,6 +140,17 @@ class Step5Confirmation extends ConsumerWidget {
                                fontWeight: FontWeight.bold
                              ),
                            ),
+                           if (p.intensiveActivityId != null && state.intensiveActivities.isNotEmpty) ...[
+                             const SizedBox(height: 4),
+                             Text(
+                               'Verano intensivo: ${state.intensiveActivities.firstWhere((a) => a['id'] == p.intensiveActivityId, orElse: () => <String, dynamic>{})['name'] ?? ''}',
+                               style: const TextStyle(
+                                 color: AppTheme.successColor,
+                                 fontSize: 11,
+                                 fontWeight: FontWeight.w900,
+                               ),
+                             ),
+                           ],
                          ],
                        ),
                      ),
@@ -232,7 +245,7 @@ class Step5Confirmation extends ConsumerWidget {
     );
   }
 
-  Widget _buildSuccess(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier, String orderId, List<dynamic>? pickUpTokens) {
+  Widget _buildSuccess(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier, String orderId, List<dynamic>? pickUpTokens, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
@@ -363,7 +376,11 @@ class Step5Confirmation extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                    onPressed: () {
+                      ref.invalidate(activeRegistrationProvider);
+                      ref.invalidate(summerCourseTokenProvider);
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,

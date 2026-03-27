@@ -36,6 +36,11 @@ _$SummerCourseStateImpl _$$SummerCourseStateImplFromJson(
           ?.map((e) => e as Map<String, dynamic>)
           .toList() ??
       const [],
+  intensiveActivities:
+      (json['intensiveActivities'] as List<dynamic>?)
+          ?.map((e) => e as Map<String, dynamic>)
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$SummerCourseStateImplToJson(
@@ -52,4 +57,5 @@ Map<String, dynamic> _$$SummerCourseStateImplToJson(
   'pickUpTokens': instance.pickUpTokens,
   'activeRegistration': instance.activeRegistration,
   'courseCosts': instance.courseCosts,
+  'intensiveActivities': instance.intensiveActivities,
 };

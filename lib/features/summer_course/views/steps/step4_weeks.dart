@@ -126,6 +126,20 @@ class Step4Weeks extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         _buildWeeksSelector(context, participant, notifier, state),
+                        if (state.intensiveActivities.isNotEmpty) ...[
+                          const SizedBox(height: 24),
+                          const Text(
+                            'TIPO DE VERANO (OPCIONAL)',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              color: AppTheme.neutral400,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildIntensiveActivitySelector(context, participant, notifier, state),
+                        ],
                       ],
                     ),
                   ),
@@ -289,6 +303,65 @@ class Step4Weeks extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildIntensiveActivitySelector(BuildContext context, participant, notifier, state) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.neutral800 : Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppTheme.neutral700 : AppTheme.neutral200),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int?>(
+          value: participant.intensiveActivityId,
+          hint: Text(
+            'Selecciona un tipo de verano...',
+            style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14),
+          ),
+          isExpanded: true,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? AppTheme.neutral400 : AppTheme.neutral500),
+          dropdownColor: isDark ? AppTheme.neutral800 : Colors.white,
+          onChanged: (int? newValue) {
+            notifier.updateIntensiveActivity(participant.identifier, newValue);
+          },
+          items: [
+            DropdownMenuItem<int?>(
+              value: null,
+              child: Text(
+                'Regular (Sin verano intensivo)',
+                style: TextStyle(
+                  color: isDark ? AppTheme.neutral100 : AppTheme.neutral800,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ...state.intensiveActivities.map((activity) {
+              final id = activity['id'] as int;
+              final name = activity['name'] as String;
+              final extraCost = double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
+              final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
+              
+              return DropdownMenuItem<int?>(
+                value: id,
+                child: Text(
+                  '$name ${extraCost > 0 ? '(+${formatter.format(extraCost)})' : ''}',
+                  style: TextStyle(
+                    color: isDark ? AppTheme.neutral100 : AppTheme.neutral800,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              );
+            }).toList(),
+          ],
+        ),
+      ),
     );
   }
 
