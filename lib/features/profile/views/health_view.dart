@@ -549,7 +549,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
                ),
              ),
            ],
-           const SizedBox(height: 48),
+           const SizedBox(height: 120),
         ],
       )
     );
@@ -861,7 +861,7 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
          else
            Expanded(
              child: ListView.builder(
-               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 8),
+               padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 8, AppTheme.spacingLarge, 120),
                itemCount: toShow.length + (!isSearching && filtered.length > 5 ? 1 : 0),
                itemBuilder: (context, index) {
                   if (index == toShow.length) {

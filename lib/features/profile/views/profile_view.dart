@@ -591,7 +591,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         context,
                         icon: Icons.monitor_heart_rounded,
                         title: 'Información de Salud',
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HealthView())),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MainLayout(
+                          activeIndex: 2,
+                          child: HealthView(),
+                        ))),
                       ),
                       _buildPremiumMenuTile(
                         context,
@@ -621,14 +624,20 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             return profileAsync.when(
               data: (profile) {
                 if (profile == null) return const Scaffold(body: Center(child: Text('Perfil no encontrado')));
-                return Scaffold(
-                  appBar: CustomPremiumAppBar(
-                    title: title,
-                    subtitle: subtitle,
-                    icon: icon,
+                return MainLayout(
+                  activeIndex: 2,
+                  child: Scaffold(
+                    appBar: CustomPremiumAppBar(
+                      title: title,
+                      subtitle: subtitle,
+                      icon: icon,
+                    ),
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    body: SafeArea(
+                      bottom: false,
+                      child: builder(context, ref, profile),
+                    ),
                   ),
-                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-                  body: SafeArea(child: builder(context, ref, profile)),
                 );
               },
               loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))),
@@ -2176,7 +2185,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       ),
                     );
                 })),
-                
+              const SizedBox(height: 120),
             ],
           );
         },
