@@ -5,6 +5,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/api_client_notifier.dart';
 import '../../../core/widgets/toast_alerts.dart';
 import 'package:flutter/services.dart';
+import '../../../core/widgets/custom_premium_app_bar.dart';
 
 // ----- Validators & Formatters -----
 class PhoneInputFormatter extends TextInputFormatter {
@@ -305,23 +306,20 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
   Widget build(BuildContext context) {
     final healthAsyncValue = ref.watch(healthProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: const Text('Salud y Expediente', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        centerTitle: true,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        backgroundColor: theme.colorScheme.surface,
-        foregroundColor: theme.colorScheme.primary,
+      appBar: const CustomPremiumAppBar(
+        title: 'Salud y Expediente',
+        subtitle: 'Tu información médica',
+        icon: Icons.medical_information_outlined,
       ),
       body: healthAsyncValue.when(
         data: (data) {
           if (!healthAsyncValue.isLoading && !healthAsyncValue.isRefreshing) {
             _initControllers(data.healthInfo, data.familyMembers);
           }
-          final isDark = theme.brightness == Brightness.dark;
 
           return Column(
             children: [

@@ -16,6 +16,7 @@ import '../models/sub_member_model.dart';
 import '../../../core/providers/sat_catalogs_provider.dart';
 import '../../../core/models/sat_catalogs_model.dart';
 import 'health_view.dart';
+import '../../../core/widgets/custom_premium_app_bar.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
@@ -555,25 +556,25 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       context,
                       icon: Icons.person_rounded,
                       title: 'Información de la Cuenta',
-                      onTap: () => _navigateToSection(context, 'Información de la Cuenta', (ctx, r, p) => _buildAccountTab(ctx, p)),
+                      onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.settings_rounded,
                       title: 'Ajustes de la App',
-                      onTap: () => _navigateToSection(context, 'Ajustes de Aplicación', (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
+                      onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.family_restroom_rounded,
                       title: 'Beneficiarios Legales',
-                      onTap: () => _navigateToSection(context, 'Beneficiarios Legales', (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
+                      onTap: () => _navigateToSection(context, 'Beneficiarios', 'Gestión de dependientes', Icons.family_restroom_rounded, (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.directions_car_rounded,
                       title: 'Vehículos Registrados',
-                      onTap: () => _navigateToSection(context, 'Vehículos Registrados', (ctx, r, p) => _buildVehiclesTab(ctx, p)),
+                      onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Autos con acceso autorizado', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
@@ -593,7 +594,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _navigateToSection(BuildContext context, String title, Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
+  void _navigateToSection(BuildContext context, String title, String subtitle, IconData icon, Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -604,13 +605,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               data: (profile) {
                 if (profile == null) return const Scaffold(body: Center(child: Text('Perfil no encontrado')));
                 return Scaffold(
-                  appBar: AppBar(
-                    title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                    centerTitle: true,
-                    elevation: 0,
-                    scrolledUnderElevation: 0,
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    foregroundColor: Theme.of(context).colorScheme.primary,
+                  appBar: CustomPremiumAppBar(
+                    title: title,
+                    subtitle: subtitle,
+                    icon: icon,
                   ),
                   backgroundColor: Theme.of(context).scaffoldBackgroundColor,
                   body: SafeArea(child: builder(context, ref, profile)),
