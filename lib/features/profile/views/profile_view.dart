@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -1682,7 +1683,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Widget _buildVehiclesTab(BuildContext context, ProfileModel profile) {
+    final bool isSpecial = [1, 2, 3, 6, 10].contains(profile.patrimonialConditionId);
     final vehicles = profile.vehicles;
+
+    if (isSpecial) {
+      final access1Vehicles = vehicles.where((v) => v['access_number'] == 1).toList();
+      final access2Vehicles = vehicles.where((v) => v['access_number'] == 2).toList();
+      
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppTheme.spacingLarge),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
+          const SizedBox(height: 16),
+          const Text('Beneficio Premium: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
+          const SizedBox(height: 16),
+            _buildAccessSection(context, 'Vehículos ligados al primer acceso', access1Vehicles, 1),
+            const SizedBox(height: 24),
+            _buildAccessSection(context, 'Vehículos ligados al segundo acceso', access2Vehicles, 2),
+            const SizedBox(height: 32),
+            _buildParkingDisclaimer(),
+            const SizedBox(height: 120),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1706,26 +1733,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ] else ...[
                   for (var i = 0; i < vehicles.length; i++) ...[
                     if (i > 0) const Divider(height: 0),
-                    ListTile(
-                      leading: Icon(Icons.directions_car, color: vehicles[i]['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
-                      title: Text('Placas: ${vehicles[i]['plates'] ?? ''}'),
-                      subtitle: Text('${vehicles[i]['make'] ?? ''} ${vehicles[i]['model'] ?? ''}'.trim()),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (vehicles[i]['is_in_parking'] == true)
-                            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            onPressed: () => _showVehicleDialog(context, vehicles[i]),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
-                            onPressed: () => _disableVehicle(vehicles[i]['id']),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildVehicleTile(context, vehicles[i]),
                   ],
                 ],
                 if (vehicles.length < 5) ...[
@@ -1749,13 +1757,149 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          const SizedBox(height: 32),
+          _buildParkingDisclaimer(),
           const SizedBox(height: 120),
         ],
       ),
     );
   }
 
-  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle) {
+  Widget _buildAccessSection(BuildContext context, String title, List<dynamic> accessVehicles, int accessNumber) {
+    return _buildCard(
+      context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                Text(
+                  '${accessVehicles.length} / 5',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: accessVehicles.length >= 5 ? AppTheme.dangerColor : AppTheme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 0),
+          if (accessVehicles.isEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('No hay vehículos en este acceso.'),
+            )
+          ] else ...[
+            for (var i = 0; i < accessVehicles.length; i++) ...[
+              if (i > 0) const Divider(height: 0),
+              _buildVehicleTile(context, accessVehicles[i]),
+            ],
+          ],
+          if (accessVehicles.length < 5) ...[
+            const Divider(height: 0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Registrar Vehículo'),
+                  onPressed: () => _showVehicleDialog(context, null, accessNumber: accessNumber),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                'Nota: Solo podrá estar dentro del estacionamiento 1 auto de este grupo a la vez.',
+                style: TextStyle(fontSize: 12, color: AppTheme.neutral500),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVehicleTile(BuildContext context, dynamic vehicle) {
+    return ListTile(
+      leading: Icon(Icons.directions_car, color: vehicle['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
+      title: Text('Placas: ${vehicle['plates'] ?? ''}'),
+      subtitle: Text('${vehicle['make'] ?? ''} ${vehicle['model'] ?? ''}'.trim()),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (vehicle['is_in_parking'] == true)
+            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showVehicleDialog(context, vehicle, accessNumber: vehicle['access_number'] ?? 1),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
+            onPressed: () => _disableVehicle(vehicle['id']),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParkingDisclaimer() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : AppTheme.neutral100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.neutral300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Al registrar tus vehículos declaras aceptar el reglamento y condiciones.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Causas principales de pérdida de accesos:\n'
+            '• Mal uso, alteración o falsificación del registro de placas.\n'
+            '• Permitir el ingreso simultáneo de 2 o más autos usando el mismo acceso.\n'
+            '• Incumplimiento general de las disposiciones de estacionamiento.',
+            style: TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () async {
+              final Uri url = Uri.parse('https://registro-vehicular.centrolibanes.org.mx/files/REGLAMENTO_ESTACIONAMIENTO.pdf');
+              if (!await launchUrl(url)) {
+                if (mounted) ToastAlerts.showError(context, 'No se pudo abrir el enlace');
+              }
+            },
+            child: const Text(
+              'Consulta el reglamento completo AQUÍ.',
+              style: TextStyle(fontSize: 12, color: AppTheme.primaryColor, decoration: TextDecoration.underline),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle, {int accessNumber = 1}) {
     final isEditing = vehicle != null;
     final platesCtrl = TextEditingController(text: vehicle?['plates']?.toString() ?? '');
     final makeCtrl = TextEditingController(text: vehicle?['make']?.toString() ?? '');
@@ -1817,6 +1961,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                 'make': makeCtrl.text.trim(),
                                 'model': modelCtrl.text.trim(),
                                 'color': colorCtrl.text.trim(),
+                                'access_number': isEditing ? (vehicle['access_number'] ?? accessNumber) : accessNumber,
                               };
                               Navigator.pop(context);
                               if (isEditing) {

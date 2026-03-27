@@ -19,6 +19,8 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(Map<String, dynamic> json) =>
       curp: json['curp'] as String?,
       address: json['address'] as String?,
       profilePicture: json['profile_picture'] as String?,
+      patrimonialConditionId: (json['patrimonial_condition_id'] as num?)
+          ?.toInt(),
       canEditSensitiveData: json['can_edit_sensitive_data'] as bool? ?? false,
       personalAddress: json['personal_address'] as Map<String, dynamic>?,
       fiscalData: json['fiscal_data'] as Map<String, dynamic>?,
@@ -55,6 +57,7 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'curp': instance.curp,
       'address': instance.address,
       'profile_picture': instance.profilePicture,
+      'patrimonial_condition_id': instance.patrimonialConditionId,
       'can_edit_sensitive_data': instance.canEditSensitiveData,
       'personal_address': instance.personalAddress,
       'fiscal_data': instance.fiscalData,

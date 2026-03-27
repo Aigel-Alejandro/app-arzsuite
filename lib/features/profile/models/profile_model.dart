@@ -20,6 +20,7 @@ class ProfileModel with _$ProfileModel {
     String? curp,
     String? address,
     @JsonKey(name: 'profile_picture') String? profilePicture,
+    @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') @Default(false) bool canEditSensitiveData,
     @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
