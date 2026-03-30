@@ -22,6 +22,9 @@ import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
+  if (apiClient.token == null || apiClient.token!.isEmpty) {
+    return <String, dynamic>{};
+  }
   final response = await apiClient.dio.get('/deportivo/payments/my-payments');
   if (response.statusCode == 200 && response.data['success'] == true) {
     return response.data['data'] as Map<String, dynamic>;
@@ -703,6 +706,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
+  void _mostrarActividades(BuildContext context, String nombreBeneficiario, String socioId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ActividadesInscritasSheet(nombreBeneficiario: nombreBeneficiario, socioId: socioId),
+    );
+  }
+
   Widget _buildProfileHero(BuildContext context, ProfileModel profile) {
     final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
@@ -760,35 +772,39 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cleanName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => _mostrarActividades(context, cleanName, profile.id),
+              borderRadius: BorderRadius.circular(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cleanName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Text(
-                    'Socio: ${profile.entityid}',
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Socio: ${profile.entityid}',
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -1327,38 +1343,43 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
 
   Widget _buildAssociatedCard(BuildContext context, SubMemberModel member) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingMedium),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-        border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppTheme.neutral100,
-            radius: 20,
-            child: const Icon(Icons.person_rounded, color: AppTheme.neutral500, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member.fullname,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${member.memberType} • ID: ${member.membershipNumber}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500),
-                ),
-              ],
+    final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    return InkWell(
+      onTap: () => _mostrarActividades(context, cleanName, member.id),
+      borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spacingMedium),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+          border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppTheme.neutral100,
+              radius: 20,
+              child: const Icon(Icons.person_rounded, color: AppTheme.neutral500, size: 20),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: AppTheme.neutral300),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cleanName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${member.memberType} • ID: ${member.membershipNumber}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.neutral300),
+          ],
+        ),
       ),
     );
   }
@@ -2263,5 +2284,191 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         ],
       ),
     );
+  }
+}
+
+class _ActividadesInscritasSheet extends ConsumerWidget {
+  final String nombreBeneficiario;
+  final String socioId;
+  const _ActividadesInscritasSheet({required this.nombreBeneficiario, required this.socioId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.only(top: 24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: AppTheme.neutral300, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Actividades de $nombreBeneficiario',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: AppTheme.neutral500),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: FutureBuilder<List<dynamic>>(
+              future: _fetchActividades(ref),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('Error al cargar actividades: ${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.dangerColor)),
+                    ),
+                  );
+                }
+                
+                final ins = snapshot.data ?? [];
+                if (ins.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.pool_rounded, size: 64, color: AppTheme.neutral300),
+                        const SizedBox(height: 16),
+                        Text('Sin inscripciones registradas', style: TextStyle(color: AppTheme.neutral500, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: ins.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final item = ins[index];
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+                                child: const Icon(Icons.sports_rounded, color: AppTheme.primaryColor, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(item['actividad_nombre'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 44, top: 4),
+                            child: Text(item['grupo_nombre'] ?? '', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.calendar_month_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['horario'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontWeight: FontWeight.w600, fontSize: 13))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.location_on_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['lugar'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.person_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<List<dynamic>> _fetchActividades(WidgetRef ref) async {
+    final client = ref.read(apiClientNotifierProvider);
+    final url = '/arzsuite/actividades/mis-actividades?beneficiary_name=${Uri.encodeComponent(nombreBeneficiario)}&beneficiary_socio_id=$socioId';
+    try {
+      final res = await client.dio.get(url);
+      var responseData = res.data;
+      
+      if (responseData is String) {
+        try {
+          responseData = jsonDecode(responseData);
+        } catch (e) {
+          debugPrint("❌ ERROR DE PARSEO JSON EN API. EL SERVIDOR DEVOLVIÓ HTML O TEXTO PLANO:");
+          debugPrint(responseData);
+          rethrow;
+        }
+      }
+
+      if (res.statusCode == 200 && responseData['success'] == true) {
+        return responseData['data'] as List<dynamic>;
+      }
+    } catch (e) {
+      debugPrint("Error al hacer fecth de actividades: $e");
+    }
+    return [];
   }
 }

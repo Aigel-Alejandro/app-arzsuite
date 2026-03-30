@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
-import 'package:app_arzsuite/core/widgets/responsive_grid.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
 import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/access_card.dart';
 import 'package:app_arzsuite/features/summer_course/views/summer_course_scanner_view.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_arzsuite/features/activities/providers/family_agenda_provider.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -89,58 +90,63 @@ class HomeView extends StatelessWidget {
                     // Hero: Summer Course 2026
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'ACTUALIDAD',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                              color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'ACCESOS DE STAFF / VERANO',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _CompactActionCard(
+                                title: 'Inscripción',
+                                subtitle: 'Cursos 2026',
+                                icon: Icons.sunny,
+                                color: AppTheme.primaryColor,
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
+                                  );
+                                },
+                              ),
                             ),
-                      ),
-                      const SizedBox(height: 16),
-                      ResponsiveGrid(
-                        children: [
-                          _HeroFeatureCard(
-                            title: 'Cursos de Verano 2026',
-                            subtitle: 'Inscripciones Abiertas',
-                            description: 'Inscribe a tus hijos e invitados de forma digital y segura en nuestro curso anual.',
-                            icon: Icons.sunny,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
-                              );
-                            },
-                          ),
-                          _HeroFeatureCard(
-                            title: 'Actividades Deportivas',
-                            subtitle: 'Inscripciones y Gestión',
-                            description: 'Consulta el calendario de deportes, chatea con profesores y administra expedientes.',
-                            icon: Icons.sports_tennis_rounded,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const ActivitiesDashboardView()),
-                              );
-                            },
-                          ),
-                          _HeroFeatureCard(
-                            title: 'Control de Acceso',
-                            subtitle: 'Staff & Instructores',
-                            description: 'Validar códigos QR / Tokens para Check-In y Check-Out de menores.',
-                            icon: Icons.qr_code_scanner_rounded,
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _CompactActionCard(
+                                title: 'Escáner QR',
+                                subtitle: 'Control Staff',
+                                icon: Icons.qr_code_scanner_rounded,
+                                color: const Color(0xFFE65100), // Naranja oscuro para destacar
+                                onTap: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          'MINI-AGENDA SEMANAL',
+                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 2,
+                              ),
+                        ),
+                        const SizedBox(height: 16),
+                        const _AgendaWidget(),
+                      ],
+                    ),
                   ),
-                ),
                 
                 const SizedBox(height: 48),
                 
@@ -171,44 +177,26 @@ class HomeView extends StatelessWidget {
   }
 }
 
-class _HeroFeatureCard extends StatefulWidget {
+class _CompactActionCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final String description;
   final IconData icon;
+  final Color color;
   final VoidCallback onTap;
 
-  const _HeroFeatureCard({
+  const _CompactActionCard({
     required this.title,
     required this.subtitle,
-    required this.description,
     required this.icon,
+    required this.color,
     required this.onTap,
   });
 
   @override
-  State<_HeroFeatureCard> createState() => _HeroFeatureCardState();
-}
-
-class _HeroFeatureCardState extends State<_HeroFeatureCard> {
-  bool _isHovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
+    final Brightness brightness = Theme.of(context).brightness;
+    final bool isDark = brightness == Brightness.dark;
 
-        if (isMobile) {
-          return _buildListLayout(context);
-        }
-        return _buildCardLayout(context);
-      },
-    );
-  }
-
-  Widget _buildListLayout(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -221,57 +209,51 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
           ),
         ],
         border: Border.all(
-          color: isDark ? AppTheme.neutral700 : AppTheme.neutral200.withValues(alpha: 0.5),
+          color: isDark ? AppTheme.neutral800 : AppTheme.neutral200.withValues(alpha: 0.5),
           width: 1,
         ),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: widget.onTap,
+          onTap: onTap,
           borderRadius: BorderRadius.circular(20),
+          splashColor: color.withValues(alpha: 0.1),
           child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    color: color.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(widget.icon, color: AppTheme.primaryColor, size: 24),
+                  child: Icon(icon, color: color, size: 24),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: Theme.of(context).colorScheme.onSurface,
-                              fontSize: 15,
-                            ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        widget.subtitle,
-                        style: TextStyle(
-                          color: AppTheme.primaryColor,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 16),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                    letterSpacing: 0.5,
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
-                  size: 16,
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontSize: 15,
+                        letterSpacing: -0.3,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -280,118 +262,218 @@ class _HeroFeatureCardState extends State<_HeroFeatureCard> {
       ),
     );
   }
+}
 
-  Widget _buildCardLayout(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return MouseRegion(
-      onEnter: (_) => setState(() => _isHovered = true),
-      onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedScale(
-        scale: _isHovered ? 1.02 : 1.0,
-        duration: const Duration(milliseconds: 250),
-        curve: Curves.easeOutCubic,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: isDark 
-                    ? Colors.black.withValues(alpha: _isHovered ? 0.4 : 0.2)
-                    : AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.15 : 0.06),
-                blurRadius: _isHovered ? 30 : 20,
-                offset: Offset(0, _isHovered ? 12 : 8),
+class _AgendaWidget extends ConsumerWidget {
+  const _AgendaWidget();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final agendaAsync = ref.watch(familyAgendaProvider);
+
+    return agendaAsync.when(
+      data: (items) {
+        if (items.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Text(
+                'No hay eventos programados en tu familia.',
+                style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
               ),
-            ],
-            border: Border.all(
-              color: isDark
-                  ? (_isHovered ? AppTheme.primaryColor.withValues(alpha: 0.5) : AppTheme.neutral700)
-                  : AppTheme.primaryColor.withValues(alpha: _isHovered ? 0.3 : 0.1),
-              width: 1,
             ),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: widget.onTap,
-              borderRadius: BorderRadius.circular(24),
-              hoverColor: AppTheme.primaryColor.withValues(alpha: 0.03),
-              splashColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-              highlightColor: Colors.transparent,
+          );
+        }
+
+        return Column(
+          children: items.map((item) {
+            final color = _parseColor(item.colorHex);
+            final icon = _parseIcon(item.icon);
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildAgendaItem(
+                context: context,
+                time: item.timeBlock,
+                duration: item.durationStr,
+                title: item.title,
+                subtitle: item.subtitle,
+                person: item.personName,
+                icon: icon,
+                color: color,
+                isMatch: item.isMatch,
+              ),
+            );
+          }).toList(),
+        );
+      },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: CircularProgressIndicator(color: AppTheme.primaryColor),
+        ),
+      ),
+      error: (e, st) => Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Text('Error cargando agenda', style: TextStyle(color: AppTheme.dangerColor)),
+        ),
+      ),
+    );
+  }
+
+  Color _parseColor(String? hex) {
+    if (hex == null || hex.isEmpty) return AppTheme.primaryColor;
+    try {
+      String formattedHex = hex.replaceAll('#', '');
+      if (formattedHex.length == 6) {
+        formattedHex = 'FF$formattedHex';
+      }
+      return Color(int.parse(formattedHex, radix: 16));
+    } catch (_) {
+      return AppTheme.primaryColor;
+    }
+  }
+
+  IconData _parseIcon(String? iconName) {
+    switch (iconName) {
+      case 'pool_rounded':
+      case 'pool':
+        return Icons.pool_rounded;
+      case 'sports_soccer_rounded':
+      case 'sports_soccer':
+        return Icons.sports_soccer_rounded;
+      case 'sports_tennis_rounded':
+      case 'sports_tennis':
+        return Icons.sports_tennis_rounded;
+      case 'sports_basketball_rounded':
+      case 'sports_basketball':
+        return Icons.sports_basketball_rounded;
+      case 'fitness_center_rounded':
+      case 'fitness_center':
+        return Icons.fitness_center_rounded;
+      case 'self_improvement_rounded':
+      case 'self_improvement':
+        return Icons.self_improvement_rounded;
+      default:
+        return Icons.event_rounded;
+    }
+  }
+
+  Widget _buildAgendaItem({
+    required BuildContext context,
+    required String time,
+    required String duration,
+    required String title,
+    required String subtitle,
+    required String person,
+    required IconData icon,
+    required Color color,
+    bool isMatch = false,
+  }) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.neutral900 : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+      ),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Time Sidebar
+            Container(
+              width: 80,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.05),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  bottomLeft: Radius.circular(20),
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: isDark ? Colors.white : AppTheme.neutral900,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '$duration hrs',
+                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: AppTheme.neutral500),
+                  ),
+                ],
+              ),
+            ),
+            // Divider
+            Container(width: 4, color: color),
+            // Content
+            Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Icon(widget.icon, color: AppTheme.primaryColor, size: 24),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.subtitle,
-                      style: const TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 11,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      widget.description,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
-                            height: 1.4,
-                          ),
-                    ),
-                    const SizedBox(height: 20),
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: _isHovered ? AppTheme.primaryColor : AppTheme.primaryColor.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          if (_isHovered)
-                            BoxShadow(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            )
-                        ],
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Comenzar Registro',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14,
+                    Row(
+                      children: [
+                        Icon(icon, size: 16, color: color),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              color: isDark ? Colors.white : AppTheme.neutral900,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(fontSize: 12, color: AppTheme.neutral500),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: AppTheme.neutral100,
+                          child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          person,
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+                        ),
+                        const Spacer(),
+                        if (isMatch)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Text('OFICIAL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.redAccent, letterSpacing: 0.5)),
+                          ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

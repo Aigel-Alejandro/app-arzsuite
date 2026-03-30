@@ -1,16 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activity_subscription_view.dart';
+import '../providers/activities_provider.dart';
 
-class ActivitiesListView extends StatelessWidget {
+class ActivitiesListView extends ConsumerWidget {
   final bool isSubscribed;
   final bool useLayout;
   const ActivitiesListView({super.key, required this.isSubscribed, this.useLayout = true});
 
+  IconData _getIconData(String? iconName) {
+    if (iconName == null) return Icons.sports;
+    switch (iconName) {
+      case 'sports_soccer': return Icons.sports_soccer;
+      case 'pool': return Icons.pool;
+      case 'sports_tennis': return Icons.sports_tennis;
+      case 'self_improvement': return Icons.self_improvement;
+      // Añadir más de ser necesario en el futuro
+      default: return Icons.sports;
+    }
+  }
+
+  Color _getColor(String? colorHex) {
+    if (colorHex == null || colorHex.isEmpty) return const Color(0xFF406EBA);
+    String hexString = colorHex.replaceAll('#', '0xFF');
+    if (hexString.length == 10) {
+      return Color(int.parse(hexString));
+    }
+    return const Color(0xFF406EBA);
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // Definimos los colores institucionales según ux-ui.md (si no están en AppTheme)
     const Color institutionalBlue = Color(0xFF406EBA);
     
@@ -49,24 +72,47 @@ class ActivitiesListView extends StatelessWidget {
             
             const SizedBox(height: AppTheme.spacingLarge),
             
-            _PremiumActivityCard(
-              title: 'Fútbol Infantil (Sub-12)',
-              instructor: 'Prof. Carlos Ramírez',
-              schedule: 'Lun, Mié y Vie • 16:00 - 18:00',
-              icon: Icons.sports_soccer_rounded,
-              accentColor: institutionalBlue,
-              spotsAvailable: isSubscribed ? null : 5,
-              isSubscribed: isSubscribed,
-            ),
-            const SizedBox(height: AppTheme.spacingMedium),
-            _PremiumActivityCard(
-              title: 'Clase de Tenis',
-              instructor: 'Prof. Ana López',
-              schedule: 'Mar y Jue • 17:00 - 19:00',
-              icon: Icons.sports_tennis_rounded,
-              accentColor: AppTheme.vibrantGold,
-              spotsAvailable: isSubscribed ? null : 0,
-              isSubscribed: isSubscribed,
+            ref.watch(activitiesProvider).when(
+              data: (activities) {
+                if (activities.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(AppTheme.spacingLarge),
+                    child: Center(child: Text("No hay actividades disponibles en este momento.", style: TextStyle(color: AppTheme.neutral500))),
+                  );
+                }
+                
+                return Column(
+                  children: activities.map((activity) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                      child: _PremiumActivityCard(
+                        activity: activity,
+                        title: activity.nombre,
+                        instructor: activity.clubName ?? 'Centro Libanés',
+                        schedule: 'Toca para ver grupos y horarios disponibles',
+                        icon: _getIconData(activity.icono),
+                        accentColor: _getColor(activity.color),
+                        spotsAvailable: isSubscribed ? null : (
+                          activity.grupos.isEmpty ? null : 
+                          activity.grupos.any((g) => !g.tieneCupo) ? null : 
+                          activity.grupos.fold<int>(0, (int sum, g) => sum + (g.cupoDisponible ?? 0))
+                        ),
+                        isSubscribed: isSubscribed,
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+              loading: () => const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(40.0),
+                  child: CircularProgressIndicator(color: institutionalBlue),
+                ),
+              ),
+              error: (err, stack) => Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                child: Text('Error: ${err}', style: const TextStyle(color: AppTheme.dangerColor)),
+              ),
             ),
             
             // Espaciado inferior para evitar que el menú móvil cubra el contenido
@@ -98,6 +144,7 @@ class ActivitiesListView extends StatelessWidget {
 }
 
 class _PremiumActivityCard extends StatefulWidget {
+  final dynamic activity; // ActivityModel
   final String title;
   final String instructor;
   final String schedule;
@@ -107,6 +154,7 @@ class _PremiumActivityCard extends StatefulWidget {
   final bool isSubscribed;
 
   const _PremiumActivityCard({
+    required this.activity,
     required this.title,
     required this.instructor,
     required this.schedule,
@@ -157,7 +205,7 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
               Navigator.push(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (_, __, ___) => const ActivitySubscriptionView(),
+                  pageBuilder: (_, __, ___) => ActivitySubscriptionView(activity: widget.activity),
                   transitionDuration: Duration.zero,
                   reverseTransitionDuration: Duration.zero,
                 ),
@@ -227,7 +275,7 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                       )
                     else
                       _StatusChip(
-                        label: '${widget.spotsAvailable} Lugares',
+                        label: widget.spotsAvailable == null ? 'Disponible' : '${widget.spotsAvailable} Lugares',
                         color: AppTheme.primaryColor,
                       ),
                   ],

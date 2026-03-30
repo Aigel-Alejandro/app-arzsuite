@@ -20,6 +20,10 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
     if (!isBackgroundRefresh) {
       state = const AsyncValue.loading();
     }
+    if (_apiClient.token == null || _apiClient.token!.isEmpty) {
+      state = const AsyncValue.data(null);
+      return;
+    }
     try {
       final response = await _apiClient.dio.get('arzsuite/profile');
       var responseData = response.data;

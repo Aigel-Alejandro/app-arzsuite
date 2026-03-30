@@ -4,16 +4,21 @@ import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
-class MatchDetailView extends StatefulWidget {
-  const MatchDetailView({super.key});
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_arzsuite/features/activities/models/match_model.dart';
+import 'package:app_arzsuite/features/activities/providers/matches_provider.dart';
+
+class MatchDetailView extends ConsumerStatefulWidget {
+  final MatchModel match;
+
+  const MatchDetailView({super.key, required this.match});
 
   @override
-  State<MatchDetailView> createState() => _MatchDetailViewState();
+  ConsumerState<MatchDetailView> createState() => _MatchDetailViewState();
 }
 
-class _MatchDetailViewState extends State<MatchDetailView> {
-  // null = no contestado, true = confirmado, false = rechazado
-  bool? _isConfirmed;
+class _MatchDetailViewState extends ConsumerState<MatchDetailView> {
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,55 +46,70 @@ class _MatchDetailViewState extends State<MatchDetailView> {
                    ),
                    child: Column(
                      children: [
-                       const Text('Jornada 5', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                       Text(widget.match.torneoNombre, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
                        const SizedBox(height: AppTheme.spacingSmall),
                        Text(
-                         'Nosotros vs Club X',
+                         '${widget.match.esLocal ? widget.match.equipoNuestro : widget.match.equipoRival} vs ${widget.match.esLocal ? widget.match.equipoRival : widget.match.equipoNuestro}',
                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, color: Colors.white),
                          textAlign: TextAlign.center,
                        ),
                        const SizedBox(height: AppTheme.spacingMedium),
-                       _InfoBadge(icon: Icons.calendar_month_rounded, text: 'Sábado 21, 10:00 AM'),
+                       if (widget.match.estadoPartido == 'finalizado')
+                         Container(
+                           margin: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                           decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                           child: Text(
+                             'Marcador: ${widget.match.esLocal ? widget.match.golesLocal : widget.match.golesVisitante} - ${widget.match.esLocal ? widget.match.golesVisitante : widget.match.golesLocal}', 
+                             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: AppTheme.primaryColor),
+                           ),
+                         ),
+                       _InfoBadge(icon: Icons.calendar_month_rounded, text: _formatDateTime(widget.match.fecha)),
                        const SizedBox(height: 8),
-                       _InfoBadge(icon: Icons.location_on_rounded, text: 'Cancha Central'),
+                       _InfoBadge(icon: Icons.location_on_rounded, text: widget.match.lugar),
                      ],
                    ),
                  ),
                  
                  const SizedBox(height: AppTheme.spacingLarge),
                  Text(
-                   'Convocatoria: Juanito Pérez',
+                   'Tu Convocatoria',
                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
                  ),
                  const SizedBox(height: AppTheme.spacingMedium),
-                 const Text('El profesor te ha convocado a este partido. Confirma la asistencia de tu hijo/a lo antes posible.', style: TextStyle(color: AppTheme.neutral600)),
+                 const Text('El profesor te ha convocado a este partido. Confirma tu asistencia lo antes posible.', style: TextStyle(color: AppTheme.neutral600)),
                  const SizedBox(height: AppTheme.spacingLarge),
                  
-                 Row(
-                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                   children: [
-                     _ResponseButton(
-                       title: 'Confirmar',
-                       icon: Icons.check_circle_rounded,
-                       color: AppTheme.successColor,
-                       isSelected: _isConfirmed == true,
-                       onTap: () {
-                         setState(() => _isConfirmed = true);
-                         ToastAlerts.showSuccess(context, 'Notificado: Asistencia Confirmada');
-                       },
+                 if (_isLoading)
+                   const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
+                 else if (widget.match.estadoPartido == 'finalizado' || widget.match.estadoPartido == 'cancelado')
+                   Center(
+                     child: Text(
+                       'El partido ha ${widget.match.estadoPartido}.',
+                       style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.neutral600),
                      ),
-                     _ResponseButton(
-                       title: 'No Asistirá',
-                       icon: Icons.cancel_rounded,
-                       color: AppTheme.dangerColor,
-                       isSelected: _isConfirmed == false,
-                       onTap: () {
-                         setState(() => _isConfirmed = false);
-                         ToastAlerts.showSuccess(context, 'Notificado: Asistencia Rechazada');
-                       },
-                     )
-                   ],
-                 ),
+                   )
+                 else ...[
+                   Row(
+                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                     children: [
+                       _ResponseButton(
+                         title: 'Confirmar',
+                         icon: Icons.check_circle_rounded,
+                         color: AppTheme.successColor,
+                         isSelected: widget.match.estadoConfirmacion == 'confirmado',
+                         onTap: () => _updateAsistencia('confirmado'),
+                       ),
+                       _ResponseButton(
+                         title: 'No Asistirá',
+                         icon: Icons.cancel_rounded,
+                         color: AppTheme.dangerColor,
+                         isSelected: widget.match.estadoConfirmacion == 'cancelado',
+                         onTap: () => _updateAsistencia('cancelado'),
+                       )
+                     ],
+                   ),
+                 ],
                  
                  const SizedBox(height: AppTheme.spacingLarge),
                  const Divider(height: 32, color: AppTheme.neutral100),
@@ -106,6 +126,37 @@ class _MatchDetailViewState extends State<MatchDetailView> {
          ),
        ),
     );
+  }
+
+  String _formatDateTime(String isoStr) {
+    try {
+      final dt = DateTime.parse(isoStr);
+      final days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      final m = dt.minute.toString().padLeft(2, '0');
+      return '${days[dt.weekday - 1]} ${dt.day}, ${dt.hour}:$m hrs';
+    } catch (_) {
+      return isoStr;
+    }
+  }
+
+  Future<void> _updateAsistencia(String estado) async {
+    if (widget.match.estadoConfirmacion == estado) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(matchesProvider.notifier).confirmAssistance(widget.match.convocatoriaId, estado);
+      if (mounted) {
+        ToastAlerts.showSuccess(context, 'Se ha guardado tu respuesta exitosamente.');
+      }
+    } catch (e) {
+      if (mounted) {
+        ToastAlerts.showError(context, e.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 }
 

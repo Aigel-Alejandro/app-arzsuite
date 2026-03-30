@@ -29,6 +29,9 @@ mixin _$SubMemberModel {
   String? get lastName => throw _privateConstructorUsedError;
   String get membershipNumber => throw _privateConstructorUsedError;
   String get memberType => throw _privateConstructorUsedError;
+  @JsonKey(name: 'birth_date')
+  String? get birthDate => throw _privateConstructorUsedError;
+  int? get age => throw _privateConstructorUsedError;
 
   /// Serializes this SubMemberModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +57,8 @@ abstract class $SubMemberModelCopyWith<$Res> {
     @JsonKey(name: 'last_name') String? lastName,
     String membershipNumber,
     String memberType,
+    @JsonKey(name: 'birth_date') String? birthDate,
+    int? age,
   });
 }
 
@@ -78,6 +83,8 @@ class _$SubMemberModelCopyWithImpl<$Res, $Val extends SubMemberModel>
     Object? lastName = freezed,
     Object? membershipNumber = null,
     Object? memberType = null,
+    Object? birthDate = freezed,
+    Object? age = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -105,6 +112,14 @@ class _$SubMemberModelCopyWithImpl<$Res, $Val extends SubMemberModel>
                 ? _value.memberType
                 : memberType // ignore: cast_nullable_to_non_nullable
                       as String,
+            birthDate: freezed == birthDate
+                ? _value.birthDate
+                : birthDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            age: freezed == age
+                ? _value.age
+                : age // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -127,6 +142,8 @@ abstract class _$$SubMemberModelImplCopyWith<$Res>
     @JsonKey(name: 'last_name') String? lastName,
     String membershipNumber,
     String memberType,
+    @JsonKey(name: 'birth_date') String? birthDate,
+    int? age,
   });
 }
 
@@ -150,6 +167,8 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
     Object? lastName = freezed,
     Object? membershipNumber = null,
     Object? memberType = null,
+    Object? birthDate = freezed,
+    Object? age = freezed,
   }) {
     return _then(
       _$SubMemberModelImpl(
@@ -177,6 +196,14 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
             ? _value.memberType
             : memberType // ignore: cast_nullable_to_non_nullable
                   as String,
+        birthDate: freezed == birthDate
+            ? _value.birthDate
+            : birthDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        age: freezed == age
+            ? _value.age
+            : age // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -192,6 +219,8 @@ class _$SubMemberModelImpl implements _SubMemberModel {
     @JsonKey(name: 'last_name') this.lastName,
     required this.membershipNumber,
     required this.memberType,
+    @JsonKey(name: 'birth_date') this.birthDate,
+    this.age,
   });
 
   factory _$SubMemberModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -211,10 +240,15 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   final String membershipNumber;
   @override
   final String memberType;
+  @override
+  @JsonKey(name: 'birth_date')
+  final String? birthDate;
+  @override
+  final int? age;
 
   @override
   String toString() {
-    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType)';
+    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType, birthDate: $birthDate, age: $age)';
   }
 
   @override
@@ -232,7 +266,10 @@ class _$SubMemberModelImpl implements _SubMemberModel {
             (identical(other.membershipNumber, membershipNumber) ||
                 other.membershipNumber == membershipNumber) &&
             (identical(other.memberType, memberType) ||
-                other.memberType == memberType));
+                other.memberType == memberType) &&
+            (identical(other.birthDate, birthDate) ||
+                other.birthDate == birthDate) &&
+            (identical(other.age, age) || other.age == age));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -245,6 +282,8 @@ class _$SubMemberModelImpl implements _SubMemberModel {
     lastName,
     membershipNumber,
     memberType,
+    birthDate,
+    age,
   );
 
   /// Create a copy of SubMemberModel
@@ -272,6 +311,8 @@ abstract class _SubMemberModel implements SubMemberModel {
     @JsonKey(name: 'last_name') final String? lastName,
     required final String membershipNumber,
     required final String memberType,
+    @JsonKey(name: 'birth_date') final String? birthDate,
+    final int? age,
   }) = _$SubMemberModelImpl;
 
   factory _SubMemberModel.fromJson(Map<String, dynamic> json) =
@@ -291,6 +332,11 @@ abstract class _SubMemberModel implements SubMemberModel {
   String get membershipNumber;
   @override
   String get memberType;
+  @override
+  @JsonKey(name: 'birth_date')
+  String? get birthDate;
+  @override
+  int? get age;
 
   /// Create a copy of SubMemberModel
   /// with the given fields replaced by the non-null parameter values.

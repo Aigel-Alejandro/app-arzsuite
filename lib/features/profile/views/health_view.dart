@@ -162,7 +162,9 @@ class HealthData {
 // ----- Provider -----
 final healthProvider = FutureProvider.autoDispose<HealthData>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
-  if (apiClient == null) throw Exception('API Client no disponible');
+  if (apiClient.token == null || apiClient.token!.isEmpty) {
+    return HealthData(medicalRecords: [], familyMembers: []);
+  }
 
   final response = await apiClient.dio.get(
     'arzsuite/health',

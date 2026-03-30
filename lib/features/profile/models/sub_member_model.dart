@@ -12,6 +12,8 @@ class SubMemberModel with _$SubMemberModel {
     @JsonKey(name: 'last_name') String? lastName,
     required String membershipNumber,
     required String memberType,
+    @JsonKey(name: 'birth_date') String? birthDate,
+    int? age,
   }) = _SubMemberModel;
 
   factory SubMemberModel.fromJson(Map<String, dynamic> json) =>
