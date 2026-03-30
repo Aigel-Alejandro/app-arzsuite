@@ -587,8 +587,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.directions_car_rounded,
-                      title: 'Vehículos Registrados',
-                      onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Autos con acceso autorizado', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
+                      title: 'Vehículos (1 por acceso)',
+                      onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                     ),
                       _buildPremiumMenuTile(
                         context,
