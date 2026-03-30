@@ -422,8 +422,12 @@ class _AgendaWidget extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(icon, size: 16, color: color),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(icon, size: 16, color: color),
+                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -431,9 +435,10 @@ class _AgendaWidget extends ConsumerWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
                               fontSize: 14,
+                              height: 1.2,
                               color: isDark ? Colors.white : AppTheme.neutral900,
                             ),
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -446,6 +451,7 @@ class _AgendaWidget extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         CircleAvatar(
                           radius: 12,
@@ -453,11 +459,15 @@ class _AgendaWidget extends ConsumerWidget {
                           child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
                         ),
                         const SizedBox(width: 8),
-                        Text(
-                          person,
-                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+                        Expanded(
+                          child: Text(
+                            person,
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                        const Spacer(),
+                        if (isMatch) const SizedBox(width: 8),
                         if (isMatch)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
