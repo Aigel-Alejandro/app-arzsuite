@@ -12,46 +12,54 @@ class Step4Weeks extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(summerCourseProvider);
     final notifier = ref.read(summerCourseProvider.notifier);
-    
+
     final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardBgColor = isDark ? AppTheme.neutral800 : Colors.white;
     final textColor = isDark ? AppTheme.neutral100 : AppTheme.neutral900;
     final subTextColor = isDark ? AppTheme.neutral400 : AppTheme.neutral500;
-    final borderColor = isDark ? AppTheme.neutral700 : AppTheme.neutral200.withOpacity(0.5);
+    final borderColor = isDark
+        ? AppTheme.neutral700
+        : AppTheme.neutral200.withOpacity(0.5);
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge, vertical: 24),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTheme.spacingLarge,
+        vertical: 24,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Fechas y Tarifas',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: textColor,
-                ),
+              fontWeight: FontWeight.w900,
+              color: textColor,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Selecciona las semanas para cada asistente.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: subTextColor,
-                  height: 1.3,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: subTextColor, height: 1.3),
           ),
           const SizedBox(height: 24),
 
           ...state.selectedParticipants.map((participant) {
-            final socioColor = participant.isSocio ? AppTheme.primaryColor : AppTheme.vibrantGold;
-            
+            final socioColor = participant.isSocio
+                ? AppTheme.primaryColor
+                : AppTheme.vibrantGold;
+
             return Container(
               margin: const EdgeInsets.only(bottom: 16),
               decoration: BoxDecoration(
                 color: cardBgColor,
-                borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                borderRadius: BorderRadius.circular(
+                  AppTheme.borderRadiusMedium,
+                ),
                 border: Border.all(color: borderColor),
               ),
               child: Column(
@@ -59,14 +67,19 @@ class Step4Weeks extends ConsumerWidget {
                 children: [
                   // CABECERA DEL PARTICIPANTE
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
                         CircleAvatar(
                           radius: 18,
                           backgroundColor: socioColor.withOpacity(0.1),
                           child: Icon(
-                            participant.isSocio ? Icons.person_outline_rounded : Icons.person_add_alt_1_rounded,
+                            participant.isSocio
+                                ? Icons.person_outline_rounded
+                                : Icons.person_add_alt_1_rounded,
                             color: socioColor,
                             size: 18,
                           ),
@@ -77,12 +90,22 @@ class Step4Weeks extends ConsumerWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                participant.fullName, 
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: textColor),
+                                participant.fullName,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
                               ),
                               Text(
-                                participant.isSocio ? 'Socio Directo' : 'Invitado Especial',
-                                style: TextStyle(color: subTextColor, fontSize: 11, fontWeight: FontWeight.w600),
+                                participant.isSocio
+                                    ? 'Socio Directo'
+                                    : 'Invitado Especial',
+                                style: TextStyle(
+                                  color: subTextColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),
@@ -100,16 +123,25 @@ class Step4Weeks extends ConsumerWidget {
                             ),
                             Text(
                               '${participant.selectedWeekIds.length} sem.',
-                              style: const TextStyle(fontSize: 10, color: AppTheme.neutral400, fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: AppTheme.neutral400,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
                       ],
                     ),
                   ),
-                  
-                  Divider(height: 1, color: isDark ? AppTheme.neutral700 : AppTheme.neutral100, indent: 16, endIndent: 16),
-                  
+
+                  Divider(
+                    height: 1,
+                    color: isDark ? AppTheme.neutral700 : AppTheme.neutral100,
+                    indent: 16,
+                    endIndent: 16,
+                  ),
+
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -125,7 +157,12 @@ class Step4Weeks extends ConsumerWidget {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        _buildWeeksSelector(context, participant, notifier, state),
+                        _buildWeeksSelector(
+                          context,
+                          participant,
+                          notifier,
+                          state,
+                        ),
                         if (state.intensiveActivities.isNotEmpty) ...[
                           const SizedBox(height: 24),
                           const Text(
@@ -138,7 +175,12 @@ class Step4Weeks extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          _buildIntensiveActivitySelector(context, participant, notifier, state),
+                          _buildIntensiveActivitySelector(
+                            context,
+                            participant,
+                            notifier,
+                            state,
+                          ),
                         ],
                       ],
                     ),
@@ -149,7 +191,7 @@ class Step4Weeks extends ConsumerWidget {
           }),
 
           const SizedBox(height: 8),
-          
+
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             decoration: BoxDecoration(
@@ -182,9 +224,9 @@ class Step4Weeks extends ConsumerWidget {
                     Text(
                       'TOTAL GENERAL',
                       style: const TextStyle(
-                        color: Colors.white, 
-                        fontSize: 13, 
-                        fontWeight: FontWeight.bold
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -200,16 +242,21 @@ class Step4Weeks extends ConsumerWidget {
               ],
             ),
           ),
-          
+
           const SizedBox(height: 40),
         ],
       ),
     );
   }
 
-  Widget _buildWeeksSelector(BuildContext context, participant, notifier, state) {
-    // Restauramos las fechas reales del calendario, porque la tabla de la base de datos (courseCosts) 
-    // almacena los PAQUETES DE DESCUENTO POR VOLUMEN (1 SEMANA, 2 SEMANAS, 3 SEMANAS...) 
+  Widget _buildWeeksSelector(
+    BuildContext context,
+    participant,
+    notifier,
+    state,
+  ) {
+    // Restauramos las fechas reales del calendario, porque la tabla de la base de datos (courseCosts)
+    // almacena los PAQUETES DE DESCUENTO POR VOLUMEN (1 SEMANA, 2 SEMANAS, 3 SEMANAS...)
     // y no las semanas calendáricas individuales.
     final weeks = [
       {'id': 1, 'label': 'Semana 1', 'date': '21-25 Jul'},
@@ -218,6 +265,22 @@ class Step4Weeks extends ConsumerWidget {
       {'id': 4, 'label': 'Semana 4', 'date': '11-15 Ago'},
       {'id': 5, 'label': 'Semana 5', 'date': '18-22 Ago'},
     ];
+
+    final activeReg = state.activeRegistration;
+    final registeredSociosWeeksRaw = activeReg?['registered_socios_weeks'];
+    final Map<String, List<int>> registeredSociosWeeks = {};
+    if (registeredSociosWeeksRaw != null && registeredSociosWeeksRaw is Map) {
+      registeredSociosWeeksRaw.forEach((k, v) {
+        registeredSociosWeeks[k.toString()] = (v as List)
+            .map((e) => int.tryParse(e.toString()) ?? 0)
+            .toList();
+      });
+    }
+
+    // Solo aplica para socios que tengan un id válido
+    final List<int> alreadyInscribedWeeks = participant.isSocio
+        ? (registeredSociosWeeks[participant.member?.id] ?? [])
+        : [];
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -229,39 +292,53 @@ class Step4Weeks extends ConsumerWidget {
       itemBuilder: (context, index) {
         final w = weeks[index];
         final id = w['id'] as int;
+
+        final isAlreadyInscribed = alreadyInscribedWeeks.contains(id);
         final isSelected = participant.selectedWeekIds.contains(id);
-        
+
         return GestureDetector(
-          onTap: () {
-            final currentWeeks = List<int>.from(participant.selectedWeekIds);
-            if (isSelected) {
-              currentWeeks.remove(id);
-            } else {
-              currentWeeks.add(id);
-            }
-            notifier.updateWeeks(participant.identifier, currentWeeks);
-          },
+          onTap: isAlreadyInscribed
+              ? null
+              : () {
+                  final currentWeeks = List<int>.from(
+                    participant.selectedWeekIds,
+                  );
+                  if (isSelected) {
+                    currentWeeks.remove(id);
+                  } else {
+                    currentWeeks.add(id);
+                  }
+                  notifier.updateWeeks(participant.identifier, currentWeeks);
+                },
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isSelected 
-                  ? AppTheme.primaryColor 
-                  : (isDark ? AppTheme.neutral800 : Colors.white),
+              color: isAlreadyInscribed
+                  ? AppTheme.successColor.withOpacity(isDark ? 0.15 : 0.08)
+                  : (isSelected
+                        ? AppTheme.primaryColor
+                        : (isDark ? AppTheme.neutral800 : Colors.white)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected 
-                    ? AppTheme.primaryColor 
-                    : (isDark ? AppTheme.neutral700 : AppTheme.neutral200),
+                color: isAlreadyInscribed
+                    ? AppTheme.successColor.withOpacity(0.4)
+                    : (isSelected
+                          ? AppTheme.primaryColor
+                          : (isDark
+                                ? AppTheme.neutral700
+                                : AppTheme.neutral200)),
                 width: 1.5,
               ),
-              boxShadow: isSelected ? [
-                BoxShadow(
-                  color: AppTheme.primaryColor.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                )
-              ] : [],
+              boxShadow: (isSelected && !isAlreadyInscribed)
+                  ? [
+                      BoxShadow(
+                        color: AppTheme.primaryColor.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : [],
             ),
             child: Row(
               children: [
@@ -269,24 +346,60 @@ class Step4Weeks extends ConsumerWidget {
                   child: Row(
                     children: [
                       Text(
-                        w['label'] as String, 
+                        w['label'] as String,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontWeight: FontWeight.bold, 
+                          fontWeight: FontWeight.bold,
                           fontSize: 14,
-                          color: isSelected ? Colors.white : (isDark ? AppTheme.neutral100 : AppTheme.neutral800),
+                          color: isAlreadyInscribed
+                              ? AppTheme.successColor
+                              : (isSelected
+                                    ? Colors.white
+                                    : (isDark
+                                          ? AppTheme.neutral100
+                                          : AppTheme.neutral800)),
                         ),
                       ),
+                      if (isAlreadyInscribed) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.successColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'YA INSCRITO',
+                            style: TextStyle(
+                              color: AppTheme.successColor,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       Text(
-                        w['date'] as String, 
+                        w['date'] as String,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          fontSize: 11, 
-                          color: isSelected ? Colors.white.withOpacity(0.9) : (isDark ? AppTheme.neutral400 : AppTheme.neutral500),
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          fontSize: 11,
+                          color: isAlreadyInscribed
+                              ? AppTheme.successColor.withOpacity(0.8)
+                              : (isSelected
+                                    ? Colors.white.withOpacity(0.9)
+                                    : (isDark
+                                          ? AppTheme.neutral400
+                                          : AppTheme.neutral500)),
+                          fontWeight: (isSelected || isAlreadyInscribed)
+                              ? FontWeight.w600
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -294,9 +407,19 @@ class Step4Weeks extends ConsumerWidget {
                 ),
                 const SizedBox(width: 16),
                 Icon(
-                  isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded, 
-                  color: isSelected ? Colors.white : (isDark ? AppTheme.neutral500 : AppTheme.neutral300), 
-                  size: 20
+                  isAlreadyInscribed
+                      ? Icons.check_circle_rounded
+                      : (isSelected
+                            ? Icons.check_circle_rounded
+                            : Icons.radio_button_unchecked_rounded),
+                  color: isAlreadyInscribed
+                      ? AppTheme.successColor
+                      : (isSelected
+                            ? Colors.white
+                            : (isDark
+                                  ? AppTheme.neutral500
+                                  : AppTheme.neutral300)),
+                  size: 20,
                 ),
               ],
             ),
@@ -306,14 +429,21 @@ class Step4Weeks extends ConsumerWidget {
     );
   }
 
-  Widget _buildIntensiveActivitySelector(BuildContext context, participant, notifier, state) {
+  Widget _buildIntensiveActivitySelector(
+    BuildContext context,
+    participant,
+    notifier,
+    state,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       decoration: BoxDecoration(
         color: isDark ? AppTheme.neutral800 : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppTheme.neutral700 : AppTheme.neutral200),
+        border: Border.all(
+          color: isDark ? AppTheme.neutral700 : AppTheme.neutral200,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: DropdownButtonHideUnderline(
@@ -321,10 +451,16 @@ class Step4Weeks extends ConsumerWidget {
           value: participant.intensiveActivityId,
           hint: Text(
             'Selecciona un tipo de verano...',
-            style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14),
+            style: TextStyle(
+              color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
+              fontSize: 14,
+            ),
           ),
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: isDark ? AppTheme.neutral400 : AppTheme.neutral500),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: isDark ? AppTheme.neutral400 : AppTheme.neutral500,
+          ),
           dropdownColor: isDark ? AppTheme.neutral800 : Colors.white,
           onChanged: (int? newValue) {
             notifier.updateIntensiveActivity(participant.identifier, newValue);
@@ -344,9 +480,13 @@ class Step4Weeks extends ConsumerWidget {
             ...state.intensiveActivities.map((activity) {
               final id = activity['id'] as int;
               final name = activity['name'] as String;
-              final extraCost = double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
-              final formatter = NumberFormat.currency(symbol: '\$', decimalDigits: 0);
-              
+              final extraCost =
+                  double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
+              final formatter = NumberFormat.currency(
+                symbol: '\$',
+                decimalDigits: 0,
+              );
+
               return DropdownMenuItem<int?>(
                 value: id,
                 child: Text(
@@ -364,6 +504,4 @@ class Step4Weeks extends ConsumerWidget {
       ),
     );
   }
-
 }
-
