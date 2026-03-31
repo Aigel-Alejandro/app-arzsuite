@@ -21,6 +21,7 @@ class ProfileModel with _$ProfileModel {
     String? address,
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
+    String? genero,
     @JsonKey(name: 'profile_picture') String? profilePicture,
     @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') @Default(false) bool canEditSensitiveData,

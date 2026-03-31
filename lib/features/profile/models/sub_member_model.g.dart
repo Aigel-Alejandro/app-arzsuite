@@ -16,6 +16,7 @@ _$SubMemberModelImpl _$$SubMemberModelImplFromJson(Map<String, dynamic> json) =>
       memberType: json['memberType'] as String,
       birthDate: json['birth_date'] as String?,
       age: (json['age'] as num?)?.toInt(),
+      genero: json['genero'] as String?,
     );
 
 Map<String, dynamic> _$$SubMemberModelImplToJson(
@@ -29,4 +30,5 @@ Map<String, dynamic> _$$SubMemberModelImplToJson(
   'memberType': instance.memberType,
   'birth_date': instance.birthDate,
   'age': instance.age,
+  'genero': instance.genero,
 };
