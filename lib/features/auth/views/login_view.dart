@@ -113,7 +113,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         String? mockCode;
         if (response.data is Map && response.data['data'] != null && response.data['data']['mock_code'] != null) {
           mockCode = response.data['data']['mock_code'].toString();
-          codeMsg += ' (Código: $mockCode)';
+          // Eliminado `codeMsg += ' (Código: $mockCode)';` para no revelarlo en el UI
         }
         
         ToastAlerts.showSuccess(

@@ -26,6 +26,11 @@ class ApiClient {
     // Interceptores para manejo de tokens, logging, etc.
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        if (kDebugMode && !kIsWeb && Platform.isAndroid && options.baseUrl.contains('ecosistema-centro.ddev.site')) {
+          options.headers['Host'] = 'ecosistema-centro.ddev.site';
+          options.baseUrl = options.baseUrl.replaceFirst('ecosistema-centro.ddev.site', '10.0.2.2');
+        }
+
         if (_token != null && _token!.isNotEmpty) {
           final cleanToken = _token!.trim();
           options.headers['Authorization'] = 'Bearer $cleanToken';
@@ -48,7 +53,7 @@ class ApiClient {
       },
     ));
 
-    if (kDebugMode) {
+    if (kDebugMode && !kIsWeb) {
       _dio.httpClientAdapter = IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();
