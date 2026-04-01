@@ -197,6 +197,9 @@ class SummerCourseWizardView extends ConsumerWidget {
       if (state.selectedParticipants.isEmpty) return true;
       return state.selectedParticipants.any((p) => p.selectedWeekIds.isEmpty);
     }
+    if (state.currentStep == 3) {
+      if (state.termsRequired && !state.termsAccepted) return true;
+    }
     return false;
   }
 }

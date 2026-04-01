@@ -7,6 +7,8 @@ import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
 import 'package:app_arzsuite/features/tournaments/models/tournament_model.dart';
 import 'package:app_arzsuite/features/tournaments/providers/tournaments_provider.dart';
 import 'package:app_arzsuite/features/profile/providers/profile_provider.dart';
+import 'package:app_arzsuite/core/widgets/terms_conditions_view.dart';
+import 'package:app_arzsuite/core/providers/terms_provider.dart';
 
 class TournamentEnrollmentView extends ConsumerStatefulWidget {
   final TournamentModel tournament;
@@ -22,6 +24,32 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
   int? _selectedTeamId;
   bool _isEnrolling = false;
   bool _isCaptain = false;
+
+  TermsStatus? _termsStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadTerms();
+    });
+  }
+
+  Future<void> _loadTerms() async {
+    final status = await ref.read(termsProvider).checkTerms('torneos');
+    if (mounted) {
+      setState(() {
+        _termsStatus = status;
+        _termsAccepted = status.accepted || !status.required;
+      });
+    }
+  }
+
+  void _onTermsAccepted(bool accepted) {
+    setState(() {
+      _termsAccepted = accepted;
+    });
+  }
 
   void _showRoster(BuildContext context, List<TournamentParticipantModel> participants, String teamName, {String? capitanActual}) {
     showModalBottomSheet(
@@ -565,47 +593,68 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
                   }
                 ),
 
-              Container(
-                padding: const EdgeInsets.all(AppTheme.spacingLarge),
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                  border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _termsAccepted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-                      color: _termsAccepted ? AppTheme.successColor : Colors.deepPurple,
-                    ),
-                    const SizedBox(width: AppTheme.spacingMedium),
-                    Expanded(
-                      child: Text(
-                        _termsAccepted ? 'Políticas del torneo aceptadas' : 'Debe revisar y aceptar los términos del torneo.',
-                        style: TextStyle(
-                          color: _termsAccepted ? AppTheme.successColor : AppTheme.neutral900,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
+              if (_termsStatus == null)
+                const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+              else if (_termsStatus!.required)
+                Container(
+                  padding: const EdgeInsets.all(AppTheme.spacingLarge),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                    border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _termsAccepted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                        color: _termsAccepted ? AppTheme.successColor : Colors.deepPurple,
+                      ),
+                      const SizedBox(width: AppTheme.spacingMedium),
+                      Expanded(
+                        child: Text(
+                          _termsAccepted ? 'Políticas del torneo aceptadas' : 'Debe revisar y aceptar los términos del torneo.',
+                          style: TextStyle(
+                            color: _termsAccepted ? AppTheme.successColor : AppTheme.neutral900,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
-                    ),
-                    if (!_termsAccepted)
-                      ElevatedButton(
-                        onPressed: () {
-                           // Mock aceptar términos
-                           setState(() {
-                             _termsAccepted = true;
-                           });
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      if (!_termsAccepted)
+                        ElevatedButton(
+                          onPressed: () {
+                            if (_termsStatus?.terminos == null) return;
+                            Navigator.push(
+                              context,
+                              PageRouteBuilder(
+                                transitionDuration: Duration.zero,
+                                reverseTransitionDuration: Duration.zero,
+                                pageBuilder: (_, __, ___) => TermsConditionsView(
+                                  title: 'Términos de Torneos',
+                                  version: _termsStatus!.terminos!.version.toString(),
+                                  content: _termsStatus!.terminos!.contenido,
+                                  onAccept: () async {
+                                    bool ok = await ref.read(termsProvider).acceptTerms('torneos', _termsStatus!.terminos!.version, _termsStatus!.terminos!.id);
+                                    if (ok && mounted) {
+                                      _onTermsAccepted(true);
+                                      Navigator.pop(context);
+                                    } else if (mounted) {
+                                      ToastAlerts.showError(context, 'No se pudieron aceptar los términos');
+                                    }
+                                  },
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: const Text('Leer', style: TextStyle(fontSize: 12)),
                         ),
-                        child: const Text('Leer', style: TextStyle(fontSize: 12)),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
               const SizedBox(height: 32),
               

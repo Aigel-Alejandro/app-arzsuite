@@ -20,6 +20,12 @@ class SummerCourseState with _$SummerCourseState {
     Map<String, dynamic>? activeRegistration,
     @Default([]) List<Map<String, dynamic>> courseCosts,
     @Default([]) List<Map<String, dynamic>> intensiveActivities,
+    // Terms & Conditions
+    @Default(false) bool termsAccepted,
+    @Default(false) bool termsRequired,
+    String? termsContent,
+    String? termsVersion,
+    int? termsId,
   }) = _SummerCourseState;
 
   factory SummerCourseState.fromJson(Map<String, dynamic> json) => 

@@ -6,6 +6,8 @@ import 'package:app_arzsuite/features/summer_course/providers/summer_course_prov
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_token_provider.dart';
 import 'package:app_arzsuite/features/summer_course/providers/active_registration_provider.dart';
+import 'package:app_arzsuite/core/widgets/terms_conditions_view.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class Step5Confirmation extends ConsumerWidget {
   const Step5Confirmation({super.key});
@@ -193,6 +195,68 @@ class Step5Confirmation extends ConsumerWidget {
               ),
             ],
           ),
+
+          const SizedBox(height: 24),
+
+          if (state.termsRequired)
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spacingLarge),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.neutral800 : AppTheme.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                border: Border.all(color: isDark ? AppTheme.neutral700 : AppTheme.primaryColor.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    state.termsAccepted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                    color: state.termsAccepted ? AppTheme.successColor : AppTheme.primaryColor,
+                  ),
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: Text(
+                      state.termsAccepted ? 'Términos aceptados' : 'Debe aceptar los términos del Curso de Verano.',
+                      style: TextStyle(
+                        color: state.termsAccepted ? AppTheme.successColor : textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  if (!state.termsAccepted)
+                    ElevatedButton(
+                      onPressed: () {
+                        if (state.termsContent == null) return;
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                            pageBuilder: (_, __, ___) => TermsConditionsView(
+                              title: 'Términos - Curso Verano',
+                              version: state.termsVersion ?? '1',
+                              content: state.termsContent!,
+                              onAccept: () async {
+                                bool ok = await notifier.acceptTerms();
+                                if (ok && context.mounted) {
+                                  Navigator.pop(context);
+                                } else if (context.mounted) {
+                                  ToastAlerts.showError(context, 'Error al aceptar los términos');
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Leer', style: TextStyle(fontSize: 12)),
+                    ),
+                ],
+              ),
+            ),
 
           const SizedBox(height: 40),
           

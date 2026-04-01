@@ -40,7 +40,12 @@ mixin _$SummerCourseState {
   List<Map<String, dynamic>> get courseCosts =>
       throw _privateConstructorUsedError;
   List<Map<String, dynamic>> get intensiveActivities =>
-      throw _privateConstructorUsedError;
+      throw _privateConstructorUsedError; // Terms & Conditions
+  bool get termsAccepted => throw _privateConstructorUsedError;
+  bool get termsRequired => throw _privateConstructorUsedError;
+  String? get termsContent => throw _privateConstructorUsedError;
+  String? get termsVersion => throw _privateConstructorUsedError;
+  int? get termsId => throw _privateConstructorUsedError;
 
   /// Serializes this SummerCourseState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -72,6 +77,11 @@ abstract class $SummerCourseStateCopyWith<$Res> {
     Map<String, dynamic>? activeRegistration,
     List<Map<String, dynamic>> courseCosts,
     List<Map<String, dynamic>> intensiveActivities,
+    bool termsAccepted,
+    bool termsRequired,
+    String? termsContent,
+    String? termsVersion,
+    int? termsId,
   });
 
   $MemberCopyWith<$Res>? get selectedTitular;
@@ -104,6 +114,11 @@ class _$SummerCourseStateCopyWithImpl<$Res, $Val extends SummerCourseState>
     Object? activeRegistration = freezed,
     Object? courseCosts = null,
     Object? intensiveActivities = null,
+    Object? termsAccepted = null,
+    Object? termsRequired = null,
+    Object? termsContent = freezed,
+    Object? termsVersion = freezed,
+    Object? termsId = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -155,6 +170,26 @@ class _$SummerCourseStateCopyWithImpl<$Res, $Val extends SummerCourseState>
                 ? _value.intensiveActivities
                 : intensiveActivities // ignore: cast_nullable_to_non_nullable
                       as List<Map<String, dynamic>>,
+            termsAccepted: null == termsAccepted
+                ? _value.termsAccepted
+                : termsAccepted // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            termsRequired: null == termsRequired
+                ? _value.termsRequired
+                : termsRequired // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            termsContent: freezed == termsContent
+                ? _value.termsContent
+                : termsContent // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            termsVersion: freezed == termsVersion
+                ? _value.termsVersion
+                : termsVersion // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            termsId: freezed == termsId
+                ? _value.termsId
+                : termsId // ignore: cast_nullable_to_non_nullable
+                      as int?,
           )
           as $Val,
     );
@@ -197,6 +232,11 @@ abstract class _$$SummerCourseStateImplCopyWith<$Res>
     Map<String, dynamic>? activeRegistration,
     List<Map<String, dynamic>> courseCosts,
     List<Map<String, dynamic>> intensiveActivities,
+    bool termsAccepted,
+    bool termsRequired,
+    String? termsContent,
+    String? termsVersion,
+    int? termsId,
   });
 
   @override
@@ -229,6 +269,11 @@ class __$$SummerCourseStateImplCopyWithImpl<$Res>
     Object? activeRegistration = freezed,
     Object? courseCosts = null,
     Object? intensiveActivities = null,
+    Object? termsAccepted = null,
+    Object? termsRequired = null,
+    Object? termsContent = freezed,
+    Object? termsVersion = freezed,
+    Object? termsId = freezed,
   }) {
     return _then(
       _$SummerCourseStateImpl(
@@ -280,6 +325,26 @@ class __$$SummerCourseStateImplCopyWithImpl<$Res>
             ? _value._intensiveActivities
             : intensiveActivities // ignore: cast_nullable_to_non_nullable
                   as List<Map<String, dynamic>>,
+        termsAccepted: null == termsAccepted
+            ? _value.termsAccepted
+            : termsAccepted // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        termsRequired: null == termsRequired
+            ? _value.termsRequired
+            : termsRequired // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        termsContent: freezed == termsContent
+            ? _value.termsContent
+            : termsContent // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        termsVersion: freezed == termsVersion
+            ? _value.termsVersion
+            : termsVersion // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        termsId: freezed == termsId
+            ? _value.termsId
+            : termsId // ignore: cast_nullable_to_non_nullable
+                  as int?,
       ),
     );
   }
@@ -301,6 +366,11 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
     final Map<String, dynamic>? activeRegistration,
     final List<Map<String, dynamic>> courseCosts = const [],
     final List<Map<String, dynamic>> intensiveActivities = const [],
+    this.termsAccepted = false,
+    this.termsRequired = false,
+    this.termsContent,
+    this.termsVersion,
+    this.termsId,
   }) : _beneficiariesList = beneficiariesList,
        _selectedParticipants = selectedParticipants,
        _pickUpTokens = pickUpTokens,
@@ -394,9 +464,23 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
     return EqualUnmodifiableListView(_intensiveActivities);
   }
 
+  // Terms & Conditions
+  @override
+  @JsonKey()
+  final bool termsAccepted;
+  @override
+  @JsonKey()
+  final bool termsRequired;
+  @override
+  final String? termsContent;
+  @override
+  final String? termsVersion;
+  @override
+  final int? termsId;
+
   @override
   String toString() {
-    return 'SummerCourseState(currentStep: $currentStep, selectedTitular: $selectedTitular, beneficiariesList: $beneficiariesList, selectedParticipants: $selectedParticipants, isLoading: $isLoading, errorMessage: $errorMessage, salesOrderId: $salesOrderId, masterToken: $masterToken, pickUpTokens: $pickUpTokens, activeRegistration: $activeRegistration, courseCosts: $courseCosts, intensiveActivities: $intensiveActivities)';
+    return 'SummerCourseState(currentStep: $currentStep, selectedTitular: $selectedTitular, beneficiariesList: $beneficiariesList, selectedParticipants: $selectedParticipants, isLoading: $isLoading, errorMessage: $errorMessage, salesOrderId: $salesOrderId, masterToken: $masterToken, pickUpTokens: $pickUpTokens, activeRegistration: $activeRegistration, courseCosts: $courseCosts, intensiveActivities: $intensiveActivities, termsAccepted: $termsAccepted, termsRequired: $termsRequired, termsContent: $termsContent, termsVersion: $termsVersion, termsId: $termsId)';
   }
 
   @override
@@ -439,7 +523,16 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
             const DeepCollectionEquality().equals(
               other._intensiveActivities,
               _intensiveActivities,
-            ));
+            ) &&
+            (identical(other.termsAccepted, termsAccepted) ||
+                other.termsAccepted == termsAccepted) &&
+            (identical(other.termsRequired, termsRequired) ||
+                other.termsRequired == termsRequired) &&
+            (identical(other.termsContent, termsContent) ||
+                other.termsContent == termsContent) &&
+            (identical(other.termsVersion, termsVersion) ||
+                other.termsVersion == termsVersion) &&
+            (identical(other.termsId, termsId) || other.termsId == termsId));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -458,6 +551,11 @@ class _$SummerCourseStateImpl extends _SummerCourseState {
     const DeepCollectionEquality().hash(_activeRegistration),
     const DeepCollectionEquality().hash(_courseCosts),
     const DeepCollectionEquality().hash(_intensiveActivities),
+    termsAccepted,
+    termsRequired,
+    termsContent,
+    termsVersion,
+    termsId,
   );
 
   /// Create a copy of SummerCourseState
@@ -491,6 +589,11 @@ abstract class _SummerCourseState extends SummerCourseState {
     final Map<String, dynamic>? activeRegistration,
     final List<Map<String, dynamic>> courseCosts,
     final List<Map<String, dynamic>> intensiveActivities,
+    final bool termsAccepted,
+    final bool termsRequired,
+    final String? termsContent,
+    final String? termsVersion,
+    final int? termsId,
   }) = _$SummerCourseStateImpl;
   const _SummerCourseState._() : super._();
 
@@ -520,7 +623,17 @@ abstract class _SummerCourseState extends SummerCourseState {
   @override
   List<Map<String, dynamic>> get courseCosts;
   @override
-  List<Map<String, dynamic>> get intensiveActivities;
+  List<Map<String, dynamic>> get intensiveActivities; // Terms & Conditions
+  @override
+  bool get termsAccepted;
+  @override
+  bool get termsRequired;
+  @override
+  String? get termsContent;
+  @override
+  String? get termsVersion;
+  @override
+  int? get termsId;
 
   /// Create a copy of SummerCourseState
   /// with the given fields replaced by the non-null parameter values.

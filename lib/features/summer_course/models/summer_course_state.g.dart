@@ -41,6 +41,11 @@ _$SummerCourseStateImpl _$$SummerCourseStateImplFromJson(
           ?.map((e) => e as Map<String, dynamic>)
           .toList() ??
       const [],
+  termsAccepted: json['termsAccepted'] as bool? ?? false,
+  termsRequired: json['termsRequired'] as bool? ?? false,
+  termsContent: json['termsContent'] as String?,
+  termsVersion: json['termsVersion'] as String?,
+  termsId: (json['termsId'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$SummerCourseStateImplToJson(
@@ -58,4 +63,9 @@ Map<String, dynamic> _$$SummerCourseStateImplToJson(
   'activeRegistration': instance.activeRegistration,
   'courseCosts': instance.courseCosts,
   'intensiveActivities': instance.intensiveActivities,
+  'termsAccepted': instance.termsAccepted,
+  'termsRequired': instance.termsRequired,
+  'termsContent': instance.termsContent,
+  'termsVersion': instance.termsVersion,
+  'termsId': instance.termsId,
 };

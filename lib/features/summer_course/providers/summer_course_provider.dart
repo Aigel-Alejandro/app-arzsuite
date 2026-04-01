@@ -4,12 +4,14 @@ import '../models/member.dart';
 import '../models/guest.dart';
 import '../models/registration_participant.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/terms_provider.dart';
 import '../services/summer_course_service.dart';
 
 class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
   final SummerCourseService _service;
+  final TermsService _termsService;
 
-  SummerCourseNotifier(this._service, Member? loggedInUser) : super(const SummerCourseState()) {
+  SummerCourseNotifier(this._service, this._termsService, Member? loggedInUser) : super(const SummerCourseState()) {
     if (loggedInUser != null) {
       selectTitular(loggedInUser);
     }
@@ -55,12 +57,18 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       final activeReg = await _service.getActiveRegistration(titular.id);
       final costs = await _service.getCosts();
       final intensiveActivities = await _service.getIntensiveActivities();
+      final termsStatus = await _termsService.checkTerms('cursos_verano');
 
       state = state.copyWith(
         beneficiariesList: beneficiaries,
         activeRegistration: activeReg,
         courseCosts: costs,
         intensiveActivities: intensiveActivities,
+        termsRequired: termsStatus.required,
+        termsAccepted: termsStatus.accepted || !termsStatus.required,
+        termsContent: termsStatus.terminos?.contenido,
+        termsVersion: termsStatus.terminos?.version.toString(),
+        termsId: termsStatus.terminos?.id,
         isLoading: false,
       );
     } catch (e) {
@@ -234,10 +242,20 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
     }
   }
+
+  Future<bool> acceptTerms() async {
+    if (state.termsId == null || state.termsVersion == null) return false;
+    bool ok = await _termsService.acceptTerms('cursos_verano', int.parse(state.termsVersion!), state.termsId!);
+    if (ok) {
+      state = state.copyWith(termsAccepted: true);
+    }
+    return ok;
+  }
 }
 
 final summerCourseProvider = StateNotifierProvider.autoDispose<SummerCourseNotifier, SummerCourseState>((ref) {
   final user = ref.watch(authProvider);
   final service = ref.watch(summerCourseServiceProvider);
-  return SummerCourseNotifier(service, user);
+  final termsService = ref.watch(termsProvider);
+  return SummerCourseNotifier(service, termsService, user);
 });
