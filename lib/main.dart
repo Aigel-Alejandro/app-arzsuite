@@ -8,6 +8,7 @@ import 'features/home/views/home_view.dart';
 import 'core/providers/global_providers.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/theme_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,6 +47,15 @@ class ArzSuiteApp extends ConsumerWidget {
     return MaterialApp(
       title: 'App ArzSuite',
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('es', 'MX'), // Español, México
+        Locale('en', 'US'), // Inglés, EUA
+      ],
       // Se utiliza el archivo centralizado de colores y componentes (estilo CSS) importando `AppTheme.lightTheme`
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,

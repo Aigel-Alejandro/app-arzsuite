@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
+import 'package:app_arzsuite/features/summer_course/providers/summer_course_token_provider.dart';
+import 'package:app_arzsuite/features/summer_course/providers/active_registration_provider.dart';
+import 'package:app_arzsuite/core/widgets/terms_conditions_view.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class Step5Confirmation extends ConsumerWidget {
   const Step5Confirmation({super.key});
@@ -20,7 +24,7 @@ class Step5Confirmation extends ConsumerWidget {
     final subTextColor = isDark ? AppTheme.neutral400 : AppTheme.neutral600;
 
     if (state.salesOrderId != null) {
-      return _buildSuccess(context, state, notifier, state.salesOrderId!, state.pickUpTokens);
+      return _buildSuccess(context, state, notifier, state.salesOrderId!, state.pickUpTokens, ref);
     }
 
     if (state.isLoading) {
@@ -138,6 +142,17 @@ class Step5Confirmation extends ConsumerWidget {
                                fontWeight: FontWeight.bold
                              ),
                            ),
+                           if (p.intensiveActivityId != null && state.intensiveActivities.isNotEmpty) ...[
+                             const SizedBox(height: 4),
+                             Text(
+                               'Verano intensivo: ${state.intensiveActivities.firstWhere((a) => a['id'] == p.intensiveActivityId, orElse: () => <String, dynamic>{})['name'] ?? ''}',
+                               style: const TextStyle(
+                                 color: AppTheme.successColor,
+                                 fontSize: 11,
+                                 fontWeight: FontWeight.w900,
+                               ),
+                             ),
+                           ],
                          ],
                        ),
                      ),
@@ -180,6 +195,68 @@ class Step5Confirmation extends ConsumerWidget {
               ),
             ],
           ),
+
+          const SizedBox(height: 24),
+
+          if (state.termsRequired)
+            Container(
+              padding: const EdgeInsets.all(AppTheme.spacingLarge),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.neutral800 : AppTheme.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                border: Border.all(color: isDark ? AppTheme.neutral700 : AppTheme.primaryColor.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    state.termsAccepted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                    color: state.termsAccepted ? AppTheme.successColor : AppTheme.primaryColor,
+                  ),
+                  const SizedBox(width: AppTheme.spacingMedium),
+                  Expanded(
+                    child: Text(
+                      state.termsAccepted ? 'Términos aceptados' : 'Debe aceptar los términos del Curso de Verano.',
+                      style: TextStyle(
+                        color: state.termsAccepted ? AppTheme.successColor : textColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  if (!state.termsAccepted)
+                    ElevatedButton(
+                      onPressed: () {
+                        if (state.termsContent == null) return;
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionDuration: Duration.zero,
+                            reverseTransitionDuration: Duration.zero,
+                            pageBuilder: (_, __, ___) => TermsConditionsView(
+                              title: 'Términos - Curso Verano',
+                              version: state.termsVersion ?? '1',
+                              content: state.termsContent!,
+                              onAccept: () async {
+                                bool ok = await notifier.acceptTerms();
+                                if (ok && context.mounted) {
+                                  Navigator.pop(context);
+                                } else if (context.mounted) {
+                                  ToastAlerts.showError(context, 'Error al aceptar los términos');
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Leer', style: TextStyle(fontSize: 12)),
+                    ),
+                ],
+              ),
+            ),
 
           const SizedBox(height: 40),
           
@@ -232,7 +309,7 @@ class Step5Confirmation extends ConsumerWidget {
     );
   }
 
-  Widget _buildSuccess(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier, String orderId, List<dynamic>? pickUpTokens) {
+  Widget _buildSuccess(BuildContext context, SummerCourseState state, SummerCourseNotifier notifier, String orderId, List<dynamic>? pickUpTokens, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
@@ -363,7 +440,11 @@ class Step5Confirmation extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+                    onPressed: () {
+                      ref.invalidate(activeRegistrationProvider);
+                      ref.invalidate(summerCourseTokenProvider);
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       foregroundColor: Colors.white,

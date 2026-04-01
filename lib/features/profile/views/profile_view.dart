@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -15,6 +16,22 @@ import '../models/profile_model.dart';
 import '../models/sub_member_model.dart';
 import '../../../core/providers/sat_catalogs_provider.dart';
 import '../../../core/models/sat_catalogs_model.dart';
+import 'health_view.dart';
+import '../../../core/widgets/custom_premium_app_bar.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+
+final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+  final apiClient = ref.watch(apiClientNotifierProvider);
+  if (apiClient.token == null || apiClient.token!.isEmpty) {
+    return <String, dynamic>{};
+  }
+  final response = await apiClient.dio.get('/deportivo/payments/my-payments');
+  if (response.statusCode == 200 && response.data['success'] == true) {
+    return response.data['data'] as Map<String, dynamic>;
+  }
+  throw Exception('No se pudieron obtener las finanzas');
+});
+
 class ProfileView extends ConsumerStatefulWidget {
   const ProfileView({super.key});
 
@@ -162,9 +179,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     } catch (e) {
       debugPrint('Error fetching CP with Google Maps: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se encontró información extra para este código postal.')),
-      );
+      ToastAlerts.showWarning(context, 'No se encontró información extra para este código postal.');
     } finally {
       if (mounted) {
         setState(() => _isSearchingCp = false);
@@ -377,23 +392,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       if (!mounted) return;
       
       // Mostrar feedback de carga
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Subiendo foto de perfil...')),
-      );
+      ToastAlerts.showWarning(context, 'Subiendo foto de perfil...');
 
       await ref.read(profileProvider.notifier).updateProfile(
         profilePictureBase64: dataUri,
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Foto de perfil actualizada')),
-      );
+      ToastAlerts.showSuccess(context, 'Foto de perfil actualizada');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al subir la foto: $e'), backgroundColor: AppTheme.dangerColor),
-      );
+      ToastAlerts.showError(context, 'Error al subir la foto: $e');
     }
   }
 
@@ -444,10 +453,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).updateProfile(personalAddress: updatedAddress);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Dirección actualizada')));
+      ToastAlerts.showSuccess(context, 'Dirección actualizada');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      ToastAlerts.showError(context, 'Error: $e');
     }
   }
 
@@ -480,17 +489,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).updateProfile(fiscalData: updatedFiscal);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos fiscales actualizados')));
+      ToastAlerts.showSuccess(context, 'Datos fiscales actualizados');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+      ToastAlerts.showError(context, 'Error: $e');
     }
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final currentMember = ref.watch(authProvider);
     ref.watch(satCatalogsProvider); // Trigger catalog fetch early
 
     return MainLayout(
@@ -539,9 +548,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           _isInit = false;
                           await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
                           if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Verificando permisos de edición...'), duration: Duration(seconds: 2))
-                            );
+                            ToastAlerts.showSuccess(context, 'Verificando permisos de edición...');
                           }
                         },
                       ),
@@ -550,41 +557,60 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ),
                 const SizedBox(height: 24),
                 _buildProfileHero(context, profile),
-                const SizedBox(height: 32),
-                _buildAccessTab(context, profile), // QR inline
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 0.95,
+                  childAspectRatio: 1.15,
                   children: [
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.person_rounded,
-                      title: 'Información de la Cuenta',
-                      onTap: () => _navigateToSection(context, 'Información de la Cuenta', _buildAccountTab(context, profile)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.settings_rounded,
-                      title: 'Ajustes de la App',
-                      onTap: () => _navigateToSection(context, 'Ajustes de Aplicación', _buildSettingsTab(context, ref, profile)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.family_restroom_rounded,
-                      title: 'Beneficiarios Legales',
-                      onTap: () => _navigateToSection(context, 'Beneficiarios Legales', _buildBeneficiariesTab(context, profile)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.directions_car_rounded,
-                      title: 'Vehículos Registrados',
-                      onTap: () => _navigateToSection(context, 'Vehículos Registrados', _buildVehiclesTab(context, profile)),
-                    ),
+                    if (currentMember?.hasPermission('profile.account_data') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.person_rounded,
+                        title: 'Información de la Cuenta',
+                        onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.app_settings') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.settings_rounded,
+                        title: 'Ajustes de la App',
+                        onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.associated_members') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.family_restroom_rounded,
+                        title: 'Beneficiarios Legales',
+                        onTap: () => _navigateToSection(context, 'Beneficiarios', 'Gestión de dependientes', Icons.family_restroom_rounded, (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.vehicles') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.directions_car_rounded,
+                        title: 'Vehículos (1 por acceso)',
+                        onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('health.medical_data') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.monitor_heart_rounded,
+                        title: 'Información de Salud',
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MainLayout(
+                          activeIndex: 2,
+                          child: HealthView(),
+                        ))),
+                      ),
+                    if (currentMember?.hasPermission('financial.view') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.account_balance_wallet_rounded,
+                        title: 'Saldos y Finanzas',
+                        onTap: () => _navigateToSection(context, 'Finanzas', 'Consulta de saldos y cargos', Icons.account_balance_wallet_outlined, (ctx, r, p) => _buildFinancesTab(ctx, r, p)),
+                      ),
                   ],
                 ),
               ],
@@ -597,20 +623,36 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _navigateToSection(BuildContext context, String title, Widget content) {
+  void _navigateToSection(BuildContext context, String title, String subtitle, IconData icon, Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(
-            title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            backgroundColor: Theme.of(context).colorScheme.surface,
-            foregroundColor: Theme.of(context).colorScheme.primary,
-          ),
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          body: SafeArea(child: content),
+        builder: (context) => Consumer(
+          builder: (context, ref, _) {
+            final profileAsync = ref.watch(profileProvider);
+            return profileAsync.when(
+              data: (profile) {
+                if (profile == null) return const Scaffold(body: Center(child: Text('Perfil no encontrado')));
+                return MainLayout(
+                  activeIndex: 2,
+                  child: Scaffold(
+                    appBar: CustomPremiumAppBar(
+                      title: title,
+                      subtitle: subtitle,
+                      icon: icon,
+                    ),
+                    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                    body: SafeArea(
+                      bottom: false,
+                      child: builder(context, ref, profile),
+                    ),
+                  ),
+                );
+              },
+              loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))),
+              error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
+            );
+          },
         ),
       ),
     );
@@ -647,14 +689,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(icon, color: AppTheme.primaryColor, size: 32),
+                  child: Icon(icon, color: AppTheme.primaryColor, size: 28),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
                 Text(
                   title, 
                   textAlign: TextAlign.center,
@@ -667,6 +709,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
         ),
       ),
+    );
+  }
+
+  void _mostrarActividades(BuildContext context, String nombreBeneficiario, String socioId) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _ActividadesInscritasSheet(nombreBeneficiario: nombreBeneficiario, socioId: socioId),
     );
   }
 
@@ -727,103 +778,192 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cleanName,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () => _mostrarActividades(context, cleanName, profile.id),
+              borderRadius: BorderRadius.circular(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cleanName,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          height: 1.2,
+                        ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  child: Text(
-                    'Socio: ${profile.entityid}',
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Socio: ${profile.entityid}',
+                      style: const TextStyle(
+                        color: AppTheme.primaryColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          _buildSmallQr(context, profile),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSmallQr(BuildContext context, ProfileModel profile) {
+    final qrData = 'MEMBER:${profile.entityid}:${profile.id}';
+    final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                Hero(
+                  tag: 'qr-code-hero',
+                  flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+                    return DefaultTextStyle(
+                      style: DefaultTextStyle.of(toHeroContext).style,
+                      child: toHeroContext.widget,
+                    );
+                  },
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 15,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          QrImageView(
+                            data: qrData,
+                            version: QrVersions.auto,
+                            size: 250.0,
+                            eyeStyle: const QrEyeStyle(
+                              eyeShape: QrEyeShape.circle,
+                              color: Colors.black,
+                            ),
+                            dataModuleStyle: const QrDataModuleStyle(
+                              dataModuleShape: QrDataModuleShape.circle,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'CARNET DIGITAL',
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 2,
+                              color: AppTheme.neutral500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            cleanName.toUpperCase(),
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'Utiliza este código para acceder a las instalaciones del club.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppTheme.neutral500,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: -20,
+                  right: -20,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withOpacity(0.9),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccessTab(BuildContext context, ProfileModel profile) {
-    final qrData = 'MEMBER:${profile.entityid}:${profile.id}';
-    final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
-
-    return _buildCard(
-      context,
-      padding: const EdgeInsets.all(32),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-                  ),
-                  child: QrImageView(
-                    data: qrData,
-                    version: QrVersions.auto,
-                    size: 220.0,
-                    eyeStyle: const QrEyeStyle(
-                      eyeShape: QrEyeShape.circle,
-                      color: Colors.black,
-                    ),
-                    dataModuleStyle: const QrDataModuleStyle(
-                      dataModuleShape: QrDataModuleShape.circle,
-                      color: Colors.black,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'CARNET DIGITAL',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 2,
-                    color: AppTheme.neutral500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  cleanName.toUpperCase(),
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                const Divider(),
-                const SizedBox(height: 16),
-                const Text(
-                  'Utiliza este código para acceder a las instalaciones del club. Llévalo siempre contigo.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppTheme.neutral500,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
+        );
+      },
+      child: Hero(
+        tag: 'qr-code-hero',
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-          );
+            child: QrImageView(
+              data: qrData,
+              version: QrVersions.auto,
+              size: 56.0,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.circle,
+                color: Colors.black,
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.circle,
+                color: Colors.black,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildAccountTab(BuildContext context, ProfileModel profile) {
@@ -930,7 +1070,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       final options = catalogs.regimenesFiscales.map((e) => e.displayString).toList();
                       _showGenericSelector('Selecciona tu Régimen Fiscal', options, _regimenCtrl, Icons.account_balance_rounded);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
@@ -947,7 +1087,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       final options = catalogs.usosCfdi.map((e) => e.displayString).toList();
                       _showGenericSelector('Selecciona el Uso de CFDI', options, _usoCfdiCtrl, Icons.receipt_long_rounded);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cargando catálogos del SAT...')));
+                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
@@ -1209,38 +1349,43 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
 
   Widget _buildAssociatedCard(BuildContext context, SubMemberModel member) {
-    return Container(
-      padding: const EdgeInsets.all(AppTheme.spacingMedium),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-        border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: AppTheme.neutral100,
-            radius: 20,
-            child: const Icon(Icons.person_rounded, color: AppTheme.neutral500, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member.fullname,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  '${member.memberType} • ID: ${member.membershipNumber}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500),
-                ),
-              ],
+    final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    return InkWell(
+      onTap: () => _mostrarActividades(context, cleanName, member.id),
+      borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+      child: Container(
+        padding: const EdgeInsets.all(AppTheme.spacingMedium),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+          border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: AppTheme.neutral100,
+              radius: 20,
+              child: const Icon(Icons.person_rounded, color: AppTheme.neutral500, size: 20),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: AppTheme.neutral300),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cleanName,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    '${member.memberType} • ID: ${member.membershipNumber}',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppTheme.neutral300),
+          ],
+        ),
       ),
     );
   }
@@ -1525,7 +1670,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }).toList();
 
     if (availableFamily.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hay más miembros de familia disponibles para asignar.')));
+      ToastAlerts.showWarning(context, 'No hay más miembros de familia disponibles para asignar.');
       return;
     }
 
@@ -1567,11 +1712,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).addBeneficiary(id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario asignado')));
+        ToastAlerts.showSuccess(context, 'Beneficiario asignado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1580,17 +1725,43 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).removeBeneficiary(int.parse(id.toString()));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Beneficiario removido')));
+        ToastAlerts.showSuccess(context, 'Beneficiario removido');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
 
   Widget _buildVehiclesTab(BuildContext context, ProfileModel profile) {
+    final bool isSpecial = [1, 2, 3, 6, 10].contains(profile.patrimonialConditionId);
     final vehicles = profile.vehicles;
+
+    if (isSpecial) {
+      final access1Vehicles = vehicles.where((v) => v['access_number'] == 1).toList();
+      final access2Vehicles = vehicles.where((v) => v['access_number'] == 2).toList();
+      
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(AppTheme.spacingLarge),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+          _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
+          const SizedBox(height: 16),
+          const Text('Beneficio Premium: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
+          const SizedBox(height: 16),
+            _buildAccessSection(context, 'Vehículos ligados al primer acceso', access1Vehicles, 1),
+            const SizedBox(height: 24),
+            _buildAccessSection(context, 'Vehículos ligados al segundo acceso', access2Vehicles, 2),
+            const SizedBox(height: 32),
+            _buildParkingDisclaimer(),
+            const SizedBox(height: 120),
+          ],
+        ),
+      );
+    }
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1614,26 +1785,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ] else ...[
                   for (var i = 0; i < vehicles.length; i++) ...[
                     if (i > 0) const Divider(height: 0),
-                    ListTile(
-                      leading: Icon(Icons.directions_car, color: vehicles[i]['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
-                      title: Text('Placas: ${vehicles[i]['plates'] ?? ''}'),
-                      subtitle: Text('${vehicles[i]['make'] ?? ''} ${vehicles[i]['model'] ?? ''}'.trim()),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (vehicles[i]['is_in_parking'] == true)
-                            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
-                          IconButton(
-                            icon: const Icon(Icons.edit_outlined),
-                            onPressed: () => _showVehicleDialog(context, vehicles[i]),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
-                            onPressed: () => _disableVehicle(vehicles[i]['id']),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildVehicleTile(context, vehicles[i]),
                   ],
                 ],
                 if (vehicles.length < 5) ...[
@@ -1657,13 +1809,149 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          const SizedBox(height: 32),
+          _buildParkingDisclaimer(),
           const SizedBox(height: 120),
         ],
       ),
     );
   }
 
-  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle) {
+  Widget _buildAccessSection(BuildContext context, String title, List<dynamic> accessVehicles, int accessNumber) {
+    return _buildCard(
+      context,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                Text(
+                  '${accessVehicles.length} / 5',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: accessVehicles.length >= 5 ? AppTheme.dangerColor : AppTheme.primaryColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 0),
+          if (accessVehicles.isEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text('No hay vehículos en este acceso.'),
+            )
+          ] else ...[
+            for (var i = 0; i < accessVehicles.length; i++) ...[
+              if (i > 0) const Divider(height: 0),
+              _buildVehicleTile(context, accessVehicles[i]),
+            ],
+          ],
+          if (accessVehicles.length < 5) ...[
+            const Divider(height: 0),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text('Registrar Vehículo'),
+                  onPressed: () => _showVehicleDialog(context, null, accessNumber: accessNumber),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Text(
+                'Nota: Solo podrá estar dentro del estacionamiento 1 auto de este grupo a la vez.',
+                style: TextStyle(fontSize: 12, color: AppTheme.neutral500),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVehicleTile(BuildContext context, dynamic vehicle) {
+    return ListTile(
+      leading: Icon(Icons.directions_car, color: vehicle['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
+      title: Text('Placas: ${vehicle['plates'] ?? ''}'),
+      subtitle: Text('${vehicle['make'] ?? ''} ${vehicle['model'] ?? ''}'.trim()),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (vehicle['is_in_parking'] == true)
+            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
+          IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            onPressed: () => _showVehicleDialog(context, vehicle, accessNumber: vehicle['access_number'] ?? 1),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
+            onPressed: () => _disableVehicle(vehicle['id']),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildParkingDisclaimer() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : AppTheme.neutral100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.neutral300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Al registrar tus vehículos declaras aceptar el reglamento y condiciones.',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Causas principales de pérdida de accesos:\n'
+            '• Mal uso, alteración o falsificación del registro de placas.\n'
+            '• Permitir el ingreso simultáneo de 2 o más autos usando el mismo acceso.\n'
+            '• Incumplimiento general de las disposiciones de estacionamiento.',
+            style: TextStyle(fontSize: 12),
+          ),
+          const SizedBox(height: 12),
+          InkWell(
+            onTap: () async {
+              final Uri url = Uri.parse('https://registro-vehicular.centrolibanes.org.mx/files/REGLAMENTO_ESTACIONAMIENTO.pdf');
+              if (!await launchUrl(url)) {
+                if (mounted) ToastAlerts.showError(context, 'No se pudo abrir el enlace');
+              }
+            },
+            child: const Text(
+              'Consulta el reglamento completo AQUÍ.',
+              style: TextStyle(fontSize: 12, color: AppTheme.primaryColor, decoration: TextDecoration.underline),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle, {int accessNumber = 1}) {
     final isEditing = vehicle != null;
     final platesCtrl = TextEditingController(text: vehicle?['plates']?.toString() ?? '');
     final makeCtrl = TextEditingController(text: vehicle?['make']?.toString() ?? '');
@@ -1717,7 +2005,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                             onPressed: () {
                               final plates = platesCtrl.text.trim();
                               if (plates.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Las placas son obligatorias')));
+                                ToastAlerts.showWarning(context, 'Las placas son obligatorias');
                                 return;
                               }
                               final data = {
@@ -1725,6 +2013,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                 'make': makeCtrl.text.trim(),
                                 'model': modelCtrl.text.trim(),
                                 'color': colorCtrl.text.trim(),
+                                'access_number': isEditing ? (vehicle['access_number'] ?? accessNumber) : accessNumber,
                               };
                               Navigator.pop(context);
                               if (isEditing) {
@@ -1756,11 +2045,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).addVehicle(data);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo registrado')));
+        ToastAlerts.showSuccess(context, 'Vehículo registrado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1769,11 +2058,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).editVehicle(int.parse(id.toString()), data);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo actualizado')));
+        ToastAlerts.showSuccess(context, 'Vehículo actualizado');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
   }
@@ -1782,12 +2071,410 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     try {
       await ref.read(profileProvider.notifier).disableVehicle(int.parse(id.toString()));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Vehículo removido')));
+        ToastAlerts.showSuccess(context, 'Vehículo removido');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppTheme.dangerColor));
+        ToastAlerts.showError(context, 'Error: $e');
       }
     }
+  }
+
+  Widget _buildFinancesTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final paymentsAsync = ref.watch(userPaymentsProvider);
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: paymentsAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+        error: (err, _) => Center(child: Text('Error: $err')),
+        data: (data) {
+          final pendingBalance = data['pending_balance'] ?? 0;
+          final nextCharge = data['next_charge_amount'] ?? 0;
+          
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Resumen Financiero',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Saldo actual, transacciones y estado de cuenta',
+                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 32),
+              
+              GridView.count(
+                crossAxisCount: 2,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childAspectRatio: 0.95,
+                children: [
+                  _buildFinanceCard(
+                    context, 
+                    icon: Icons.account_balance_wallet_rounded, 
+                    title: 'Saldo Por Pagar', 
+                    value: '\$${pendingBalance.toString()}',
+                    isPrimary: true,
+                  ),
+                  _buildFinanceCard(
+                    context, 
+                    icon: Icons.calendar_today_rounded, 
+                    title: 'Próximo cargo', 
+                    value: nextCharge > 0 ? '\$${nextCharge.toString()}' : '--',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildFinanceCard(
+                context, 
+                icon: Icons.credit_card_rounded, 
+                title: 'Estado de membresía', 
+                value: 'Activa',
+                isStatus: true,
+                fullWidth: true,
+              ),
+
+              const SizedBox(height: 32),
+              const Text(
+                'Historial y Cargos Recientes',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+              ),
+              const SizedBox(height: 16),
+
+              if ((data['history'] as List).isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Text('Sin movimientos', style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                  ),
+                )
+              else
+                ...((data['history'] as List).map((h) {
+                    final isPending = h['status'] == 'pending';
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: isDark ? AppTheme.neutral900 : AppTheme.surfaceColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isPending 
+                            ? AppTheme.warningColor.withOpacity(isDark ? 0.3 : 0.6)
+                            : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: isPending 
+                                ? AppTheme.warningColor.withOpacity(0.1)
+                                : AppTheme.successColor.withOpacity(0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isPending ? Icons.access_time_filled_rounded : Icons.check_circle_rounded,
+                              color: isPending ? AppTheme.warningColor : AppTheme.successColor,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  h['sales_order_id'] ?? 'Movimiento',
+                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  (h['module'] ?? '').toString().replaceAll('_', ' ').toUpperCase(),
+                                  style: TextStyle(fontSize: 11, color: AppTheme.neutral500.withOpacity(0.8), fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            '\$${h['amount']}',
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    );
+                })),
+              const SizedBox(height: 120),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFinanceCard(
+    BuildContext context, {
+    required IconData icon, 
+    required String title, 
+    required String value, 
+    bool isStatus = false,
+    bool isPrimary = false,
+    bool fullWidth = false,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      width: fullWidth ? double.infinity : null,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: isPrimary ? AppTheme.vibrantGold.withOpacity(0.15) : AppTheme.primaryColor.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isPrimary ? AppTheme.vibrantGold : AppTheme.primaryColor, size: 28),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (isStatus)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text('Activa', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+            )
+          else
+            Text(
+              value,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: isPrimary ? AppTheme.vibrantGold : Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActividadesInscritasSheet extends ConsumerWidget {
+  final String nombreBeneficiario;
+  final String socioId;
+  const _ActividadesInscritasSheet({required this.nombreBeneficiario, required this.socioId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.only(top: 24),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(color: AppTheme.neutral300, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    'Actividades de $nombreBeneficiario',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close_rounded, color: AppTheme.neutral500),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: FutureBuilder<List<dynamic>>(
+              future: _fetchActividades(ref),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('Error al cargar actividades: ${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.dangerColor)),
+                    ),
+                  );
+                }
+                
+                final ins = snapshot.data ?? [];
+                if (ins.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.pool_rounded, size: 64, color: AppTheme.neutral300),
+                        const SizedBox(height: 16),
+                        Text('Sin inscripciones registradas', style: TextStyle(color: AppTheme.neutral500, fontSize: 16, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.separated(
+                  padding: const EdgeInsets.all(24),
+                  itemCount: ins.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final item = ins[index];
+                    return Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+                                child: const Icon(Icons.sports_rounded, color: AppTheme.primaryColor, size: 20),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(item['actividad_nombre'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ),
+                            ],
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 44, top: 4),
+                            child: Text(item['grupo_nombre'] ?? '', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w600)),
+                          ),
+                          const Divider(height: 24),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.calendar_month_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['horario'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontWeight: FontWeight.w600, fontSize: 13))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.location_on_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['lugar'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2),
+                                child: Icon(Icons.person_rounded, size: 16, color: AppTheme.neutral500),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<List<dynamic>> _fetchActividades(WidgetRef ref) async {
+    final client = ref.read(apiClientNotifierProvider);
+    final url = '/arzsuite/actividades/mis-actividades?beneficiary_name=${Uri.encodeComponent(nombreBeneficiario)}&beneficiary_socio_id=$socioId';
+    try {
+      final res = await client.dio.get(url);
+      var responseData = res.data;
+      
+      if (responseData is String) {
+        try {
+          responseData = jsonDecode(responseData);
+        } catch (e) {
+          debugPrint("❌ ERROR DE PARSEO JSON EN API. EL SERVIDOR DEVOLVIÓ HTML O TEXTO PLANO:");
+          debugPrint(responseData);
+          rethrow;
+        }
+      }
+
+      if (res.statusCode == 200 && responseData['success'] == true) {
+        return responseData['data'] as List<dynamic>;
+      }
+    } catch (e) {
+      debugPrint("Error al hacer fecth de actividades: $e");
+    }
+    return [];
   }
 }

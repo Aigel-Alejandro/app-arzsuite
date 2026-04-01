@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 
 final satCatalogsProvider = FutureProvider<SatCatalogsModel?>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
+  if (apiClient.token == null || apiClient.token!.isEmpty) {
+    return null;
+  }
   
   try {
     final response = await apiClient.dio.get('/catalogs/sat');

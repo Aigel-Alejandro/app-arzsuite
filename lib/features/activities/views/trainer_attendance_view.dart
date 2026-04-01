@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class TrainerAttendanceView extends StatelessWidget {
   const TrainerAttendanceView({super.key});
@@ -94,7 +95,7 @@ class TrainerAttendanceView extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () {
                           // POST /api/v1/activities/attendance
-                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lista guardada masivamente')));
+                          ToastAlerts.showSuccess(context, 'Lista guardada masivamente');
                           Navigator.pop(context);
                         },
                         child: const Text('Guardar Lista', style: TextStyle(fontWeight: FontWeight.w900)),

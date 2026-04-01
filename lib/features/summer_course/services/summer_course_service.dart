@@ -143,6 +143,78 @@ class SummerCourseService {
       return [];
     }
   }
+
+  Future<List<Map<String, dynamic>>> getIntensiveActivities() async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/summer-course/intensive-activities',
+      );
+      
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            List<dynamic> listData = rawData['data'];
+            return listData.map((e) => e as Map<String, dynamic>).toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error al obtener actividades intensivas: $e');
+      return [];
+    }
+  }
+
+  Future<bool> updateIntensiveActivity(int participantId, int? activityId) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.patch(
+        'deportivo/summer-course/update-intensive-activity/$participantId',
+        data: {
+          'intensive_activity_id': activityId,
+        },
+      );
+      
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error al actualizar actividad intensiva: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> validateToken(String token) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/summer-course/validate-pick-up',
+        data: {'token': token},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data; // Includes participants and message
+      }
+      return null;
+    } catch (e) {
+      print('Error validando token: $e');
+      return null;
+    }
+  }
+
+  Future<bool> processAttendance(String token, String type) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/summer-course/process-attendance',
+        data: {
+          'token': token,
+          'type': type, // 'check_in' or 'check_out'
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error en check in/out: $e');
+      return false;
+    }
+  }
 }
 
 final summerCourseServiceProvider = Provider<SummerCourseService>((ref) {

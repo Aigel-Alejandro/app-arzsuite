@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class TutorProfileView extends StatelessWidget {
   const TutorProfileView({super.key});
@@ -179,9 +180,7 @@ class _ChildCard extends StatelessWidget {
             child: OutlinedButton.icon(
               onPressed: () {
                 // Subir documentos
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Se abrirá modal para subir foto a server backend')),
-                );
+                ToastAlerts.showSuccess(context, 'Se abrirá modal para subir foto a server backend');
               },
               icon: const Icon(Icons.upload_file_rounded),
               label: const Text('Subir Documentos'),

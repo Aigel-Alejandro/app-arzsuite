@@ -4,6 +4,9 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activities_list_view.dart';
 import 'package:app_arzsuite/features/activities/views/child_medical_form_view.dart';
 import 'package:app_arzsuite/features/activities/views/match_detail_view.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app_arzsuite/features/activities/providers/matches_provider.dart';
+import 'package:app_arzsuite/features/activities/models/match_model.dart';
 import 'package:app_arzsuite/features/activities/widgets/premium_horizontal_calendar.dart';
 
 class ChildDetailProfileView extends StatelessWidget {
@@ -74,16 +77,18 @@ class ChildDetailProfileView extends StatelessWidget {
   }
 }
 
-class _TournamentsTabPremium extends StatefulWidget {
+class _TournamentsTabPremium extends ConsumerStatefulWidget {
   const _TournamentsTabPremium();
 
   @override
-  State<_TournamentsTabPremium> createState() => _TournamentsTabPremiumState();
+  ConsumerState<_TournamentsTabPremium> createState() => _TournamentsTabPremiumState();
 }
 
-class _TournamentsTabPremiumState extends State<_TournamentsTabPremium> {
+class _TournamentsTabPremiumState extends ConsumerState<_TournamentsTabPremium> {
   @override
   Widget build(BuildContext context) {
+    final matchesState = ref.watch(matchesProvider);
+
     return ListView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(AppTheme.spacingLarge),
@@ -106,14 +111,39 @@ class _TournamentsTabPremiumState extends State<_TournamentsTabPremium> {
         ),
         const SizedBox(height: AppTheme.spacingMedium),
         
-        _InteractiveMatchCard(
-          title: 'Jornada 5 vs Club X',
-          date: 'Sábado 21, 10:00 AM',
-          location: 'Cancha Central',
-          onTap: () {
-            Navigator.push(context, PageRouteBuilder(pageBuilder: (_, __, ___) => const MatchDetailView(), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero));
+        matchesState.when(
+          data: (matches) {
+            if (matches.isEmpty) {
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(32.0),
+                  child: Text(
+                    'No hay encuentros programados por ahora.',
+                    style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: matches.map((match) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                  child: _InteractiveMatchCard(
+                    title: '${match.torneoNombre} vs ${match.esLocal ? match.equipoRival : match.equipoNuestro}',
+                    date: _formatDateTime(match.fecha),
+                    location: match.lugar,
+                    onTap: () {
+                      Navigator.push(context, PageRouteBuilder(pageBuilder: (_, __, ___) => MatchDetailView(match: match), transitionDuration: Duration.zero, reverseTransitionDuration: Duration.zero));
+                    },
+                  ),
+                );
+              }).toList(),
+            );
           },
+          loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+          error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: AppTheme.dangerColor))),
         ),
+
         Builder(
           builder: (context) {
             final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
@@ -122,6 +152,17 @@ class _TournamentsTabPremiumState extends State<_TournamentsTabPremium> {
         ),
       ],
     );
+  }
+
+  String _formatDateTime(String isoStr) {
+    try {
+      final dt = DateTime.parse(isoStr);
+      final days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+      final m = dt.minute.toString().padLeft(2, '0');
+      return '${days[dt.weekday - 1]} ${dt.day}, ${dt.hour}:$m hrs';
+    } catch (_) {
+      return isoStr;
+    }
   }
 }
 

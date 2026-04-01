@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class TrainerEvaluationView extends StatefulWidget {
   const TrainerEvaluationView({super.key});
@@ -79,7 +80,7 @@ class _TrainerEvaluationViewState extends State<TrainerEvaluationView> {
                   child: ElevatedButton(
                     onPressed: () {
                       // POST /api/v1/activities/evaluations
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evaluación enviada con éxito')));
+                      ToastAlerts.showSuccess(context, 'Evaluación enviada con éxito');
                       Navigator.pop(context);
                     },
                     child: const Text('Enviar Evaluación y Notificar', style: TextStyle(fontWeight: FontWeight.w900)),

@@ -35,6 +35,7 @@ mixin _$Member {
   String? get email => throw _privateConstructorUsedError;
   String? get phone => throw _privateConstructorUsedError;
   String? get token => throw _privateConstructorUsedError;
+  List<String> get permissions => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
 
   /// Serializes this Member to a JSON map.
@@ -63,6 +64,7 @@ abstract class $MemberCopyWith<$Res> {
     String? email,
     String? phone,
     String? token,
+    List<String> permissions,
     int? age,
   });
 }
@@ -93,6 +95,7 @@ class _$MemberCopyWithImpl<$Res, $Val extends Member>
     Object? email = freezed,
     Object? phone = freezed,
     Object? token = freezed,
+    Object? permissions = null,
     Object? age = freezed,
   }) {
     return _then(
@@ -141,6 +144,10 @@ class _$MemberCopyWithImpl<$Res, $Val extends Member>
                 ? _value.token
                 : token // ignore: cast_nullable_to_non_nullable
                       as String?,
+            permissions: null == permissions
+                ? _value.permissions
+                : permissions // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             age: freezed == age
                 ? _value.age
                 : age // ignore: cast_nullable_to_non_nullable
@@ -171,6 +178,7 @@ abstract class _$$MemberImplCopyWith<$Res> implements $MemberCopyWith<$Res> {
     String? email,
     String? phone,
     String? token,
+    List<String> permissions,
     int? age,
   });
 }
@@ -200,6 +208,7 @@ class __$$MemberImplCopyWithImpl<$Res>
     Object? email = freezed,
     Object? phone = freezed,
     Object? token = freezed,
+    Object? permissions = null,
     Object? age = freezed,
   }) {
     return _then(
@@ -248,6 +257,10 @@ class __$$MemberImplCopyWithImpl<$Res>
             ? _value.token
             : token // ignore: cast_nullable_to_non_nullable
                   as String?,
+        permissions: null == permissions
+            ? _value._permissions
+            : permissions // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         age: freezed == age
             ? _value.age
             : age // ignore: cast_nullable_to_non_nullable
@@ -272,8 +285,10 @@ class _$MemberImpl extends _Member {
     this.email,
     this.phone,
     this.token,
+    final List<String> permissions = const [],
     this.age,
-  }) : super._();
+  }) : _permissions = permissions,
+       super._();
 
   factory _$MemberImpl.fromJson(Map<String, dynamic> json) =>
       _$$MemberImplFromJson(json);
@@ -304,12 +319,21 @@ class _$MemberImpl extends _Member {
   final String? phone;
   @override
   final String? token;
+  final List<String> _permissions;
+  @override
+  @JsonKey()
+  List<String> get permissions {
+    if (_permissions is EqualUnmodifiableListView) return _permissions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_permissions);
+  }
+
   @override
   final int? age;
 
   @override
   String toString() {
-    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone, token: $token, age: $age)';
+    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone, token: $token, permissions: $permissions, age: $age)';
   }
 
   @override
@@ -335,6 +359,10 @@ class _$MemberImpl extends _Member {
             (identical(other.email, email) || other.email == email) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.token, token) || other.token == token) &&
+            const DeepCollectionEquality().equals(
+              other._permissions,
+              _permissions,
+            ) &&
             (identical(other.age, age) || other.age == age));
   }
 
@@ -353,6 +381,7 @@ class _$MemberImpl extends _Member {
     email,
     phone,
     token,
+    const DeepCollectionEquality().hash(_permissions),
     age,
   );
 
@@ -383,6 +412,7 @@ abstract class _Member extends Member {
     final String? email,
     final String? phone,
     final String? token,
+    final List<String> permissions,
     final int? age,
   }) = _$MemberImpl;
   const _Member._() : super._();
@@ -411,6 +441,8 @@ abstract class _Member extends Member {
   String? get phone;
   @override
   String? get token;
+  @override
+  List<String> get permissions;
   @override
   int? get age;
 

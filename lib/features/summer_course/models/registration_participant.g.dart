@@ -22,6 +22,7 @@ _$RegistrationParticipantImpl _$$RegistrationParticipantImplFromJson(
           .toList() ??
       const [],
   calculatedCost: (json['calculatedCost'] as num?)?.toDouble() ?? 0.0,
+  intensiveActivityId: (json['intensiveActivityId'] as num?)?.toInt(),
 );
 
 Map<String, dynamic> _$$RegistrationParticipantImplToJson(
@@ -32,6 +33,7 @@ Map<String, dynamic> _$$RegistrationParticipantImplToJson(
   'type': _$ParticipantTypeEnumMap[instance.type]!,
   'selectedWeekIds': instance.selectedWeekIds,
   'calculatedCost': instance.calculatedCost,
+  'intensiveActivityId': instance.intensiveActivityId,
 };
 
 const _$ParticipantTypeEnumMap = {

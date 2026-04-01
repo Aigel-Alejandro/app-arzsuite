@@ -33,8 +33,14 @@ mixin _$ProfileModel {
   String? get rfc => throw _privateConstructorUsedError;
   String? get curp => throw _privateConstructorUsedError;
   String? get address => throw _privateConstructorUsedError;
+  @JsonKey(name: 'birth_date')
+  String? get birthDate => throw _privateConstructorUsedError;
+  int? get age => throw _privateConstructorUsedError;
+  String? get genero => throw _privateConstructorUsedError;
   @JsonKey(name: 'profile_picture')
   String? get profilePicture => throw _privateConstructorUsedError;
+  @JsonKey(name: 'patrimonial_condition_id')
+  int? get patrimonialConditionId => throw _privateConstructorUsedError;
   @JsonKey(name: 'can_edit_sensitive_data')
   bool get canEditSensitiveData => throw _privateConstructorUsedError;
   @JsonKey(name: 'personal_address')
@@ -80,7 +86,11 @@ abstract class $ProfileModelCopyWith<$Res> {
     String? rfc,
     String? curp,
     String? address,
+    @JsonKey(name: 'birth_date') String? birthDate,
+    int? age,
+    String? genero,
     @JsonKey(name: 'profile_picture') String? profilePicture,
+    @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
     @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
@@ -119,7 +129,11 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? rfc = freezed,
     Object? curp = freezed,
     Object? address = freezed,
+    Object? birthDate = freezed,
+    Object? age = freezed,
+    Object? genero = freezed,
     Object? profilePicture = freezed,
+    Object? patrimonialConditionId = freezed,
     Object? canEditSensitiveData = null,
     Object? personalAddress = freezed,
     Object? fiscalData = freezed,
@@ -170,10 +184,26 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
                 ? _value.address
                 : address // ignore: cast_nullable_to_non_nullable
                       as String?,
+            birthDate: freezed == birthDate
+                ? _value.birthDate
+                : birthDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            age: freezed == age
+                ? _value.age
+                : age // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            genero: freezed == genero
+                ? _value.genero
+                : genero // ignore: cast_nullable_to_non_nullable
+                      as String?,
             profilePicture: freezed == profilePicture
                 ? _value.profilePicture
                 : profilePicture // ignore: cast_nullable_to_non_nullable
                       as String?,
+            patrimonialConditionId: freezed == patrimonialConditionId
+                ? _value.patrimonialConditionId
+                : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
+                      as int?,
             canEditSensitiveData: null == canEditSensitiveData
                 ? _value.canEditSensitiveData
                 : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
@@ -238,7 +268,11 @@ abstract class _$$ProfileModelImplCopyWith<$Res>
     String? rfc,
     String? curp,
     String? address,
+    @JsonKey(name: 'birth_date') String? birthDate,
+    int? age,
+    String? genero,
     @JsonKey(name: 'profile_picture') String? profilePicture,
+    @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
     @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
     @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
@@ -277,7 +311,11 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? rfc = freezed,
     Object? curp = freezed,
     Object? address = freezed,
+    Object? birthDate = freezed,
+    Object? age = freezed,
+    Object? genero = freezed,
     Object? profilePicture = freezed,
+    Object? patrimonialConditionId = freezed,
     Object? canEditSensitiveData = null,
     Object? personalAddress = freezed,
     Object? fiscalData = freezed,
@@ -328,10 +366,26 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
             ? _value.address
             : address // ignore: cast_nullable_to_non_nullable
                   as String?,
+        birthDate: freezed == birthDate
+            ? _value.birthDate
+            : birthDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        age: freezed == age
+            ? _value.age
+            : age // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        genero: freezed == genero
+            ? _value.genero
+            : genero // ignore: cast_nullable_to_non_nullable
+                  as String?,
         profilePicture: freezed == profilePicture
             ? _value.profilePicture
             : profilePicture // ignore: cast_nullable_to_non_nullable
                   as String?,
+        patrimonialConditionId: freezed == patrimonialConditionId
+            ? _value.patrimonialConditionId
+            : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
+                  as int?,
         canEditSensitiveData: null == canEditSensitiveData
             ? _value.canEditSensitiveData
             : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
@@ -379,7 +433,11 @@ class _$ProfileModelImpl implements _ProfileModel {
     this.rfc,
     this.curp,
     this.address,
+    @JsonKey(name: 'birth_date') this.birthDate,
+    this.age,
+    this.genero,
     @JsonKey(name: 'profile_picture') this.profilePicture,
+    @JsonKey(name: 'patrimonial_condition_id') this.patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') this.canEditSensitiveData = false,
     @JsonKey(name: 'personal_address')
     final Map<String, dynamic>? personalAddress,
@@ -423,8 +481,18 @@ class _$ProfileModelImpl implements _ProfileModel {
   @override
   final String? address;
   @override
+  @JsonKey(name: 'birth_date')
+  final String? birthDate;
+  @override
+  final int? age;
+  @override
+  final String? genero;
+  @override
   @JsonKey(name: 'profile_picture')
   final String? profilePicture;
+  @override
+  @JsonKey(name: 'patrimonial_condition_id')
+  final int? patrimonialConditionId;
   @override
   @JsonKey(name: 'can_edit_sensitive_data')
   final bool canEditSensitiveData;
@@ -483,7 +551,7 @@ class _$ProfileModelImpl implements _ProfileModel {
 
   @override
   String toString() {
-    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, profilePicture: $profilePicture, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers, legalBeneficiaries: $legalBeneficiaries, vehicles: $vehicles)';
+    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, birthDate: $birthDate, age: $age, genero: $genero, profilePicture: $profilePicture, patrimonialConditionId: $patrimonialConditionId, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers, legalBeneficiaries: $legalBeneficiaries, vehicles: $vehicles)';
   }
 
   @override
@@ -505,8 +573,14 @@ class _$ProfileModelImpl implements _ProfileModel {
             (identical(other.rfc, rfc) || other.rfc == rfc) &&
             (identical(other.curp, curp) || other.curp == curp) &&
             (identical(other.address, address) || other.address == address) &&
+            (identical(other.birthDate, birthDate) ||
+                other.birthDate == birthDate) &&
+            (identical(other.age, age) || other.age == age) &&
+            (identical(other.genero, genero) || other.genero == genero) &&
             (identical(other.profilePicture, profilePicture) ||
                 other.profilePicture == profilePicture) &&
+            (identical(other.patrimonialConditionId, patrimonialConditionId) ||
+                other.patrimonialConditionId == patrimonialConditionId) &&
             (identical(other.canEditSensitiveData, canEditSensitiveData) ||
                 other.canEditSensitiveData == canEditSensitiveData) &&
             const DeepCollectionEquality().equals(
@@ -532,7 +606,7 @@ class _$ProfileModelImpl implements _ProfileModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     runtimeType,
     id,
     entityid,
@@ -544,7 +618,11 @@ class _$ProfileModelImpl implements _ProfileModel {
     rfc,
     curp,
     address,
+    birthDate,
+    age,
+    genero,
     profilePicture,
+    patrimonialConditionId,
     canEditSensitiveData,
     const DeepCollectionEquality().hash(_personalAddress),
     const DeepCollectionEquality().hash(_fiscalData),
@@ -552,7 +630,7 @@ class _$ProfileModelImpl implements _ProfileModel {
     const DeepCollectionEquality().hash(_associatedMembers),
     const DeepCollectionEquality().hash(_legalBeneficiaries),
     const DeepCollectionEquality().hash(_vehicles),
-  );
+  ]);
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.
@@ -580,7 +658,12 @@ abstract class _ProfileModel implements ProfileModel {
     final String? rfc,
     final String? curp,
     final String? address,
+    @JsonKey(name: 'birth_date') final String? birthDate,
+    final int? age,
+    final String? genero,
     @JsonKey(name: 'profile_picture') final String? profilePicture,
+    @JsonKey(name: 'patrimonial_condition_id')
+    final int? patrimonialConditionId,
     @JsonKey(name: 'can_edit_sensitive_data') final bool canEditSensitiveData,
     @JsonKey(name: 'personal_address')
     final Map<String, dynamic>? personalAddress,
@@ -619,8 +702,18 @@ abstract class _ProfileModel implements ProfileModel {
   @override
   String? get address;
   @override
+  @JsonKey(name: 'birth_date')
+  String? get birthDate;
+  @override
+  int? get age;
+  @override
+  String? get genero;
+  @override
   @JsonKey(name: 'profile_picture')
   String? get profilePicture;
+  @override
+  @JsonKey(name: 'patrimonial_condition_id')
+  int? get patrimonialConditionId;
   @override
   @JsonKey(name: 'can_edit_sensitive_data')
   bool get canEditSensitiveData;

@@ -67,6 +67,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
         final savedUser = prefs.getString('saved_username') ?? '2270600';
         final savedToken = prefs.getString('saved_token');
 
+        final savedMemberType = prefs.getString('saved_member_type') ?? 'Titular';
+        final savedPermissions = prefs.getStringList('saved_permissions') ?? [];
+
         // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
         if (savedToken != null) {
           ref.read(apiClientNotifierProvider.notifier).updateToken(savedToken);
@@ -79,9 +82,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
             firstName: 'Socio',
             lastName: 'Identificado',
             secondLastName: '',
-            memberType: 'Titular',
-            isTitular: true,
-            token: savedToken, // <-- Cargar el token guardado
+            memberType: savedMemberType,
+            isTitular: savedMemberType == 'Titular',
+            token: savedToken,
+            permissions: savedPermissions,
           ),
         );
         Navigator.of(context).pushReplacement(
@@ -157,17 +161,21 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
         if (mounted) {
           final socioData = response.data['data']['socio'];
+          final memberType = socioData['app_role'] ?? 'Titular';
+          final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
+
           final mappedMember = Member(
             id: socioData['id'].toString(),
             membershipNumber: socioData['entityid'] ?? username,
             firstName: socioData['fullname'] ?? 'Usuario',
             lastName: '',
             secondLastName: '',
-            memberType: 'Titular',
-            isTitular: true,
+            memberType: memberType,
+            isTitular: memberType == 'Titular',
             email: socioData['email'],
             phone: socioData['phone'],
             token: response.data['data']['access_token'],
+            permissions: permissions,
           );
           // 1. Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
           ref.read(apiClientNotifierProvider.notifier).updateToken(response.data['data']['access_token']);

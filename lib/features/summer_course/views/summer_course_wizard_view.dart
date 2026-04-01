@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import 'package:app_arzsuite/features/summer_course/providers/summer_course_provider.dart';
 import 'package:app_arzsuite/features/summer_course/models/summer_course_state.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/step_indicator.dart';
@@ -22,13 +23,7 @@ class SummerCourseWizardView extends ConsumerWidget {
     // Escuchar errores y mostrarlos
     ref.listen<SummerCourseState>(summerCourseProvider, (previous, next) {
       if (next.errorMessage != null && next.errorMessage != previous?.errorMessage) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppTheme.dangerColor,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        ToastAlerts.showError(context, next.errorMessage!);
       }
     });
 
@@ -201,6 +196,9 @@ class SummerCourseWizardView extends ConsumerWidget {
     if (state.currentStep == 2) {
       if (state.selectedParticipants.isEmpty) return true;
       return state.selectedParticipants.any((p) => p.selectedWeekIds.isEmpty);
+    }
+    if (state.currentStep == 3) {
+      if (state.termsRequired && !state.termsAccepted) return true;
     }
     return false;
   }
