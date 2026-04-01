@@ -5,6 +5,7 @@ import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activity_subscription_view.dart';
 import '../providers/activities_provider.dart';
+import '../../../core/providers/auth_provider.dart';
 
 class ActivitiesListView extends ConsumerWidget {
   final bool isSubscribed;
@@ -36,6 +37,8 @@ class ActivitiesListView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     // Definimos los colores institucionales según ux-ui.md (si no están en AppTheme)
     const Color institutionalBlue = Color(0xFF406EBA);
+    final currentMember = ref.watch(authProvider);
+    final hasEnrollPermission = currentMember?.hasPermission('activities.enroll') ?? false;
     
     final content = SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
@@ -98,6 +101,7 @@ class ActivitiesListView extends ConsumerWidget {
                           activity.grupos.fold<int>(0, (int sum, g) => sum + (g.cupoDisponible ?? 0))
                         ),
                         isSubscribed: isSubscribed,
+                        hasEnrollPermission: hasEnrollPermission,
                       ),
                     );
                   }).toList(),
@@ -152,6 +156,7 @@ class _PremiumActivityCard extends StatefulWidget {
   final Color accentColor;
   final int? spotsAvailable;
   final bool isSubscribed;
+  final bool hasEnrollPermission;
 
   const _PremiumActivityCard({
     required this.activity,
@@ -162,6 +167,7 @@ class _PremiumActivityCard extends StatefulWidget {
     required this.accentColor,
     this.spotsAvailable,
     required this.isSubscribed,
+    this.hasEnrollPermission = true,
   });
 
   @override
@@ -201,7 +207,7 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
         ),
         child: InkWell(
           onTap: () {
-            if (!widget.isSubscribed && !isFull) {
+            if (!widget.isSubscribed && !isFull && widget.hasEnrollPermission) {
               Navigator.push(
                 context,
                 PageRouteBuilder(
@@ -210,6 +216,11 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                   reverseTransitionDuration: Duration.zero,
                 ),
               );
+            } else if (!widget.hasEnrollPermission && !widget.isSubscribed) {
+               // Feedback visual si intentan inscribirse y es Solo Lectura
+               ScaffoldMessenger.of(context).showSnackBar(
+                 const SnackBar(content: Text('No tienes los permisos para inscribirte a actividades. Contacta al Titular.')),
+               );
             }
           },
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
@@ -331,7 +342,7 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                           style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900)
                         ),
                       )
-                    else if (!isFull)
+                    else if (!isFull && widget.hasEnrollPermission)
                       Icon(
                         Icons.arrow_forward_ios_rounded,
                         size: 16,

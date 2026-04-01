@@ -15,6 +15,8 @@ class AuthNotifier extends StateNotifier<Member?> {
     final username = prefs.getString('saved_username');
     final fullName = prefs.getString('saved_fullname') ?? 'Socio';
     final socioId = prefs.getString('saved_id') ?? '0';
+    final memberType = prefs.getString('saved_member_type') ?? 'Titular';
+    final permissions = prefs.getStringList('saved_permissions') ?? [];
 
     if (token != null && token.isNotEmpty && username != null) {
       return Member(
@@ -23,9 +25,10 @@ class AuthNotifier extends StateNotifier<Member?> {
         firstName: fullName,
         lastName: '',
         secondLastName: '',
-        memberType: 'Titular',
-        isTitular: true,
+        memberType: memberType,
+        isTitular: memberType == 'Titular',
         token: token,
+        permissions: permissions,
       );
     }
     return null;
@@ -37,6 +40,8 @@ class AuthNotifier extends StateNotifier<Member?> {
     _prefs.setString('saved_username', member.membershipNumber);
     _prefs.setString('saved_fullname', member.firstName);
     _prefs.setString('saved_id', member.id);
+    _prefs.setString('saved_member_type', member.memberType);
+    _prefs.setStringList('saved_permissions', member.permissions);
   }
 
   void logout() {
@@ -45,6 +50,8 @@ class AuthNotifier extends StateNotifier<Member?> {
     _prefs.remove('saved_username');
     _prefs.remove('saved_fullname');
     _prefs.remove('saved_id');
+    _prefs.remove('saved_member_type');
+    _prefs.remove('saved_permissions');
   }
 }
 

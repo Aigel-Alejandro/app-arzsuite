@@ -16,11 +16,15 @@ import 'package:app_arzsuite/features/tournaments/providers/tournaments_provider
 import 'package:app_arzsuite/features/tournaments/widgets/premium_tournament_card.dart';
 import 'package:app_arzsuite/features/tournaments/views/tournament_my_detail_view.dart';
 
-class HomeView extends StatelessWidget {
+import 'package:app_arzsuite/core/providers/auth_provider.dart';
+
+class HomeView extends ConsumerWidget {
   const HomeView({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentMember = ref.watch(authProvider);
+
     return MainLayout(
       activeIndex: 0,
       child: Column(
@@ -89,107 +93,121 @@ class HomeView extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 32),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
-                      child: SummerCourseAccessCard(),
-                    ),
+                    if (currentMember?.hasPermission('summer_course.enroll') ?? false)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                        child: SummerCourseAccessCard(),
+                      ),
                     // Hero: Summer Course 2026
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'ACCESOS RÁPIDOS',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
+                          if ((currentMember?.hasPermission('summer_course.enroll') ?? false) || (currentMember?.hasPermission('tournaments.dashboard') ?? false)) ...[
+                            Text(
+                              'ACCESOS RÁPIDOS',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                if (currentMember?.hasPermission('summer_course.enroll') ?? false)
+                                  Expanded(
+                                    child: _CompactActionCard(
+                                      title: 'Inscripción',
+                                      subtitle: 'Cursos 2026',
+                                      icon: Icons.sunny,
+                                      color: AppTheme.primaryColor,
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                if ((currentMember?.hasPermission('summer_course.enroll') ?? false) && (currentMember?.hasPermission('tournaments.dashboard') ?? false))
+                                  const SizedBox(width: 16),
+                                if (currentMember?.hasPermission('tournaments.dashboard') ?? false)
+                                  Expanded(
+                                    child: _CompactActionCard(
+                                      title: 'Torneos',
+                                      subtitle: 'Competencias',
+                                      icon: Icons.emoji_events,
+                                      color: Colors.deepPurple,
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(builder: (_) => const TournamentsDashboardView()),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                          if (currentMember?.isTitular ?? false) ...[
+                            const SizedBox(height: 24),
+                            Text(
+                              'STAFF VERANO',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: const Color(0xFFE65100),
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _CompactActionCard(
+                                    title: 'Escáner QR',
+                                    subtitle: 'Control Staff',
+                                    icon: Icons.qr_code_scanner_rounded,
+                                    color: const Color(0xFFE65100),
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
+                                      );
+                                    },
+                                  ),
                                 ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _CompactActionCard(
-                                  title: 'Inscripción',
-                                  subtitle: 'Cursos 2026',
-                                  icon: Icons.sunny,
-                                  color: AppTheme.primaryColor,
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _CompactActionCard(
-                                  title: 'Torneos',
-                                  subtitle: 'Competencias',
-                                  icon: Icons.emoji_events,
-                                  color: Colors.deepPurple,
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => const TournamentsDashboardView()),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'STAFF VERANO',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: const Color(0xFFE65100),
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _CompactActionCard(
-                                  title: 'Escáner QR',
-                                  subtitle: 'Control Staff',
-                                  icon: Icons.qr_code_scanner_rounded,
-                                  color: const Color(0xFFE65100),
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              const Spacer(), // Empty spacer to keep grid alignment
-                            ],
-                          ),
-                          const SizedBox(height: 32),
-                          Text(
-                            'MINI-AGENDA SEMANAL',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: AppTheme.primaryColor,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          const _AgendaWidget(),
-                          const SizedBox(height: 32),
-                          Text(
-                            'MIS TORNEOS',
-                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                  color: Colors.deepPurple,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                ),
-                          ),
-                          const SizedBox(height: 16),
-                          const _TournamentsListWidget(),
+                                const SizedBox(width: 16),
+                                const Spacer(), // Empty spacer to keep grid alignment
+                              ],
+                            ),
+                          ],
+                          
+                          if (currentMember?.hasPermission('dashboard.agenda') ?? false) ...[
+                            const SizedBox(height: 32),
+                            Text(
+                              'MINI-AGENDA SEMANAL',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                            const _AgendaWidget(),
+                          ],
+                          
+                          if (currentMember?.hasPermission('dashboard.tournaments') ?? false) ...[
+                            const SizedBox(height: 32),
+                            Text(
+                              'MIS TORNEOS',
+                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: Colors.deepPurple,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 2,
+                                  ),
+                            ),
+                            const SizedBox(height: 16),
+                            const _TournamentsListWidget(),
+                          ],
                         ],
                       ),
                     ),

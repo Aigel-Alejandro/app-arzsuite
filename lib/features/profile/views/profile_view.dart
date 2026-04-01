@@ -497,9 +497,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
+    final currentMember = ref.watch(authProvider);
     ref.watch(satCatalogsProvider); // Trigger catalog fetch early
 
     return MainLayout(
@@ -566,30 +566,35 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.15,
                   children: [
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.person_rounded,
-                      title: 'Información de la Cuenta',
-                      onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.settings_rounded,
-                      title: 'Ajustes de la App',
-                      onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.family_restroom_rounded,
-                      title: 'Beneficiarios Legales',
-                      onTap: () => _navigateToSection(context, 'Beneficiarios', 'Gestión de dependientes', Icons.family_restroom_rounded, (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
-                    ),
-                    _buildPremiumMenuTile(
-                      context,
-                      icon: Icons.directions_car_rounded,
-                      title: 'Vehículos (1 por acceso)',
-                      onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
-                    ),
+                    if (currentMember?.hasPermission('profile.account_data') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.person_rounded,
+                        title: 'Información de la Cuenta',
+                        onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.app_settings') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.settings_rounded,
+                        title: 'Ajustes de la App',
+                        onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.associated_members') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.family_restroom_rounded,
+                        title: 'Beneficiarios Legales',
+                        onTap: () => _navigateToSection(context, 'Beneficiarios', 'Gestión de dependientes', Icons.family_restroom_rounded, (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('profile.vehicles') ?? false)
+                      _buildPremiumMenuTile(
+                        context,
+                        icon: Icons.directions_car_rounded,
+                        title: 'Vehículos (1 por acceso)',
+                        onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
+                      ),
+                    if (currentMember?.hasPermission('health.medical_data') ?? false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.monitor_heart_rounded,
@@ -599,6 +604,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           child: HealthView(),
                         ))),
                       ),
+                    if (currentMember?.hasPermission('financial.view') ?? false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.account_balance_wallet_rounded,

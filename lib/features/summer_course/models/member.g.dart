@@ -18,6 +18,11 @@ _$MemberImpl _$$MemberImplFromJson(Map<String, dynamic> json) => _$MemberImpl(
   email: json['email'] as String?,
   phone: json['phone'] as String?,
   token: json['token'] as String?,
+  permissions:
+      (json['permissions'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList() ??
+      const [],
   age: (json['age'] as num?)?.toInt(),
 );
 
@@ -34,5 +39,6 @@ Map<String, dynamic> _$$MemberImplToJson(_$MemberImpl instance) =>
       'email': instance.email,
       'phone': instance.phone,
       'token': instance.token,
+      'permissions': instance.permissions,
       'age': instance.age,
     };
