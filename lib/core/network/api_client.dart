@@ -1,4 +1,7 @@
 import 'package:dio/dio.dart';
+import 'dart:io';
+import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 
 class ApiClient {
   final Dio _dio;
@@ -44,6 +47,16 @@ class ApiClient {
         return handler.next(e);
       },
     ));
+
+    if (kDebugMode) {
+      _dio.httpClientAdapter = IOHttpClientAdapter(
+        createHttpClient: () {
+          final client = HttpClient();
+          client.badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+          return client;
+        },
+      );
+    }
   }
 
   // Method to update token after login

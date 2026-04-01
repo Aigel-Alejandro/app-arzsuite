@@ -35,11 +35,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
   @override
   void initState() {
     super.initState();
-    // Pre-rellenar para desarrollo
-    assert(() {
-      _userController.text = '2270600';
-      return true;
-    }());
     _checkSavedBiometrics();
   }
 
@@ -64,7 +59,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
       if (didAuthenticate && mounted) {
         final prefs = await SharedPreferences.getInstance();
-        final savedUser = prefs.getString('saved_username') ?? '2270600';
+        final savedUser = prefs.getString('saved_username') ?? '';
         final savedToken = prefs.getString('saved_token');
 
         final savedMemberType = prefs.getString('saved_member_type') ?? 'Titular';
