@@ -1,0 +1,38 @@
+workflows:
+  ios-android-production:
+    name: Production Build (iOS & Android)
+    instance_type: mac_mini_m2
+    max_build_duration: 120
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+      groups:
+        - google_play_credentials # Usa la variable GCLOUD_SERVICE_ACCOUNT_CREDENTIALS en Codemagic UI (JSON content)
+        - app_store_credentials # Usa APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_PRIVATE_KEY
+    scripts:
+      - name: Instalar dependencias de Flutter
+        script: |
+          flutter packages pub get
+      - name: Build Android App Bundle
+        script: |
+          flutter build appbundle --release
+      - name: Set up iOS code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "mx.org.centrolibanes.app.arzsuite" --type IOS_APP_STORE --create
+          keychain add-certificates
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa --release --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/app/outputs/bundle/release/**/*.aab
+      - build/ios/ipa/*.ipa
+    publishing:
+      google_play:
+        credentials: $GCLOUD_SERVICE_ACCOUNT_CREDENTIALS
+        track: internal
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
+        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
+        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
