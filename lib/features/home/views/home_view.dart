@@ -64,21 +64,6 @@ class HomeView extends ConsumerWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
-                ),
               ],
             ),
           ),
@@ -120,7 +105,7 @@ class HomeView extends ConsumerWidget {
                                   Expanded(
                                     child: _CompactActionCard(
                                       title: 'Inscripción',
-                                      subtitle: 'Cursos 2026',
+                                      subtitle: 'Curso de Verano',
                                       icon: Icons.sunny,
                                       color: AppTheme.primaryColor,
                                       onTap: () {
