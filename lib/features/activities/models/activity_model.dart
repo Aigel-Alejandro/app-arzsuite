@@ -9,6 +9,7 @@ class ActivityModel with _$ActivityModel {
     required int id,
     @JsonKey(name: 'club_id') required int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     required String nombre,
     String? descripcion,
     String? icono,

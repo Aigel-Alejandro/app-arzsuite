@@ -7,10 +7,21 @@ import 'package:app_arzsuite/features/activities/views/activity_subscription_vie
 import '../providers/activities_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 
-class ActivitiesListView extends ConsumerWidget {
+class ActivitiesListView extends ConsumerStatefulWidget {
   final bool isSubscribed;
   final bool useLayout;
   const ActivitiesListView({super.key, required this.isSubscribed, this.useLayout = true});
+
+  @override
+  ConsumerState<ActivitiesListView> createState() => _ActivitiesListViewState();
+}
+
+class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
+  // Filtros
+  String? _selectedClub;
+  String? _selectedTipo;
+  bool? _tieneCostoFilter;
+  bool _onlyWithSpots = false;
 
   IconData _getIconData(String? iconName) {
     if (iconName == null) return Icons.sports;
@@ -33,13 +44,201 @@ class ActivitiesListView extends ConsumerWidget {
     return const Color(0xFF406EBA);
   }
 
+  void _resetFilters() {
+    setState(() {
+      _selectedClub = null;
+      _selectedTipo = null;
+      _tieneCostoFilter = null;
+      _onlyWithSpots = false;
+    });
+  }
+
+  String _formatLabel(String text) {
+    if (text.isEmpty) return text;
+    String spaced = text.replaceAll('_', ' ').toLowerCase();
+    return spaced[0].toUpperCase() + spaced.substring(1);
+  }
+
+  void _showFilterBottomSheet(BuildContext context, List<dynamic> activities) {
+    final clubs = activities.map((a) => a.clubName as String?).where((c) => c != null && c.isNotEmpty).toSet().toList();
+    final tipos = activities.map((a) => a.tipo as String?).where((t) => t != null && t.isNotEmpty).toSet().toList();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.borderRadiusGlobal)),
+      ),
+      builder: (BottomSheetContext) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: AppTheme.spacingLarge,
+                right: AppTheme.spacingLarge,
+                top: AppTheme.spacingLarge,
+                bottom: MediaQuery.of(context).viewInsets.bottom + AppTheme.spacingLarge,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filtrar Actividades',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.neutral900,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  if (clubs.isNotEmpty) ...[
+                    const SizedBox(height: AppTheme.spacingMedium),
+                    const Text('Sede / Club', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppTheme.spacingSmall),
+                    Wrap(
+                      spacing: 8.0,
+                      children: clubs.map((club) {
+                        final isSelected = _selectedClub == club;
+                        return ChoiceChip(
+                          label: Text(club!),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setSheetState(() => _selectedClub = selected ? club : null);
+                            setState(() => _selectedClub = selected ? club : null);
+                          },
+                          selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          labelStyle: TextStyle(
+                            color: isSelected ? AppTheme.primaryColor : AppTheme.neutral700,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  if (tipos.isNotEmpty) ...[
+                    const SizedBox(height: AppTheme.spacingMedium),
+                    const Text('Tipo Categoria', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: AppTheme.spacingSmall),
+                    Wrap(
+                      spacing: 8.0,
+                      children: tipos.map((tipo) {
+                        final isSelected = _selectedTipo == tipo;
+                        return ChoiceChip(
+                          label: Text(_formatLabel(tipo!)),
+                          selected: isSelected,
+                          onSelected: (selected) {
+                            setSheetState(() => _selectedTipo = selected ? tipo : null);
+                            setState(() => _selectedTipo = selected ? tipo : null);
+                          },
+                          selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                          labelStyle: TextStyle(
+                            color: isSelected ? AppTheme.primaryColor : AppTheme.neutral700,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: AppTheme.spacingMedium),
+                  const Text('Costo', style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: AppTheme.spacingSmall),
+                  Wrap(
+                    spacing: 8.0,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('Todos'),
+                        selected: _tieneCostoFilter == null,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setSheetState(() => _tieneCostoFilter = null);
+                            setState(() => _tieneCostoFilter = null);
+                          }
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('Con Costo'),
+                        selected: _tieneCostoFilter == true,
+                        onSelected: (selected) {
+                          setSheetState(() => _tieneCostoFilter = selected ? true : null);
+                          setState(() => _tieneCostoFilter = selected ? true : null);
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('Sin Costo'),
+                        selected: _tieneCostoFilter == false,
+                        onSelected: (selected) {
+                          setSheetState(() => _tieneCostoFilter = selected ? false : null);
+                          setState(() => _tieneCostoFilter = selected ? false : null);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppTheme.spacingMedium),
+                  SwitchListTile(
+                    title: const Text('Solo actividades con cupo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    contentPadding: EdgeInsets.zero,
+                    value: _onlyWithSpots,
+                    onChanged: (val) {
+                      setSheetState(() => _onlyWithSpots = val);
+                      setState(() => _onlyWithSpots = val);
+                    },
+                    activeColor: AppTheme.primaryColor,
+                  ),
+                  const SizedBox(height: AppTheme.spacingLarge),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal)),
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cerrar', style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.spacingMedium),
+                  SizedBox(
+                    width: double.infinity,
+                    child: TextButton(
+                      onPressed: () {
+                        setSheetState(() {
+                          _selectedClub = null;
+                          _selectedTipo = null;
+                          _tieneCostoFilter = null;
+                          _onlyWithSpots = false;
+                        });
+                        _resetFilters();
+                      },
+                      child: const Text('Limpiar Filtros', style: TextStyle(color: AppTheme.dangerColor)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Definimos los colores institucionales según ux-ui.md (si no están en AppTheme)
+  Widget build(BuildContext context) {
     const Color institutionalBlue = Color(0xFF406EBA);
     final currentMember = ref.watch(authProvider);
     final hasEnrollPermission = currentMember?.hasPermission('activities.enroll') ?? false;
     
+    final asyncActivities = ref.watch(activitiesProvider);
+
     final content = SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: ResponsiveContainer(
@@ -48,34 +247,68 @@ class ActivitiesListView extends ConsumerWidget {
           children: [
             const SizedBox(height: AppTheme.spacingLarge),
             
-            // Header del listado (Premium look)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingSmall),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    isSubscribed ? 'Mis Inscripciones' : 'Catálogo de Actividades',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.neutral900,
-                      letterSpacing: -0.5,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.isSubscribed ? 'Mis Inscripciones' : 'Catálogo de Actividades',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: AppTheme.neutral900,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.isSubscribed 
+                            ? 'Gestiona tus actividades y mantente al tanto de tus horarios.'
+                            : 'Explora y únete a las diversas disciplinas que ofrecemos.',
+                          style: const TextStyle(color: AppTheme.neutral500, fontSize: 14),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    isSubscribed 
-                      ? 'Gestiona tus actividades y mantente al tanto de tus horarios.'
-                      : 'Explora y únete a las diversas disciplinas que ofrecemos.',
-                    style: TextStyle(color: AppTheme.neutral500, fontSize: 14),
-                  ),
+                  if (!widget.isSubscribed)
+                    asyncActivities.maybeWhen(
+                      data: (activities) {
+                        bool hasActiveFilters = _selectedClub != null || _selectedTipo != null || _tieneCostoFilter != null || _onlyWithSpots;
+                        return Stack(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.filter_list_rounded, color: AppTheme.neutral700),
+                              onPressed: () => _showFilterBottomSheet(context, activities),
+                            ),
+                            if (hasActiveFilters)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.primaryColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                      orElse: () => const SizedBox.shrink(),
+                    ),
                 ],
               ),
             ),
             
             const SizedBox(height: AppTheme.spacingLarge),
             
-            ref.watch(activitiesProvider).when(
+            asyncActivities.when(
               data: (activities) {
                 if (activities.isEmpty) {
                   return const Padding(
@@ -83,9 +316,34 @@ class ActivitiesListView extends ConsumerWidget {
                     child: Center(child: Text("No hay actividades disponibles en este momento.", style: TextStyle(color: AppTheme.neutral500))),
                   );
                 }
+
+                // Aplicar filtros
+                var filteredActivities = activities;
+                if (!widget.isSubscribed) {
+                  filteredActivities = activities.where((activity) {
+                    if (_selectedClub != null && activity.clubName != _selectedClub) return false;
+                    if (_selectedTipo != null && activity.tipo != _selectedTipo) return false;
+                    if (_tieneCostoFilter != null && activity.tieneCosto != _tieneCostoFilter) return false;
+                    if (_onlyWithSpots) {
+                       if (activity.grupos.isEmpty) return false;
+                       bool hasAnySpot = activity.grupos.any((g) {
+                         return g.tieneCupo && (g.cupoDisponible == null || g.cupoDisponible! > 0);
+                       });
+                       if (!hasAnySpot) return false;
+                    }
+                    return true;
+                  }).toList();
+                }
+                
+                if (filteredActivities.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(AppTheme.spacingLarge),
+                    child: Center(child: Text("No se encontraron actividades con los filtros seleccionados.", style: TextStyle(color: AppTheme.neutral500))),
+                  );
+                }
                 
                 return Column(
-                  children: activities.map((activity) {
+                  children: filteredActivities.map((activity) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
                       child: _PremiumActivityCard(
@@ -95,12 +353,12 @@ class ActivitiesListView extends ConsumerWidget {
                         schedule: 'Toca para ver grupos y horarios disponibles',
                         icon: _getIconData(activity.icono),
                         accentColor: _getColor(activity.color),
-                        spotsAvailable: isSubscribed ? null : (
+                        spotsAvailable: widget.isSubscribed ? null : (
                           activity.grupos.isEmpty ? null : 
                           activity.grupos.any((g) => !g.tieneCupo) ? null : 
                           activity.grupos.fold<int>(0, (int sum, g) => sum + (g.cupoDisponible ?? 0))
                         ),
-                        isSubscribed: isSubscribed,
+                        isSubscribed: widget.isSubscribed,
                         hasEnrollPermission: hasEnrollPermission,
                       ),
                     );
@@ -119,7 +377,6 @@ class ActivitiesListView extends ConsumerWidget {
               ),
             ),
             
-            // Espaciado inferior para evitar que el menú móvil cubra el contenido
             Builder(
               builder: (context) {
                 final bool isMobile = MediaQuery.of(context).size.width < AppTheme.breakpointTablet;
@@ -131,14 +388,14 @@ class ActivitiesListView extends ConsumerWidget {
       ),
     );
 
-    if (!useLayout) return content;
+    if (!widget.useLayout) return content;
 
     return MainLayout(
       activeIndex: 1, 
       child: Scaffold(
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          title: Text(isSubscribed ? 'Mis Actividades' : 'Actividades Disponibles'),
+          title: Text(widget.isSubscribed ? 'Mis Actividades' : 'Actividades Disponibles'),
           centerTitle: true,
         ),
         body: content,

@@ -26,6 +26,8 @@ mixin _$ActivityModel {
   int get clubId => throw _privateConstructorUsedError;
   @JsonKey(name: 'club_name')
   String? get clubName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes => throw _privateConstructorUsedError;
   String get nombre => throw _privateConstructorUsedError;
   String? get descripcion => throw _privateConstructorUsedError;
   String? get icono => throw _privateConstructorUsedError;
@@ -57,6 +59,7 @@ abstract class $ActivityModelCopyWith<$Res> {
     int id,
     @JsonKey(name: 'club_id') int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     String nombre,
     String? descripcion,
     String? icono,
@@ -86,6 +89,7 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
     Object? id = null,
     Object? clubId = null,
     Object? clubName = freezed,
+    Object? accesoClubes = freezed,
     Object? nombre = null,
     Object? descripcion = freezed,
     Object? icono = freezed,
@@ -109,6 +113,10 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
                 ? _value.clubName
                 : clubName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            accesoClubes: freezed == accesoClubes
+                ? _value.accesoClubes
+                : accesoClubes // ignore: cast_nullable_to_non_nullable
+                      as List<String>?,
             nombre: null == nombre
                 ? _value.nombre
                 : nombre // ignore: cast_nullable_to_non_nullable
@@ -160,6 +168,7 @@ abstract class _$$ActivityModelImplCopyWith<$Res>
     int id,
     @JsonKey(name: 'club_id') int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     String nombre,
     String? descripcion,
     String? icono,
@@ -188,6 +197,7 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? clubId = null,
     Object? clubName = freezed,
+    Object? accesoClubes = freezed,
     Object? nombre = null,
     Object? descripcion = freezed,
     Object? icono = freezed,
@@ -211,6 +221,10 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
             ? _value.clubName
             : clubName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        accesoClubes: freezed == accesoClubes
+            ? _value._accesoClubes
+            : accesoClubes // ignore: cast_nullable_to_non_nullable
+                  as List<String>?,
         nombre: null == nombre
             ? _value.nombre
             : nombre // ignore: cast_nullable_to_non_nullable
@@ -255,6 +269,7 @@ class _$ActivityModelImpl implements _ActivityModel {
     required this.id,
     @JsonKey(name: 'club_id') required this.clubId,
     @JsonKey(name: 'club_name') this.clubName,
+    @JsonKey(name: 'acceso_clubes') final List<String>? accesoClubes,
     required this.nombre,
     this.descripcion,
     this.icono,
@@ -263,7 +278,8 @@ class _$ActivityModelImpl implements _ActivityModel {
     @JsonKey(name: 'tiene_costo') required this.tieneCosto,
     this.monto,
     final List<ActivityGroupModel> grupos = const [],
-  }) : _grupos = grupos;
+  }) : _accesoClubes = accesoClubes,
+       _grupos = grupos;
 
   factory _$ActivityModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityModelImplFromJson(json);
@@ -276,6 +292,17 @@ class _$ActivityModelImpl implements _ActivityModel {
   @override
   @JsonKey(name: 'club_name')
   final String? clubName;
+  final List<String>? _accesoClubes;
+  @override
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes {
+    final value = _accesoClubes;
+    if (value == null) return null;
+    if (_accesoClubes is EqualUnmodifiableListView) return _accesoClubes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   final String nombre;
   @override
@@ -302,7 +329,7 @@ class _$ActivityModelImpl implements _ActivityModel {
 
   @override
   String toString() {
-    return 'ActivityModel(id: $id, clubId: $clubId, clubName: $clubName, nombre: $nombre, descripcion: $descripcion, icono: $icono, color: $color, tipo: $tipo, tieneCosto: $tieneCosto, monto: $monto, grupos: $grupos)';
+    return 'ActivityModel(id: $id, clubId: $clubId, clubName: $clubName, accesoClubes: $accesoClubes, nombre: $nombre, descripcion: $descripcion, icono: $icono, color: $color, tipo: $tipo, tieneCosto: $tieneCosto, monto: $monto, grupos: $grupos)';
   }
 
   @override
@@ -314,6 +341,10 @@ class _$ActivityModelImpl implements _ActivityModel {
             (identical(other.clubId, clubId) || other.clubId == clubId) &&
             (identical(other.clubName, clubName) ||
                 other.clubName == clubName) &&
+            const DeepCollectionEquality().equals(
+              other._accesoClubes,
+              _accesoClubes,
+            ) &&
             (identical(other.nombre, nombre) || other.nombre == nombre) &&
             (identical(other.descripcion, descripcion) ||
                 other.descripcion == descripcion) &&
@@ -333,6 +364,7 @@ class _$ActivityModelImpl implements _ActivityModel {
     id,
     clubId,
     clubName,
+    const DeepCollectionEquality().hash(_accesoClubes),
     nombre,
     descripcion,
     icono,
@@ -362,6 +394,7 @@ abstract class _ActivityModel implements ActivityModel {
     required final int id,
     @JsonKey(name: 'club_id') required final int clubId,
     @JsonKey(name: 'club_name') final String? clubName,
+    @JsonKey(name: 'acceso_clubes') final List<String>? accesoClubes,
     required final String nombre,
     final String? descripcion,
     final String? icono,
@@ -383,6 +416,9 @@ abstract class _ActivityModel implements ActivityModel {
   @override
   @JsonKey(name: 'club_name')
   String? get clubName;
+  @override
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes;
   @override
   String get nombre;
   @override

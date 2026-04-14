@@ -31,6 +31,10 @@ class ActivitiesNotifier extends StateNotifier<AsyncValue<List<ActivityModel>>> 
       
       if (responseData['success'] == true) {
         final List<dynamic> data = responseData['data'];
+        if (data.isNotEmpty) {
+          print('--- DEBUG API: FIRST ACTIVITY ---');
+          print('id: ${data[0]['id']}, club_id: ${data[0]['club_id']}, club_name: ${data[0]['club_name']}');
+        }
         final activities = data.map((e) => ActivityModel.fromJson(e as Map<String, dynamic>)).toList();
         state = AsyncValue.data(activities);
       } else {

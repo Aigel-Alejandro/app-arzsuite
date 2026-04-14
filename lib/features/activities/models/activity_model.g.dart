@@ -11,6 +11,9 @@ _$ActivityModelImpl _$$ActivityModelImplFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       clubId: (json['club_id'] as num).toInt(),
       clubName: json['club_name'] as String?,
+      accesoClubes: (json['acceso_clubes'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       nombre: json['nombre'] as String,
       descripcion: json['descripcion'] as String?,
       icono: json['icono'] as String?,
@@ -32,6 +35,7 @@ Map<String, dynamic> _$$ActivityModelImplToJson(_$ActivityModelImpl instance) =>
       'id': instance.id,
       'club_id': instance.clubId,
       'club_name': instance.clubName,
+      'acceso_clubes': instance.accesoClubes,
       'nombre': instance.nombre,
       'descripcion': instance.descripcion,
       'icono': instance.icono,
