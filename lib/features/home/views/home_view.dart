@@ -117,6 +117,7 @@ class HomeView extends ConsumerWidget {
                                       const SizedBox(height: 16),
                                       Row(
                                         children: [
+                                          // Izquierda: Inscripción > Torneos > vacío
                                           if (showSummer)
                                             Expanded(
                                               child: _CompactActionCard(
@@ -133,11 +134,25 @@ class HomeView extends ConsumerWidget {
                                                 },
                                               ),
                                             )
-                                          else
-                                            const Expanded(child: SizedBox.shrink()),
+                                          else if (hasTournaments)
+                                            Expanded(
+                                              child: _CompactActionCard(
+                                                title: 'Torneos',
+                                                subtitle: 'Competencias',
+                                                icon: Icons.emoji_events,
+                                                color: Colors.deepPurple,
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => const TournamentsDashboardView(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
                                           const SizedBox(width: 16),
-                                          // Columna derecha: Torneos (si tiene permiso) o placeholder
-                                          if (hasTournaments)
+                                          // Derecha: Torneos (cuando ambos activos) o vacío
+                                          if (showSummer && hasTournaments)
                                             Expanded(
                                               child: _CompactActionCard(
                                                 title: 'Torneos',
@@ -214,8 +229,6 @@ class HomeView extends ConsumerWidget {
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
-                                       const Expanded(child: SizedBox.shrink()),
-                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: _CompactActionCard(
                                           title: 'Torneos',
@@ -231,6 +244,8 @@ class HomeView extends ConsumerWidget {
                                           },
                                         ),
                                       ),
+                                       const SizedBox(width: 16),
+                                       const Expanded(child: SizedBox.shrink()),
                                     ],
                                   ),
                                 ],
@@ -255,8 +270,6 @@ class HomeView extends ConsumerWidget {
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
-                                       const Expanded(child: SizedBox.shrink()),
-                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: _CompactActionCard(
                                           title: 'Torneos',
@@ -272,6 +285,8 @@ class HomeView extends ConsumerWidget {
                                           },
                                         ),
                                       ),
+                                       const SizedBox(width: 16),
+                                       const Expanded(child: SizedBox.shrink()),
                                     ],
                                   ),
                                 ],
