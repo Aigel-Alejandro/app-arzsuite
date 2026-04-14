@@ -169,7 +169,7 @@ class HomeView extends ConsumerWidget {
                           if (currentMember?.hasPermission('dashboard.agenda') ?? false) ...[
                             const SizedBox(height: 32),
                             Text(
-                              'MINI-AGENDA SEMANAL',
+                              'AGENDA DEPORTIVA',
                               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w900,
@@ -177,7 +177,7 @@ class HomeView extends ConsumerWidget {
                                   ),
                             ),
                             const SizedBox(height: 16),
-                            const _AgendaWidget(),
+                            _AgendaWidget(currentMember: currentMember),
                           ],
                           
                           if (currentMember?.hasPermission('dashboard.tournaments') ?? false) ...[
@@ -313,12 +313,21 @@ class _CompactActionCard extends StatelessWidget {
   }
 }
 
-class _AgendaWidget extends ConsumerWidget {
-  const _AgendaWidget();
+class _AgendaWidget extends ConsumerStatefulWidget {
+  final currentMember;
+  const _AgendaWidget({this.currentMember});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AgendaWidget> createState() => _AgendaWidgetState();
+}
+
+class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
+  String _selectedSocioId = 'ME'; // 'ME', 'ALL', or a specific socioId
+
+  @override
+  Widget build(BuildContext context) {
     final agendaAsync = ref.watch(familyAgendaProvider);
+    final currentMember = widget.currentMember;
 
     return agendaAsync.when(
       data: (items) {
@@ -327,33 +336,88 @@ class _AgendaWidget extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                'No hay eventos programados en tu familia.',
+                'No hay eventos programados.',
                 style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
               ),
             ),
           );
         }
 
-        return Column(
-          children: items.map((item) {
-            final color = _parseColor(item.colorHex);
-            final icon = _parseIcon(item.icon);
+        final isTitular = currentMember?.isTitular ?? false;
+        final myId = currentMember?.id ?? '';
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildAgendaItem(
-                context: context,
-                time: item.timeBlock,
-                duration: item.durationStr,
-                title: item.title,
-                subtitle: item.subtitle,
-                person: item.personName,
-                icon: icon,
-                color: color,
-                isMatch: item.isMatch,
+        // Extract unique members
+        final Map<String, String> membersMap = {};
+        for (var item in items) {
+           if (item.personName.isNotEmpty && item.socioId.isNotEmpty) {
+               membersMap[item.socioId] = item.personName;
+           }
+        }
+
+        // Apply filtering
+        List<FamilyAgendaItem> filteredItems = items;
+        if (!isTitular) {
+          // If not titular, force ONLY own items
+          filteredItems = items.where((i) => i.socioId == myId).toList();
+        } else {
+          // Titular filtering
+          if (_selectedSocioId == 'ME') {
+             filteredItems = items.where((i) => i.socioId == myId).toList();
+          } else if (_selectedSocioId != 'ALL') {
+             filteredItems = items.where((i) => i.socioId == _selectedSocioId).toList();
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Filter chips (Only for Titular and if there is more than 1 member active in agenda)
+            if (isTitular && membersMap.length > 1) ...[
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildPremiumChip('Mis Actividades', 'ME'),
+                    _buildPremiumChip('Todos', 'ALL'),
+                    ...membersMap.entries
+                        .where((e) => e.key != myId)
+                        .map((entry) => _buildPremiumChip(entry.value.split(' ').first.toUpperCase(), entry.key)),
+                  ],
+                ),
               ),
-            );
-          }).toList(),
+              const SizedBox(height: 16),
+            ],
+
+            if (filteredItems.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(
+                  'No hay eventos para la selección.', 
+                  style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
+                ),
+              )
+            else
+              ...filteredItems.map((item) {
+                final color = _parseColor(item.colorHex);
+                final icon = _parseIcon(item.icon);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildAgendaItem(
+                    context: context,
+                    time: item.timeBlock,
+                    duration: item.durationStr,
+                    title: item.title,
+                    subtitle: item.subtitle,
+                    person: isTitular && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
+                    icon: icon,
+                    color: color,
+                    isMatch: item.isMatch,
+                  ),
+                );
+              }),
+          ],
         );
       },
       loading: () => const Center(
@@ -367,6 +431,38 @@ class _AgendaWidget extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Text('Error cargando agenda', style: TextStyle(color: AppTheme.dangerColor)),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPremiumChip(String label, String id) {
+    final isSelected = _selectedSocioId == id;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
+      child: ChoiceChip(
+        label: Text(
+          label,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            fontSize: 13,
+            color: isSelected ? Colors.white : (isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+          ),
+        ),
+        selected: isSelected,
+        showCheckmark: false,
+        backgroundColor: isDark ? AppTheme.neutral900 : Colors.white,
+        selectedColor: AppTheme.primaryColor,
+        side: BorderSide(
+          color: isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+          width: 1.5,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        onSelected: (bool selected) {
+          if (selected) setState(() => _selectedSocioId = id);
+        },
       ),
     );
   }
@@ -446,9 +542,11 @@ class _AgendaWidget extends ConsumerWidget {
                 children: [
                   Text(
                     time,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
+                      height: 1.2,
                       color: isDark ? Colors.white : AppTheme.neutral900,
                     ),
                   ),
@@ -479,16 +577,21 @@ class _AgendaWidget extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                              height: 1.2,
-                              color: isDark ? Colors.white : AppTheme.neutral900,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 15,
+                                  height: 1.2,
+                                  color: isDark ? Colors.white : AppTheme.neutral900,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -502,20 +605,23 @@ class _AgendaWidget extends ConsumerWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.neutral100,
-                          child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            person,
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                        if (person.isNotEmpty) ...[
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: AppTheme.neutral100,
+                            child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              person,
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else
+                          const Spacer(),
                         if (isMatch) const SizedBox(width: 8),
                         if (isMatch)
                           Container(

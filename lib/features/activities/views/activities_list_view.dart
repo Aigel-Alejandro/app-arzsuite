@@ -349,6 +349,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                       child: _PremiumActivityCard(
                         activity: activity,
                         title: activity.nombre,
+                        description: activity.descripcion,
+                        emojiIcon: activity.icono,
                         instructor: activity.clubName ?? 'Centro Libanés',
                         schedule: 'Toca para ver grupos y horarios disponibles',
                         icon: _getIconData(activity.icono),
@@ -407,6 +409,8 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
 class _PremiumActivityCard extends StatefulWidget {
   final dynamic activity; // ActivityModel
   final String title;
+  final String? description;
+  final String? emojiIcon;
   final String instructor;
   final String schedule;
   final IconData icon;
@@ -418,6 +422,8 @@ class _PremiumActivityCard extends StatefulWidget {
   const _PremiumActivityCard({
     required this.activity,
     required this.title,
+    this.description,
+    this.emojiIcon,
     required this.instructor,
     required this.schedule,
     required this.icon,
@@ -496,7 +502,9 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                         color: widget.accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(widget.icon, color: widget.accentColor, size: 28),
+                      child: (widget.emojiIcon != null && widget.emojiIcon!.isNotEmpty && widget.emojiIcon!.length <= 4)
+                          ? Text(widget.emojiIcon!, style: const TextStyle(fontSize: 24))
+                          : Icon(widget.icon, color: widget.accentColor, size: 28),
                     ),
                     const SizedBox(width: AppTheme.spacingMedium),
                     Expanded(
@@ -512,6 +520,18 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                               letterSpacing: -0.2,
                             ),
                           ),
+                          if (widget.description != null && widget.description!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.description!,
+                              style: const TextStyle(
+                                color: AppTheme.neutral600,
+                                fontSize: 13,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                           const SizedBox(height: 4),
                           Row(
                             children: [
@@ -523,6 +543,27 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                                   color: AppTheme.neutral600, 
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.payments_outlined, 
+                                size: 14, 
+                                color: widget.activity.tieneCosto ? AppTheme.warningColor : AppTheme.successColor,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                widget.activity.tieneCosto 
+                                    ? (widget.activity.monto != null ? '\$${widget.activity.monto!.toStringAsFixed(2)} MXN' : 'Con Costo') 
+                                    : 'Sin costo',
+                                style: TextStyle(
+                                  color: widget.activity.tieneCosto ? AppTheme.neutral800 : AppTheme.successColor, 
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ],
