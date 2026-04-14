@@ -373,18 +373,16 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
           children: [
             // Filter chips (Only for Titular and if there is more than 1 member active in agenda)
             if (isTitular && membersMap.length > 1) ...[
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                physics: const BouncingScrollPhysics(),
-                child: Row(
-                  children: [
-                    _buildPremiumChip('Mis Actividades', 'ME'),
-                    _buildPremiumChip('Todos', 'ALL'),
-                    ...membersMap.entries
-                        .where((e) => e.key != myId)
-                        .map((entry) => _buildPremiumChip(entry.value.split(' ').first.toUpperCase(), entry.key)),
-                  ],
-                ),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildPremiumChip('Mis Actividades', 'ME'),
+                  _buildPremiumChip('Todos', 'ALL'),
+                  ...membersMap.entries
+                      .where((e) => e.key != myId)
+                      .map((entry) { final n = entry.value.split(' ').first; final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase(); return _buildPremiumChip(capitalized, entry.key); }),
+                ],
               ),
               const SizedBox(height: 16),
             ],
@@ -439,31 +437,28 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
     final isSelected = _selectedSocioId == id;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0, bottom: 4.0),
-      child: ChoiceChip(
-        label: Text(
-          label,
-          style: TextStyle(
-            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-            fontSize: 13,
-            color: isSelected ? Colors.white : (isDark ? AppTheme.neutral300 : AppTheme.neutral700),
-          ),
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          fontSize: 14,
+          color: isSelected ? Colors.white : (isDark ? AppTheme.neutral300 : AppTheme.neutral700),
         ),
-        selected: isSelected,
-        showCheckmark: false,
-        backgroundColor: isDark ? AppTheme.neutral900 : Colors.white,
-        selectedColor: AppTheme.primaryColor,
-        side: BorderSide(
-          color: isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
-          width: 1.5,
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        onSelected: (bool selected) {
-          if (selected) setState(() => _selectedSocioId = id);
-        },
       ),
+      selected: isSelected,
+      showCheckmark: false,
+      backgroundColor: isDark ? AppTheme.neutral900 : Colors.white,
+      selectedColor: AppTheme.primaryColor,
+      side: BorderSide(
+        color: isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+        width: 1.5,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      onSelected: (bool selected) {
+        if (selected) setState(() => _selectedSocioId = id);
+      },
     );
   }
 
