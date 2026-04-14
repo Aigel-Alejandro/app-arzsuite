@@ -132,9 +132,11 @@ class HomeView extends ConsumerWidget {
                                                   );
                                                 },
                                               ),
-                                            ),
-                                          if (showSummer && hasTournaments)
-                                            const SizedBox(width: 16),
+                                            )
+                                          else
+                                            const Expanded(child: SizedBox.shrink()),
+                                          const SizedBox(width: 16),
+                                          // Columna derecha: Torneos (si tiene permiso) o placeholder
                                           if (hasTournaments)
                                             Expanded(
                                               child: _CompactActionCard(
@@ -150,7 +152,9 @@ class HomeView extends ConsumerWidget {
                                                   );
                                                 },
                                               ),
-                                            ),
+                                            )
+                                          else
+                                            const Expanded(child: SizedBox.shrink()),
                                         ],
                                       ),
                                       if (showSummer && (currentMember?.isTitular ?? false)) ...[
@@ -210,6 +214,8 @@ class HomeView extends ConsumerWidget {
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
+                                       const Expanded(child: SizedBox.shrink()),
+                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: _CompactActionCard(
                                           title: 'Torneos',
@@ -249,6 +255,8 @@ class HomeView extends ConsumerWidget {
                                   const SizedBox(height: 16),
                                   Row(
                                     children: [
+                                       const Expanded(child: SizedBox.shrink()),
+                                       const SizedBox(width: 16),
                                       Expanded(
                                         child: _CompactActionCard(
                                           title: 'Torneos',
