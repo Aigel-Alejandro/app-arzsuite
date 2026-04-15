@@ -55,7 +55,25 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     try {
       final beneficiaries = await _service.getBeneficiaries(titular.id);
       final activeReg = await _service.getActiveRegistration(titular.id);
-      final costs = await _service.getCosts();
+      
+      final activeCourse = await _service.getActiveCourse();
+      List<Map<String, dynamic>> costs = [];
+      List<Map<String, dynamic>> weeks = [];
+      if (activeCourse != null && activeCourse['has_active_course'] == true) {
+         final courseData = activeCourse['course'];
+         if (courseData is Map) {
+           final rawCosts = courseData['sc_costs'];
+           if (rawCosts is List) {
+             costs = rawCosts.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+           }
+           final rawWeeks = courseData['sc_weeks'];
+           if (rawWeeks is List) {
+             weeks = rawWeeks.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+             weeks.sort((a, b) => (a['week_number'] as int? ?? 0).compareTo(b['week_number'] as int? ?? 0));
+           }
+         }
+      }
+
       final intensiveActivities = await _service.getIntensiveActivities();
       final termsStatus = await _termsService.checkTerms('cursos_verano');
 
@@ -63,6 +81,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
         beneficiariesList: beneficiaries,
         activeRegistration: activeReg,
         courseCosts: costs,
+        courseWeeks: weeks,
         intensiveActivities: intensiveActivities,
         termsRequired: termsStatus.required,
         termsAccepted: termsStatus.accepted || !termsStatus.required,
@@ -90,9 +109,26 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
 
   Future<void> refreshCosts() async {
     try {
-      final costs = await _service.getCosts();
+      final activeCourse = await _service.getActiveCourse();
+      List<Map<String, dynamic>> costs = [];
+      List<Map<String, dynamic>> weeks = [];
+      if (activeCourse != null && activeCourse['has_active_course'] == true) {
+         final courseData = activeCourse['course'];
+         if (courseData is Map) {
+           final rawCosts = courseData['sc_costs'];
+           if (rawCosts is List) {
+             costs = rawCosts.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+           }
+           final rawWeeks = courseData['sc_weeks'];
+           if (rawWeeks is List) {
+             weeks = rawWeeks.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+             weeks.sort((a, b) => (a['week_number'] as int? ?? 0).compareTo(b['week_number'] as int? ?? 0));
+           }
+         }
+      }
+      
       final intensiveActivities = await _service.getIntensiveActivities();
-      state = state.copyWith(courseCosts: costs, intensiveActivities: intensiveActivities);
+      state = state.copyWith(courseCosts: costs, courseWeeks: weeks, intensiveActivities: intensiveActivities);
       
       final updatedParticipants = state.selectedParticipants.map((p) {
         final newCost = _calculateCost(p.type, p.selectedWeekIds.length, p.intensiveActivityId);
@@ -143,26 +179,26 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     double baseCost = 0.0;
     
     if (weeksCount > 0 && state.courseCosts.isNotEmpty) {
+      String typeKey = '';
+      if (type == ParticipantType.socio) typeKey = 'member';
+      else if (type == ParticipantType.invitado) typeKey = 'guest';
+      else if (type == ParticipantType.colaborador) typeKey = 'staff';
+      else if (type == ParticipantType.invColaborador) typeKey = 'staff_guest';
+
+      String typeKeyEs = '';
+      if (type == ParticipantType.socio) typeKeyEs = 'socio';
+      else if (type == ParticipantType.invitado) typeKeyEs = 'invitado';
+      else if (type == ParticipantType.colaborador) typeKeyEs = 'colaborador';
+      else if (type == ParticipantType.invColaborador) typeKeyEs = 'inv_colaborador';
+
       final costEntry = state.courseCosts.firstWhere(
-        (c) => c['weeks_count'] == weeksCount, 
+        (c) => c['participant_type'] == typeKey || c['participant_type'] == typeKeyEs, 
         orElse: () => <String, dynamic>{}
       );
       
       if (costEntry.isNotEmpty) {
-        switch (type) {
-          case ParticipantType.socio:
-            baseCost = double.tryParse(costEntry['socio'].toString()) ?? 0.0;
-            break;
-          case ParticipantType.invitado:
-            baseCost = double.tryParse(costEntry['invitado'].toString()) ?? 0.0;
-            break;
-          case ParticipantType.colaborador:
-            baseCost = double.tryParse(costEntry['colaborador'].toString()) ?? 0.0;
-            break;
-          case ParticipantType.invColaborador:
-            baseCost = double.tryParse(costEntry['inv_colaborador'].toString()) ?? 0.0;
-            break;
-        }
+         double costPerWeek = double.tryParse(costEntry['cost_per_week'].toString()) ?? 0.0;
+         baseCost = costPerWeek * weeksCount;
       }
     }
 

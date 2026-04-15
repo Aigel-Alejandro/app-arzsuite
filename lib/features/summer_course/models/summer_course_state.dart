@@ -19,6 +19,7 @@ class SummerCourseState with _$SummerCourseState {
     List<dynamic>? pickUpTokens, // Tokens_acceso para recoger a los niños
     Map<String, dynamic>? activeRegistration,
     @Default([]) List<Map<String, dynamic>> courseCosts,
+    @Default([]) List<Map<String, dynamic>> courseWeeks,
     @Default([]) List<Map<String, dynamic>> intensiveActivities,
     // Terms & Conditions
     @Default(false) bool termsAccepted,
