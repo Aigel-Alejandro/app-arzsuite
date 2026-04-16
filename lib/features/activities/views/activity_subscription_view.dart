@@ -21,6 +21,7 @@ class ActivitySubscriptionView extends ConsumerStatefulWidget {
 
 class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionView> {
   String? _selectedBeneficiary;
+  String? _selectedLugar;
   bool _termsAccepted = false;
   int? _selectedGroupId;
   Set<String> _selectedItems = {};
@@ -464,6 +465,9 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
               ),
               const SizedBox(height: AppTheme.spacingLarge),
 
+              if (currentSelectedGroup != null)
+                _buildLugarSelector(context, currentSelectedGroup!),
+
               // --- Términos y Condiciones ---
               if (_termsStatus == null)
                 const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
@@ -533,7 +537,11 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (_selectedBeneficiary != null && _termsAccepted && _selectedItems.isNotEmpty && !_isEnrolling)
+                  onPressed: (_selectedBeneficiary != null && 
+                              _termsAccepted && 
+                              _selectedItems.isNotEmpty && 
+                              !_isEnrolling &&
+                              (!(currentSelectedGroup?.requiereSeleccionLugares ?? false) || _selectedLugar != null))
                       ? () async {
                           setState(() => _isEnrolling = true);
                           try {
@@ -544,7 +552,7 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                               
                               final String beneficiarySocioId = validBeneficiaries.firstWhere((b) => b['name'] == _selectedBeneficiary)['id'].toString();
                               final String finalName = _selectedBeneficiary!.replaceAll(' (Titular)', '');
-                              await ref.read(activitiesProvider.notifier).inscribirActividad(eqId, horId, finalName, beneficiarySocioId);
+                              await ref.read(activitiesProvider.notifier).inscribirActividad(eqId, horId, finalName, beneficiarySocioId, lugar: _selectedLugar);
                               ref.read(mockInscriptionsProvider.notifier).addInscription(_selectedBeneficiary!, widget.activity.id);
                             }
                             
@@ -580,6 +588,202 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
     );
   }
 
+  Widget _buildLugarSelector(BuildContext context, ActivityGroupModel grupo) {
+    if (!grupo.requiereSeleccionLugares) return const SizedBox.shrink();
+    if (_selectedItems.isEmpty) return const SizedBox.shrink();
+
+    final selectedItemStr = _selectedItems.first;
+    final parts = selectedItemStr.split('-');
+    final eqId = int.parse(parts[0]);
+    final horId = parts[1] == 'null' ? null : int.parse(parts[1]);
+
+    // Encontrar el equipo
+    ActivityTeamModel? equipo;
+    try {
+      equipo = grupo.equipos.firstWhere((e) => e.id == eqId);
+    } catch (_) {}
+
+    if (equipo == null) return const SizedBox.shrink();
+
+    int cupoMaximo = 0;
+    List<String> lugaresOcupados = [];
+    ActivityAreaPlanoModel? plano;
+
+    if (horId != null) {
+      try {
+        final horario = equipo.horarios.firstWhere((h) => h.id == horId);
+        cupoMaximo = horario.cupoMaximo ?? 0;
+        lugaresOcupados = horario.lugaresOcupados;
+        plano = horario.plano;
+      } catch (_) {}
+    } else {
+      cupoMaximo = grupo.cupoDisponible ?? 0;
+      lugaresOcupados = equipo.lugaresOcupados;
+    }
+
+    if (cupoMaximo <= 0) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Opacity(
+          opacity: _isEnrolling ? 0.4 : 1.0,
+          child: IgnorePointer(
+            ignoring: _isEnrolling,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selecciona tu Lugar',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.neutral900,
+                      ),
+                ),
+                const SizedBox(height: AppTheme.spacingSmall),
+                if (plano != null)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: plano!.columnas * 50.0, // 50 pixels per column to enforce squareness and horizontal scroll on small devices
+                      child: GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: plano!.columnas,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
+                        itemCount: plano!.filas * plano!.columnas,
+                        itemBuilder: (context, index) {
+                          final fila = index ~/ plano!.columnas;
+                          final columna = index % plano!.columnas;
+                          
+                          // Find position
+                          ActivityAreaPlanoPositionModel? pos;
+                          try {
+                            pos = plano!.posiciones.firstWhere(
+                              (p) => p.filaIndex == fila && p.columnaIndex == columna
+                            );
+                          } catch (_) {}
+
+                          if (pos == null || pos.tipo == 'vacio' || !pos.isActive) {
+                            return const SizedBox.shrink();
+                          }
+
+                          if (pos.tipo == 'instructor') {
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.blueAccent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.person, color: Colors.white, size: 20),
+                              ),
+                            );
+                          }
+
+                          // Tipo: Lugar
+                          final lugarLabel = pos.etiqueta;
+                          final isOccupied = lugaresOcupados.contains(lugarLabel);
+                          final isSelected = _selectedLugar == lugarLabel;
+
+                          return InkWell(
+                            onTap: isOccupied ? null : () {
+                              setState(() {
+                                _selectedLugar = isSelected ? null : lugarLabel;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isOccupied 
+                                    ? AppTheme.neutral200 
+                                    : (isSelected ? AppTheme.primaryColor : AppTheme.successColor.withValues(alpha: 0.15)),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isOccupied 
+                                      ? AppTheme.neutral300 
+                                      : (isSelected ? AppTheme.primaryColor : AppTheme.successColor.withValues(alpha: 0.5)),
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  lugarLabel,
+                                  style: TextStyle(
+                                    color: isOccupied 
+                                        ? AppTheme.neutral500 
+                                        : (isSelected ? Colors.white : AppTheme.successColor),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 5,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: cupoMaximo,
+                    itemBuilder: (context, index) {
+                      final lugarLabel = (index + 1).toString();
+                      final isOccupied = lugaresOcupados.contains(lugarLabel);
+                      final isSelected = _selectedLugar == lugarLabel;
+
+                      return InkWell(
+                        onTap: isOccupied ? null : () {
+                          setState(() {
+                            _selectedLugar = isSelected ? null : lugarLabel;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: isOccupied 
+                                ? AppTheme.neutral200 
+                                : (isSelected ? AppTheme.primaryColor : Colors.white),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isOccupied 
+                                  ? AppTheme.neutral300 
+                                  : (isSelected ? AppTheme.primaryColor : AppTheme.neutral300),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              lugarLabel,
+                              style: TextStyle(
+                                color: isOccupied 
+                                    ? AppTheme.neutral500 
+                                    : (isSelected ? Colors.white : AppTheme.neutral900),
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: AppTheme.spacingLarge),
+      ],
+    );
+  }
+
   // Helper methods to render list tiles based on Activity Type
   List<Widget> _buildEquipoLevelRadios(ActivityGroupModel grupo, bool isFull) {
     return grupo.equipos.map((equipo) {
@@ -595,6 +799,7 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                 _selectedGroupId = grupo.id;
                 _selectedItems.clear();
                 _expandedDays.clear();
+                _selectedLugar = null;
               }
               if (isChecked) {
                 _selectedItems.remove(key);
@@ -602,6 +807,7 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                 _selectedItems.add(key);
               }
               _selectedBeneficiary = null;
+              _selectedLugar = null;
             });
           },
           borderRadius: BorderRadius.circular(14),
@@ -829,6 +1035,7 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                 _selectedItems.add(key);
               }
               _selectedBeneficiary = null;
+              _selectedLugar = null;
             });
           },
           borderRadius: BorderRadius.circular(14),
