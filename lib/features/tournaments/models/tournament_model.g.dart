@@ -42,6 +42,7 @@ _$TournamentModelImpl _$$TournamentModelImplFromJson(
           ?.map((e) => TournamentMatchModel.fromJson(e as Map<String, dynamic>))
           .toList() ??
       [],
+  isUserInscribed: json['is_user_inscribed'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$TournamentModelImplToJson(
@@ -61,6 +62,7 @@ Map<String, dynamic> _$$TournamentModelImplToJson(
   'socios_inscritos': instance.sociosInscritos,
   'participantes': instance.participantes,
   'partidos': instance.partidos,
+  'is_user_inscribed': instance.isUserInscribed,
 };
 
 _$TournamentTeamModelImpl _$$TournamentTeamModelImplFromJson(

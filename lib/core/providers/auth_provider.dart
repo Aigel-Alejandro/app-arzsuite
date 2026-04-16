@@ -26,7 +26,7 @@ class AuthNotifier extends StateNotifier<Member?> {
         lastName: '',
         secondLastName: '',
         memberType: memberType,
-        isTitular: memberType == 'Titular',
+        isTitular: memberType.toLowerCase() == 'titular',
         token: token,
         permissions: permissions,
       );

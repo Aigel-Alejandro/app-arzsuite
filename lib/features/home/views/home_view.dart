@@ -25,6 +25,19 @@ class HomeView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMember = ref.watch(authProvider);
 
+    String firstName = '';
+    if (currentMember != null && currentMember.firstName.isNotEmpty) {
+      final parts = currentMember.firstName.trim().split(' ');
+      if (parts.isNotEmpty) {
+        firstName = parts.first;
+        if (int.tryParse(firstName) != null) {
+           firstName = '';
+        } else if (firstName.length > 1) {
+          firstName = firstName[0].toUpperCase() + firstName.substring(1).toLowerCase();
+        }
+      }
+    }
+
     return MainLayout(
       activeIndex: 0,
       child: Column(
@@ -46,15 +59,7 @@ class HomeView extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min, // Keep column compact
                     children: [
                       Text(
-                        'Buen día,',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '¡Bienvenido!',
+                        firstName.isNotEmpty ? 'Buen día $firstName' : 'Buen día',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -81,9 +86,10 @@ class HomeView extends ConsumerWidget {
                     // ── Accesos Rápidos (verano + torneos unificados) ─────────
                     Consumer(
                       builder: (context, ref, _) {
+                        final isStaffOrInstructor = currentMember?.memberType == 'staff' || currentMember?.memberType == 'instructor' || currentMember?.memberType == 'profesor';
                         final hasTournaments  = currentMember?.hasPermission('tournaments.dashboard') ?? false;
                         final hasSummerEnroll = currentMember?.hasPermission('summer_course.enroll') ?? false;
-                        if (!hasTournaments && !hasSummerEnroll) return const SizedBox.shrink();
+                        if (!hasTournaments && !hasSummerEnroll && !isStaffOrInstructor) return const SizedBox.shrink();
 
                         final activeCourseAsync = ref.watch(activeSummerCourseProvider);
 
@@ -91,7 +97,9 @@ class HomeView extends ConsumerWidget {
                           data: (courseData) {
                             final hasActiveCourse = courseData?['has_active_course'] == true;
                             final showSummer = hasActiveCourse && hasSummerEnroll;
-                            if (!showSummer && !hasTournaments) return const SizedBox.shrink();
+                            final showQRScanner = hasActiveCourse && isStaffOrInstructor;
+                            
+                            if (!showSummer && !hasTournaments && !showQRScanner) return const SizedBox.shrink();
 
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -172,7 +180,7 @@ class HomeView extends ConsumerWidget {
                                             const Expanded(child: SizedBox.shrink()),
                                         ],
                                       ),
-                                      if (showSummer && (currentMember?.isTitular ?? false)) ...[
+                                      if (showQRScanner) ...[
                                         const SizedBox(height: 24),
                                         Text(
                                           'STAFF VERANO',
@@ -783,10 +791,11 @@ class _TournamentsListWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tournamentsAsync = ref.watch(tournamentsProvider);
+    final currentMember = ref.watch(authProvider);
     
     return tournamentsAsync.when(
       data: (tournaments) {
-        final inscribedTournaments = tournaments.where((t) => t.sociosInscritos.isNotEmpty).toList();
+        final inscribedTournaments = tournaments.where((t) => t.isUserInscribed).toList();
 
         if (inscribedTournaments.isEmpty) {
           return const Padding(

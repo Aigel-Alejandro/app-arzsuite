@@ -110,64 +110,15 @@ class _TournamentMyDetailViewState extends ConsumerState<TournamentMyDetailView>
     String capitanNombre = 'No asignado';
     
     if (widget.tournament.equiposDisponibles.isNotEmpty) {
-      // 1. Verificar si el usuario es el capitán explícitamente en algún equipo
       final myCaptainTeam = widget.tournament.equiposDisponibles.where((t) => t.isUserCaptain).firstOrNull;
       
       if (myCaptainTeam != null) {
         isUserCaptain = true;
         capitanNombre = (myCaptainTeam.capitanActual?.isNotEmpty == true) ? myCaptainTeam.capitanActual! : 'Tú (Capitán)';
       } else {
-        // 2. Intentar buscar el equipo del socio basándose en los participantes
-        bool matchFound = false;
-        
-        if (widget.tournament.sociosInscritos.isNotEmpty) {
-          for (final socio in widget.tournament.sociosInscritos) {
-            final p = widget.tournament.participantes.where(
-              (part) => part.nombre.toLowerCase().contains(socio.toLowerCase()) || 
-                        socio.toLowerCase().contains(part.nombre.toLowerCase())
-            ).firstOrNull;
-            
-            if (p != null) {
-              final myTeam = widget.tournament.equiposDisponibles.where((t) => t.id == p.equipoId).firstOrNull;
-              if (myTeam != null && myTeam.capitanActual?.isNotEmpty == true) {
-                capitanNombre = myTeam.capitanActual!;
-                matchFound = true;
-                break;
-              }
-            }
-          }
-        }
-        
-        // 3. Fallback: Si no pudimos emparejar, mostrar el capitán del primer equipo que sí tenga uno
-        if (!matchFound) {
-          final anyTeamWithCaptain = widget.tournament.equiposDisponibles.where((t) => t.capitanActual?.isNotEmpty == true).firstOrNull;
-          if (anyTeamWithCaptain != null) {
-            capitanNombre = anyTeamWithCaptain.capitanActual!;
-          }
-        }
-      }
-      
-      // Si aún no hemos marcado isUserCaptain pero ya descubrimos el nombre del capitan
-      // Validamos si ese capitan casualmente es uno de los miembros de nuestra familia inscritos o participantes.
-      if (!isUserCaptain && capitanNombre != 'No asignado') {
-        String normalize(String s) => s.toLowerCase().replaceAll(RegExp(r'[áéíóúü]'), 'a').replaceAll(' ', '');
-        final capNorm = normalize(capitanNombre);
-
-        bool isFamilyCaptain = widget.tournament.sociosInscritos.any((socio) {
-          final sNorm = normalize(socio);
-          return sNorm.contains(capNorm) || capNorm.contains(sNorm);
-        });
-
-        // Respaldar revisando participantes (que suelen ser los familiares en la consulta API)
-        if (!isFamilyCaptain) {
-          isFamilyCaptain = widget.tournament.participantes.any((p) {
-            final pNorm = normalize(p.nombre);
-            return pNorm.contains(capNorm) || capNorm.contains(pNorm);
-          });
-        }
-
-        if (isFamilyCaptain) {
-          isUserCaptain = true;
+        final anyTeamWithCaptain = widget.tournament.equiposDisponibles.where((t) => t.capitanActual?.isNotEmpty == true).firstOrNull;
+        if (anyTeamWithCaptain != null) {
+          capitanNombre = anyTeamWithCaptain.capitanActual!;
         }
       }
     }

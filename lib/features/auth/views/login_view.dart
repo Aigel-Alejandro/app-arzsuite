@@ -63,6 +63,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
         final savedMemberType = prefs.getString('saved_member_type') ?? 'Titular';
         final savedPermissions = prefs.getStringList('saved_permissions') ?? [];
+        final savedId = prefs.getString('saved_id') ?? '0';
 
         // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
         if (savedToken != null) {
@@ -71,13 +72,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
         ref.read(authProvider.notifier).setLoggedInMember(
           Member(
-            id: '999',
+            id: savedId,
             membershipNumber: savedUser,
             firstName: 'Socio',
             lastName: 'Identificado',
             secondLastName: '',
             memberType: savedMemberType,
-            isTitular: savedMemberType == 'Titular',
+            isTitular: savedMemberType.toLowerCase() == 'titular',
             token: savedToken,
             permissions: savedPermissions,
           ),
@@ -103,7 +104,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     try {
       final dio = ref.read(apiClientProvider).dio;
       final response = await dio.post(
-        ApiEndpoints.requestSocioCode,
+        ApiEndpoints.requestAppCode,
         data: {'username': username},
       );
       
@@ -145,7 +146,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
       try {
         final dio = ref.read(apiClientProvider).dio;
         final response = await dio.post(
-          ApiEndpoints.loginSocio,
+          ApiEndpoints.loginAppCode,
           data: {
             'username': username,
             'password': password,
@@ -154,20 +155,30 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
         if (mounted) {
-          final socioData = response.data['data']['socio'];
-          final memberType = socioData['app_role'] ?? 'Titular';
+          final userData = response.data['data']['user'];
+          final memberType = userData['role'] ?? 'titular';
           final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
 
+          final mainId = userData['entityid'] ?? userData['username'] ?? username;
+
+          String fName = userData['first_name']?.toString().trim() ?? '';
+          if (fName.isEmpty) {
+            fName = userData['fullname']?.toString().trim() ?? 'Usuario';
+          }
+          if (int.tryParse(fName.split(' ').first) != null) {
+            fName = 'Socio';
+          }
+
           final mappedMember = Member(
-            id: socioData['id'].toString(),
-            membershipNumber: socioData['entityid'] ?? username,
-            firstName: socioData['fullname'] ?? 'Usuario',
-            lastName: '',
+            id: userData['id'].toString(),
+            membershipNumber: mainId,
+            firstName: fName,
+            lastName: userData['last_name']?.toString().trim() ?? '',
             secondLastName: '',
             memberType: memberType,
-            isTitular: memberType == 'Titular',
-            email: socioData['email'],
-            phone: socioData['phone'],
+            isTitular: memberType.toLowerCase() == 'titular',
+            email: userData['email'],
+            phone: userData['phone'],
             token: response.data['data']['access_token'],
             permissions: permissions,
           );
