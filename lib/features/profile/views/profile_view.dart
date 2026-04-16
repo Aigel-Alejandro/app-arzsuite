@@ -975,6 +975,68 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cambio de Datos',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white70 
+                                : AppTheme.neutral700,
+                            height: 1.5,
+                          ),
+                          children: const [
+                            TextSpan(text: 'Si detectas que alguno de los datos que se muestran es incorrecto o necesitas actualizarlo '),
+                            TextSpan(text: '(sobre todo para los datos de dirección personales y datos fiscales)', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: ', por favor contáctanos:\n\n'),
+                            TextSpan(text: '• Hermes: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: '55 5228 9933 ext. 2900\n'),
+                            TextSpan(text: '• Glaciar: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: '55 5668 6068 ext. 6107\n'),
+                            TextSpan(text: '• Correo: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: 'cobranza@centrolibanes.org.mx\n\n'),
+                            TextSpan(text: '¡Nos dará mucho gusto apoyarte!', style: TextStyle(fontStyle: FontStyle.italic)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _buildSectionHeader(context, 'Datos Personales', Icons.person_outline_rounded),
           const SizedBox(height: 16),
           _buildCard(
