@@ -155,8 +155,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
         if (mounted) {
-          final userData = response.data['data']['user'];
-          final memberType = userData['role'] ?? 'titular';
+          final userData = response.data['data']['socio'] ?? response.data['data']['user'];
+          final memberType = userData['role'] ?? userData['app_role'] ?? 'titular';
           final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
 
           final mainId = userData['entityid'] ?? userData['username'] ?? username;

@@ -34,7 +34,6 @@ class ApiClient {
         if (_token != null && _token!.isNotEmpty) {
           final cleanToken = _token!.trim();
           options.headers['Authorization'] = 'Bearer $cleanToken';
-          options.headers['X-Authorization'] = 'Bearer $cleanToken';
           // Debug log
           // ignore: avoid_print
           print('ApiClient: Adding Authorization headers with token: $cleanToken');
