@@ -10,22 +10,25 @@ import 'package:app_arzsuite/features/profile/providers/profile_provider.dart';
 import 'package:app_arzsuite/features/activities/providers/mock_inscriptions_provider.dart';
 import 'package:app_arzsuite/features/activities/providers/activities_provider.dart';
 import 'package:app_arzsuite/core/providers/terms_provider.dart';
+import 'package:app_arzsuite/features/activities/views/mis_reservas_view.dart';
 
 class ActivitySubscriptionView extends ConsumerStatefulWidget {
   final ActivityModel activity;
   const ActivitySubscriptionView({super.key, required this.activity});
 
   @override
-  ConsumerState<ActivitySubscriptionView> createState() => _ActivitySubscriptionViewState();
+  ConsumerState<ActivitySubscriptionView> createState() =>
+      _ActivitySubscriptionViewState();
 }
 
-class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionView> {
+class _ActivitySubscriptionViewState
+    extends ConsumerState<ActivitySubscriptionView> {
   String? _selectedBeneficiary;
   String? _selectedLugar;
   bool _termsAccepted = false;
   int? _selectedGroupId;
   Set<String> _selectedItems = {};
-  Set<int> _expandedDays = {};
+  Map<int, int> _activeDayFilters = {};
   bool _isEnrolling = false;
 
   TermsStatus? _termsStatus;
@@ -56,16 +59,26 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
 
   String _diaToString(int dia) {
     const meta = {
-      1: 'Lunes', 2: 'Martes', 3: 'Miércoles', 
-      4: 'Jueves', 5: 'Viernes', 6: 'Sábado', 7: 'Domingo'
+      1: 'Lunes',
+      2: 'Martes',
+      3: 'Miércoles',
+      4: 'Jueves',
+      5: 'Viernes',
+      6: 'Sábado',
+      7: 'Domingo',
     };
     return meta[dia] ?? 'Día $dia';
   }
 
   String _shortDia(int dia) {
     const meta = {
-      1: 'Lun', 2: 'Mar', 3: 'Mié', 
-      4: 'Jue', 5: 'Vie', 6: 'Sáb', 7: 'Dom'
+      1: 'Lun',
+      2: 'Mar',
+      3: 'Mié',
+      4: 'Jue',
+      5: 'Vie',
+      6: 'Sáb',
+      7: 'Dom',
     };
     return meta[dia] ?? 'Día';
   }
@@ -75,11 +88,16 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
   IconData _getIconData(String? iconName) {
     if (iconName == null) return Icons.sports;
     switch (iconName) {
-      case 'sports_soccer': return Icons.sports_soccer;
-      case 'pool': return Icons.pool;
-      case 'sports_tennis': return Icons.sports_tennis;
-      case 'self_improvement': return Icons.self_improvement;
-      default: return Icons.sports;
+      case 'sports_soccer':
+        return Icons.sports_soccer;
+      case 'pool':
+        return Icons.pool;
+      case 'sports_tennis':
+        return Icons.sports_tennis;
+      case 'self_improvement':
+        return Icons.self_improvement;
+      default:
+        return Icons.sports;
     }
   }
 
@@ -90,7 +108,11 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
     return const Color(0xFF406EBA);
   }
 
-  void _openBeneficiarySelector(BuildContext context, List<Map<String, dynamic>> beneficiaries, ActivityGroupModel selectedGroup) {
+  void _openBeneficiarySelector(
+    BuildContext context,
+    List<Map<String, dynamic>> beneficiaries,
+    ActivityGroupModel selectedGroup,
+  ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -101,7 +123,9 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Column(
@@ -113,98 +137,162 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Selecciona el Beneficiario', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                        Text(
+                          'Selecciona el Beneficiario',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
                         const SizedBox(height: 4),
-                        Text('Grupo: ${selectedGroup.nombre}', style: const TextStyle(color: AppTheme.neutral600)),
+                        Text(
+                          'Grupo: ${selectedGroup.nombre}',
+                          style: const TextStyle(color: AppTheme.neutral600),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   const Divider(height: 1, color: AppTheme.neutral100),
-                  ...beneficiaries.where((b) {
-                     int? age = b['age'];
-                     // Lógica excluyente: 
-                     // Validamos las edades permitidas del grupo versus la edad del familiar
-                     if (selectedGroup.edadMin != null && selectedGroup.edadMax != null) {
-                         if (age == null) return false; // El grupo exige limites, pero el usuario no tiene edad... rechazado
-                         if (age < selectedGroup.edadMin! || age > selectedGroup.edadMax!) return false;
-                     } else if (selectedGroup.edadMin != null) {
-                         if (age == null) return false;
-                         if (age < selectedGroup.edadMin!) return false;
-                     } else if (selectedGroup.edadMax != null) {
-                         if (age == null) return false;
-                         if (age > selectedGroup.edadMax!) return false;
-                     }
+                  ...beneficiaries
+                      .where((b) {
+                        int? age = b['age'];
+                        // Lógica excluyente:
+                        // Validamos las edades permitidas del grupo versus la edad del familiar
+                        if (selectedGroup.edadMin != null &&
+                            selectedGroup.edadMax != null) {
+                          if (age == null)
+                            return false; // El grupo exige limites, pero el usuario no tiene edad... rechazado
+                          if (age < selectedGroup.edadMin! ||
+                              age > selectedGroup.edadMax!)
+                            return false;
+                        } else if (selectedGroup.edadMin != null) {
+                          if (age == null) return false;
+                          if (age < selectedGroup.edadMin!) return false;
+                        } else if (selectedGroup.edadMax != null) {
+                          if (age == null) return false;
+                          if (age > selectedGroup.edadMax!) return false;
+                        }
 
-                     // Validación Doble Inscripción
-                     bool canEnrollMultiple = widget.activity.tipo == 'arte' || widget.activity.tipo == 'otro';
-                     if (!canEnrollMultiple) {
-                         bool isEnrolled = ref.read(mockInscriptionsProvider).contains('${b['name']}-${widget.activity.id}');
-                         if (isEnrolled) return false;
-                     }
+                        // Validación Doble Inscripción
+                        bool canEnrollMultiple =
+                            widget.activity.tipo == 'arte' ||
+                            widget.activity.tipo == 'otro';
+                        if (!canEnrollMultiple) {
+                          bool isEnrolled = ref
+                              .read(mockInscriptionsProvider)
+                              .contains('${b['name']}-${widget.activity.id}');
+                          if (isEnrolled) return false;
+                        }
 
-                     // Si el grupo no tiene límites de edad, TODOS pasan. Si sí los tiene y el miembro cumple, pasa.
-                     return true;
-                  }).map((b) {
-                     int? age = b['age'];
-                     
-                     return InkWell(
-                       onTap: () {
-                         setState(() => _selectedBeneficiary = b['name']);
-                         Navigator.pop(context);
-                       },
-                       child: Container(
-                         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                         color: Colors.transparent,
-                         child: Row(
-                           children: [
-                             CircleAvatar(
-                               radius: 20,
-                               backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.1),
-                               child: const Icon(Icons.person, color: AppTheme.primaryColor, size: 20),
-                             ),
-                             const SizedBox(width: 16),
-                             Expanded(
-                               child: Column(
-                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                 children: [
-                                   Text(b['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: AppTheme.neutral900)),
-                                   const SizedBox(height: 2),
-                                   Text(age != null ? '$age años' : 'Edad sin proporcionar en perfil', style: const TextStyle(color: AppTheme.neutral600, fontSize: 13)),
-                                 ],
-                               ),
-                             ),
-                             if (_selectedBeneficiary == b['name'])
-                               const Icon(Icons.check_circle, color: AppTheme.primaryColor)
-                             else
-                               const Icon(Icons.chevron_right, color: AppTheme.neutral300),
-                           ],
-                         ),
-                       ),
-                     );
-                  }),
+                        // Si el grupo no tiene límites de edad, TODOS pasan. Si sí los tiene y el miembro cumple, pasa.
+                        return true;
+                      })
+                      .map((b) {
+                        int? age = b['age'];
+
+                        return InkWell(
+                          onTap: () {
+                            setState(() => _selectedBeneficiary = b['name']);
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            color: Colors.transparent,
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 20,
+                                  backgroundColor: AppTheme.primaryColor
+                                      .withValues(alpha: 0.1),
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: AppTheme.primaryColor,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        b['name'],
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: AppTheme.neutral900,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        age != null
+                                            ? '$age años'
+                                            : 'Edad sin proporcionar en perfil',
+                                        style: const TextStyle(
+                                          color: AppTheme.neutral600,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (_selectedBeneficiary == b['name'])
+                                  const Icon(
+                                    Icons.check_circle,
+                                    color: AppTheme.primaryColor,
+                                  )
+                                else
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: AppTheme.neutral300,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
                   if (beneficiaries.where((b) {
-                     int? age = b['age'];
-                     if (selectedGroup.edadMin != null && selectedGroup.edadMax != null) {
-                         if (age == null) return false;
-                         if (age < selectedGroup.edadMin! || age > selectedGroup.edadMax!) return false;
-                     } else if (selectedGroup.edadMin != null) {
-                         if (age == null) return false;
-                         if (age < selectedGroup.edadMin!) return false;
-                     } else if (selectedGroup.edadMax != null) {
-                         if (age == null) return false;
-                         if (age > selectedGroup.edadMax!) return false;
-                     }
-                     bool canEnrollMultiple = widget.activity.tipo == 'arte' || widget.activity.tipo == 'otro';
-                     if (!canEnrollMultiple) {
-                         bool isEnrolled = ref.read(mockInscriptionsProvider).contains('${b['name']}-${widget.activity.id}');
-                         if (isEnrolled) return false;
-                     }
-                     return true;
+                    int? age = b['age'];
+                    if (selectedGroup.edadMin != null &&
+                        selectedGroup.edadMax != null) {
+                      if (age == null) return false;
+                      if (age < selectedGroup.edadMin! ||
+                          age > selectedGroup.edadMax!)
+                        return false;
+                    } else if (selectedGroup.edadMin != null) {
+                      if (age == null) return false;
+                      if (age < selectedGroup.edadMin!) return false;
+                    } else if (selectedGroup.edadMax != null) {
+                      if (age == null) return false;
+                      if (age > selectedGroup.edadMax!) return false;
+                    }
+                    bool canEnrollMultiple =
+                        widget.activity.tipo == 'arte' ||
+                        widget.activity.tipo == 'otro';
+                    if (!canEnrollMultiple) {
+                      bool isEnrolled = ref
+                          .read(mockInscriptionsProvider)
+                          .contains('${b['name']}-${widget.activity.id}');
+                      if (isEnrolled) return false;
+                    }
+                    return true;
                   }).isEmpty)
                     const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: Text('Ningún miembro cumple con la edad o ya están inscritos.', style: TextStyle(color: AppTheme.dangerColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 16,
+                      ),
+                      child: Text(
+                        'Ningún miembro cumple con la edad o ya están inscritos.',
+                        style: TextStyle(
+                          color: AppTheme.dangerColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
                     ),
                   const SizedBox(height: 16),
                 ],
@@ -212,30 +300,36 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
             ),
           ),
         );
-      }
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
-    
+
     // Preparar lista rica de integrantes familiares
     List<Map<String, dynamic>> validBeneficiaries = [];
     if (profileAsync.value != null) {
       final String rawTitular = profileAsync.value!.fullname ?? '';
-      final String cleanTitular = rawTitular.replaceFirst(RegExp(r'^\d+\s*'), '');
-      
+      final String cleanTitular = rawTitular.replaceFirst(
+        RegExp(r'^\d+\s*'),
+        '',
+      );
+
       validBeneficiaries.add({
-        'id': profileAsync.value!.id,
+        'id': int.tryParse(profileAsync.value!.id.toString()) ?? 0,
         'name': "$cleanTitular (Titular)",
         'age': profileAsync.value!.age,
       });
       for (var member in profileAsync.value!.associatedMembers) {
         if (member.fullname != null && member.fullname!.isNotEmpty) {
-          final String cleanMember = member.fullname!.replaceFirst(RegExp(r'^\d+\s*'), '');
+          final String cleanMember = member.fullname!.replaceFirst(
+            RegExp(r'^\d+\s*'),
+            '',
+          );
           validBeneficiaries.add({
-            'id': member.id,
+            'id': int.tryParse(member.id.toString()) ?? 0,
             'name': cleanMember,
             'age': member.age,
           });
@@ -246,11 +340,45 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
     ActivityGroupModel? currentSelectedGroup;
     if (_selectedGroupId != null) {
       try {
-        currentSelectedGroup = widget.activity.grupos.firstWhere((g) => g.id == _selectedGroupId);
+        currentSelectedGroup = widget.activity.grupos.firstWhere(
+          (g) => g.id == _selectedGroupId,
+        );
       } catch (_) {}
     }
 
-    // Hemos retirado MainLayout para que el botón inferior no sufra overlays
+    // ── Detección temprana: ¿el beneficiario ya está inscrito en este horario?
+    bool yaInscrito = false;
+    if (_selectedItems.isNotEmpty && _selectedBeneficiary != null) {
+      final parts = _selectedItems.first.split('-');
+      final selHorId = parts.length > 1 && parts[1] != 'null'
+          ? int.tryParse(parts[1])
+          : null;
+      final selEqId = int.tryParse(parts[0]);
+
+      if (selHorId != null) {
+        for (final g in widget.activity.grupos) {
+          for (final eq in g.equipos) {
+            if (eq.id == selEqId) {
+              for (final h in eq.horarios) {
+                if (h.id == selHorId) {
+                  final benefId = validBeneficiaries
+                      .where((b) => b['name'] == _selectedBeneficiary)
+                      .map((b) => b['id'] as int)   // ← ya es int gracias al int.tryParse arriba
+                      .firstOrNull;
+                  if (benefId != null && benefId != 0 &&
+                      h.alumnosInscritos.contains(benefId)) {
+                    yaInscrito = true;
+                  }
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -263,104 +391,145 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppTheme.spacingLarge),
-              
+              const SizedBox(height: 12),
+
+              // ── Header compacto ──────────────────────────────────────
               Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: _getColor(widget.activity.color).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
+                      color: _getColor(widget.activity.color).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(_getIconData(widget.activity.icono), color: _getColor(widget.activity.color), size: 32),
+                    child: Icon(
+                      _getIconData(widget.activity.icono),
+                      color: _getColor(widget.activity.color),
+                      size: 24,
+                    ),
                   ),
-                  const SizedBox(width: AppTheme.spacingMedium),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           widget.activity.nombre,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 color: AppTheme.neutral900,
                               ),
                         ),
-                        if (widget.activity.descripcion != null) ...[
-                          const SizedBox(height: AppTheme.spacingSmall),
+                        if (widget.activity.descripcion != null)
                           Text(
                             widget.activity.descripcion!,
-                            style: const TextStyle(color: AppTheme.neutral600),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppTheme.neutral500,
+                              fontSize: 12,
+                            ),
                           ),
-                        ],
                       ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppTheme.spacingLarge),
+              const SizedBox(height: 12),
 
-              Text(
-                'Elige un Grupo y Horario',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.neutral900,
-                    ),
+              // ── Barra de progreso ───────────────────────────────
+              _StepProgressBar(
+                step1Done: _selectedItems.isNotEmpty,
+                step2Done: _selectedBeneficiary != null,
+                step3Done: currentSelectedGroup?.requiereSeleccionLugares == true
+                    ? _selectedLugar != null
+                    : _selectedBeneficiary != null,
               ),
+              const SizedBox(height: 14),
+
+              // ── Paso 1 ─────────────────────────────────────────
+              _StepLabel(number: 1, label: 'Elige el día y horario', done: _selectedItems.isNotEmpty),
               const SizedBox(height: AppTheme.spacingSmall),
-              
+
               if (widget.activity.grupos.isEmpty)
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppTheme.spacingLarge),
                   decoration: BoxDecoration(
                     color: AppTheme.neutral100,
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusMedium,
+                    ),
                   ),
-                  child: const Text('No hay horarios ni grupos configurados aún.', style: TextStyle(color: AppTheme.neutral600)),
+                  child: const Text(
+                    'No hay horarios ni grupos configurados aún.',
+                    style: TextStyle(color: AppTheme.neutral600),
+                  ),
                 )
               else
                 Column(
                   children: widget.activity.grupos.map((grupo) {
                     final bool isUnlimited = !grupo.tieneCupo;
-                    final bool isFull = !isUnlimited && (grupo.cupoDisponible ?? 0) <= 0;
+                    final bool isFull =
+                        !isUnlimited && (grupo.cupoDisponible ?? 0) <= 0;
                     final bool isSelected = _selectedGroupId == grupo.id;
 
                     String ageText = "Libre (Cualquier Edad)";
                     if (grupo.edadMin != null && grupo.edadMax != null) {
-                       ageText = "De ${grupo.edadMin} a ${grupo.edadMax} años";
+                      ageText = "De ${grupo.edadMin} a ${grupo.edadMax} años";
                     } else if (grupo.edadMin != null) {
-                       ageText = "Mayores de ${grupo.edadMin} años";
+                      ageText = "Mayores de ${grupo.edadMin} años";
                     } else if (grupo.edadMax != null) {
-                       ageText = "Menores de ${grupo.edadMax} años";
+                      ageText = "Menores de ${grupo.edadMax} años";
                     }
 
-                    String spotsText = isUnlimited ? "Ilimitado" : (isFull ? "Agotado" : "${grupo.cupoDisponible} lugares");
+                    String spotsText = isUnlimited
+                        ? "Ilimitado"
+                        : (isFull
+                              ? "Agotado"
+                              : "${grupo.cupoDisponible} lugares");
 
                     return Container(
-                      margin: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                      margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.03) : Colors.white,
-                        borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                        color: isSelected
+                            ? AppTheme.primaryColor.withValues(alpha: 0.03)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppTheme.borderRadiusGlobal,
+                        ),
                         border: Border.all(
-                          color: isSelected ? AppTheme.primaryColor : AppTheme.neutral300,
+                          color: isSelected
+                              ? AppTheme.primaryColor
+                              : AppTheme.neutral300,
                           width: isSelected ? 2 : 1,
                         ),
-                        boxShadow: isSelected ? [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
                       ),
                       child: Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        data: Theme.of(
+                          context,
+                        ).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
-                          initiallyExpanded: isSelected || widget.activity.grupos.length == 1,
+                          initiallyExpanded:
+                              isSelected || widget.activity.grupos.length == 1,
                           onExpansionChanged: (expanded) {
                             if (expanded && !isFull) {
                               setState(() {
                                 if (_selectedGroupId != grupo.id) {
                                   _selectedGroupId = grupo.id;
                                   _selectedItems.clear();
-                                  _expandedDays.clear();
                                 }
                               });
                             }
@@ -369,92 +538,157 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                             grupo.nombre,
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              color: isFull ? AppTheme.neutral500 : AppTheme.neutral900,
-                            )
+                              color: isFull
+                                  ? AppTheme.neutral500
+                                  : AppTheme.neutral900,
+                            ),
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '$ageText • Cupo: $spotsText',
-                                style: TextStyle(
-                                  color: isFull ? AppTheme.dangerColor : AppTheme.neutral600, 
-                                  fontSize: 13,
-                                  fontWeight: isFull ? FontWeight.bold : FontWeight.w500,
-                                ),
-                              ),
-                              if (grupo.equipos.expand((e) => e.horarios).isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4.0),
-                                  child: Text(
-                                    grupo.equipos.expand((e) => e.horarios).map((h) => '${_shortDia(h.diaSemana)} ${h.horaInicio.substring(0, 5)}').toSet().join(', '),
+                          subtitle: Text(
+                            ageText,
+                            style: TextStyle(
+                              color: isFull ? AppTheme.dangerColor : AppTheme.neutral500,
+                              fontSize: 13,
+                              fontWeight: isFull ? FontWeight.bold : FontWeight.w500,
+                            ),
+                          ),
+                          childrenPadding: const EdgeInsets.only(
+                            left: 12,
+                            right: 12,
+                            bottom: 12,
+                          ),
+                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+                          children: grupo.equipos.isEmpty
+                              ? [
+                                  const Text(
+                                    'Horarios por confirmar',
                                     style: TextStyle(
-                                      color: isFull ? AppTheme.neutral400 : AppTheme.primaryColor.withValues(alpha: 0.8),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.neutral500,
+                                      fontStyle: FontStyle.italic,
                                     ),
                                   ),
-                                ),
-                            ],
-                          ),
-                          childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 20),
-                          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-                          children: grupo.equipos.isEmpty 
-                            ? [const Text('Horarios por confirmar', style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic))]
-                            : widget.activity.tipo == 'deporte_equipo' 
-                              ? _buildEquipoLevelRadios(grupo, isFull) // Torneos o deportes en bloque
-                              : _buildHorarioLevelRadios(grupo, isFull), // Clases o talleres específicos
+                                ]
+                              : widget.activity.tipo == 'deporte_equipo'
+                              ? _buildEquipoLevelRadios(
+                                  grupo,
+                                  isFull,
+                                ) // Torneos o deportes en bloque
+                              : _buildHorarioLevelRadios(
+                                  grupo,
+                                  isFull,
+                                ), // Clases o talleres específicos
                         ),
                       ),
                     );
                   }).toList(),
                 ),
 
-              const SizedBox(height: AppTheme.spacingLarge),
+              const SizedBox(height: AppTheme.spacingMedium),
 
-              // --- Selector de Expediente Familiar (Ahora por BotoomSheet Dinámico) ---
-              Opacity(
-                opacity: (_selectedItems.isNotEmpty && !_isEnrolling) ? 1.0 : 0.4,
+              // ── Paso 2 ────────────────────────────────────────────────
+              AnimatedOpacity(
+                opacity: _selectedItems.isNotEmpty ? 1.0 : 0.4,
+                duration: const Duration(milliseconds: 300),
                 child: IgnorePointer(
                   ignoring: _selectedItems.isEmpty || _isEnrolling,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Beneficiario a Inscribir',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.neutral900,
-                            ),
+                      _StepLabel(
+                        number: 2,
+                        label: '¿Para quién es la clase?',
+                        done: _selectedBeneficiary != null,
                       ),
                       const SizedBox(height: AppTheme.spacingSmall),
+                      // ── Card de beneficiario ──────────────────────────
                       InkWell(
                         onTap: () {
                           if (currentSelectedGroup != null) {
-                            _openBeneficiarySelector(context, validBeneficiaries, currentSelectedGroup!);
+                            _openBeneficiarySelector(
+                              context,
+                              validBeneficiaries,
+                              currentSelectedGroup!,
+                            );
                           }
                         },
                         borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                        child: Container(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
                           width: double.infinity,
-                          padding: const EdgeInsets.all(AppTheme.spacingMedium),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.spacingMedium,
+                            vertical: 10,
+                          ),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: _selectedBeneficiary != null
+                                ? AppTheme.primaryColor.withValues(alpha: 0.05)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                            border: Border.all(color: AppTheme.neutral300),
+                            border: Border.all(
+                              color: _selectedBeneficiary != null
+                                  ? AppTheme.primaryColor
+                                  : AppTheme.neutral300,
+                              width: _selectedBeneficiary != null ? 2 : 1,
+                            ),
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                _selectedBeneficiary ?? 'Toca para seleccionar familiar validado',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  color: _selectedBeneficiary != null ? AppTheme.neutral900 : AppTheme.neutral500,
-                                  fontWeight: _selectedBeneficiary != null ? FontWeight.bold : FontWeight.normal,
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _selectedBeneficiary != null
+                                      ? AppTheme.primaryColor
+                                      : AppTheme.neutral100,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  _selectedBeneficiary != null
+                                      ? Icons.person_rounded
+                                      : Icons.person_add_alt_1_rounded,
+                                  color: _selectedBeneficiary != null
+                                      ? Colors.white
+                                      : AppTheme.neutral500,
+                                  size: 22,
                                 ),
                               ),
-                              const Icon(Icons.arrow_drop_down_rounded, color: AppTheme.neutral500),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (_selectedBeneficiary != null)
+                                      Text(
+                                        'Asistente seleccionado',
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.3,
+                                        ),
+                                      ),
+                                    Text(
+                                      _selectedBeneficiary ?? 'Seleccionar quién asistirá',
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: _selectedBeneficiary != null
+                                            ? FontWeight.w800
+                                            : FontWeight.w500,
+                                        color: _selectedBeneficiary != null
+                                            ? AppTheme.neutral900
+                                            : AppTheme.neutral500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Icon(
+                                _selectedBeneficiary != null
+                                    ? Icons.swap_horiz_rounded
+                                    : Icons.chevron_right_rounded,
+                                color: _selectedBeneficiary != null
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.neutral400,
+                              ),
                             ],
                           ),
                         ),
@@ -463,34 +697,74 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                   ),
                 ),
               ),
-              const SizedBox(height: AppTheme.spacingLarge),
 
-              if (currentSelectedGroup != null)
+              const SizedBox(height: AppTheme.spacingMedium),
+
+              // ── Paso 3: Lugar ─────────────────────────────────────
+              if (currentSelectedGroup?.requiereSeleccionLugares == true) ...[
+                AnimatedOpacity(
+                  opacity: _selectedBeneficiary != null ? 1.0 : 0.4,
+                  duration: const Duration(milliseconds: 300),
+                  child: IgnorePointer(
+                    ignoring: _selectedBeneficiary == null || _isEnrolling,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _StepLabel(
+                          number: 3,
+                          label: 'Elige tu asiento',
+                          done: _selectedLugar != null,
+                        ),
+                        const SizedBox(height: AppTheme.spacingSmall),
+                        _buildLugarSelector(context, currentSelectedGroup!),
+                      ],
+                    ),
+                  ),
+                ),
+              ] else if (currentSelectedGroup != null) ...[
                 _buildLugarSelector(context, currentSelectedGroup!),
+              ],
 
               // --- Términos y Condiciones ---
               if (_termsStatus == null)
-                const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()))
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
               else if (_termsStatus!.required)
                 Container(
                   padding: const EdgeInsets.all(AppTheme.spacingLarge),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
-                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                    borderRadius: BorderRadius.circular(
+                      AppTheme.borderRadiusGlobal,
+                    ),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: Row(
                     children: [
                       Icon(
-                        _termsAccepted ? Icons.check_circle_rounded : Icons.info_outline_rounded,
-                        color: _termsAccepted ? AppTheme.successColor : AppTheme.primaryColor,
+                        _termsAccepted
+                            ? Icons.check_circle_rounded
+                            : Icons.info_outline_rounded,
+                        color: _termsAccepted
+                            ? AppTheme.successColor
+                            : AppTheme.primaryColor,
                       ),
                       const SizedBox(width: AppTheme.spacingMedium),
                       Expanded(
                         child: Text(
-                          _termsAccepted ? 'Políticas aceptadas para la inscripción' : 'Debe revisar y aceptar los términos de la actividad.',
+                          _termsAccepted
+                              ? 'Políticas aceptadas para la inscripción'
+                              : 'Debe revisar y aceptar los términos de la actividad.',
                           style: TextStyle(
-                            color: _termsAccepted ? AppTheme.successColor : AppTheme.neutral900,
+                            color: _termsAccepted
+                                ? AppTheme.successColor
+                                : AppTheme.neutral900,
                             fontWeight: FontWeight.w600,
                             fontSize: 13,
                           ),
@@ -507,15 +781,25 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                                 reverseTransitionDuration: Duration.zero,
                                 pageBuilder: (_, __, ___) => TermsConditionsView(
                                   title: 'Términos de Actividades',
-                                  version: _termsStatus!.terminos!.version.toString(),
+                                  version: _termsStatus!.terminos!.version
+                                      .toString(),
                                   content: _termsStatus!.terminos!.contenido,
                                   onAccept: () async {
-                                    bool ok = await ref.read(termsProvider).acceptTerms('actividades', _termsStatus!.terminos!.version, _termsStatus!.terminos!.id);
+                                    bool ok = await ref
+                                        .read(termsProvider)
+                                        .acceptTerms(
+                                          'actividades',
+                                          _termsStatus!.terminos!.version,
+                                          _termsStatus!.terminos!.id,
+                                        );
                                     if (ok && mounted) {
                                       _onTermsAccepted(true);
                                       Navigator.pop(context);
                                     } else if (mounted) {
-                                      ToastAlerts.showError(context, 'No se pudieron aceptar los términos');
+                                      ToastAlerts.showError(
+                                        context,
+                                        'No se pudieron aceptar los términos',
+                                      );
                                     }
                                   },
                                 ),
@@ -524,45 +808,175 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                          child: const Text('Leer', style: TextStyle(fontSize: 12)),
+                          child: const Text(
+                            'Leer',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                     ],
                   ),
                 ),
 
-              const SizedBox(height: 32),
-              
+              const SizedBox(height: 16),
+
+              // ── Banner: ya inscrito ──────────────────────────────────
+              if (yaInscrito)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.dangerColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+                    border: Border.all(
+                        color: AppTheme.dangerColor.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_rounded,
+                          color: AppTheme.dangerColor, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '$_selectedBeneficiary ya tiene una reserva activa en este horario.',
+                          style: const TextStyle(
+                            color: AppTheme.dangerColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MisReservasView()),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                            foregroundColor: AppTheme.dangerColor,
+                            padding: EdgeInsets.zero),
+                        child: const Text('Ver reservas',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                ),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (_selectedBeneficiary != null && 
-                              _termsAccepted && 
-                              _selectedItems.isNotEmpty && 
-                              !_isEnrolling &&
-                              (!(currentSelectedGroup?.requiereSeleccionLugares ?? false) || _selectedLugar != null))
+                  onPressed:
+                      (_selectedBeneficiary != null &&
+                          _termsAccepted &&
+                          _selectedItems.isNotEmpty &&
+                          !_isEnrolling &&
+                          !yaInscrito &&
+                          (!(currentSelectedGroup?.requiereSeleccionLugares ??
+                                  false) ||
+                              _selectedLugar != null))
                       ? () async {
                           setState(() => _isEnrolling = true);
                           try {
                             for (var item in _selectedItems) {
                               final parts = item.split('-');
                               final eqId = int.parse(parts[0]);
-                              final horId = parts[1] == 'null' ? null : int.parse(parts[1]);
-                              
-                              final String beneficiarySocioId = validBeneficiaries.firstWhere((b) => b['name'] == _selectedBeneficiary)['id'].toString();
-                              final String finalName = _selectedBeneficiary!.replaceAll(' (Titular)', '');
-                              await ref.read(activitiesProvider.notifier).inscribirActividad(eqId, horId, finalName, beneficiarySocioId, lugar: _selectedLugar);
-                              ref.read(mockInscriptionsProvider.notifier).addInscription(_selectedBeneficiary!, widget.activity.id);
+                              final horId = parts[1] == 'null'
+                                  ? null
+                                  : int.parse(parts[1]);
+
+                              final String beneficiarySocioId =
+                                  validBeneficiaries
+                                      .firstWhere(
+                                        (b) =>
+                                            b['name'] == _selectedBeneficiary,
+                                      )['id']
+                                      .toString();
+                              final String finalName = _selectedBeneficiary!
+                                  .replaceAll(' (Titular)', '');
+                              await ref
+                                  .read(activitiesProvider.notifier)
+                                  .inscribirActividad(
+                                    eqId,
+                                    horId,
+                                    finalName,
+                                    beneficiarySocioId,
+                                    lugar: _selectedLugar,
+                                  );
                             }
-                            
+
                             if (mounted) {
-                              ToastAlerts.showSuccess(context, 'Inscripción confirmada para $_selectedBeneficiary de forma exitosa.');
-                              Navigator.pop(context);
+                              // ── Confirmación enriquecida ──────────────────
+                              // Calcular fecha específica de la clase
+                              final parts2 = _selectedItems.first.split('-');
+                              final selectedHorId = parts2[1] == 'null'
+                                  ? null
+                                  : int.tryParse(parts2[1]);
+                              String? fechaClaseLabel;
+                              if (selectedHorId != null) {
+                                final now = DateTime.now();
+                                final wd =
+                                    _activeDayFilters[currentSelectedGroup
+                                        ?.id] ??
+                                    0;
+                                for (int d = 0; d < 8; d++) {
+                                  final candidate = now.add(Duration(days: d));
+                                  if (candidate.weekday == wd) {
+                                    const meses = [
+                                      '',
+                                      'Ene',
+                                      'Feb',
+                                      'Mar',
+                                      'Abr',
+                                      'May',
+                                      'Jun',
+                                      'Jul',
+                                      'Ago',
+                                      'Sep',
+                                      'Oct',
+                                      'Nov',
+                                      'Dic',
+                                    ];
+                                    const dias = [
+                                      '',
+                                      'Lun',
+                                      'Mar',
+                                      'Mié',
+                                      'Jue',
+                                      'Vie',
+                                      'Sáb',
+                                      'Dom',
+                                    ];
+                                    fechaClaseLabel =
+                                        '${dias[candidate.weekday]} ${candidate.day} de ${meses[candidate.month]}';
+                                    break;
+                                  }
+                                }
+                              }
+
+                              await showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder: (_) => _ConfirmacionDialog(
+                                  beneficiario: _selectedBeneficiary ?? '',
+                                  actividad: widget.activity.nombre,
+                                  lugar: _selectedLugar,
+                                  horarioStr: fechaClaseLabel,
+                                ),
+                              );
+                              if (mounted) Navigator.pop(context);
                             }
                           } catch (e) {
                             if (mounted) {
-                              String err = e.toString().replaceFirst('Exception: ', '');
+                              String err = e.toString().replaceFirst(
+                                'Exception: ',
+                                '',
+                              );
                               ToastAlerts.showError(context, err);
                             }
                           } finally {
@@ -573,12 +987,22 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 20),
                   ),
-                  child: _isEnrolling 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('Inscribir', style: TextStyle(fontWeight: FontWeight.w900)),
+                  child: _isEnrolling
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'Inscribir',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
                 ),
               ),
-              
+
               // Evita que el botón quede pegado al final de la pantalla
               SizedBox(height: MediaQuery.of(context).padding.bottom + 32),
             ],
@@ -617,8 +1041,26 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
         plano = horario.plano;
       } catch (_) {}
     } else {
-      cupoMaximo = grupo.cupoDisponible ?? 0;
-      lugaresOcupados = equipo.lugaresOcupados;
+      // PREVIEW plano using any available schedule on the active day
+      final int wd = _activeDayFilters[grupo.id]!;
+      try {
+        final firstHorarioForDay = equipo.horarios.firstWhere(
+          (h) => h.diaSemana == wd,
+        );
+        cupoMaximo = firstHorarioForDay.cupoMaximo ?? 0;
+        plano = firstHorarioForDay.plano;
+      } catch (_) {
+        cupoMaximo = grupo.cupoDisponible ?? 0;
+      }
+      // DONT show any occupied seats since they haven't picked a specific time!
+      lugaresOcupados = [];
+    }
+
+    // Auto-deselect if the user picked a seat that turns out to be occupied.
+    if (_selectedLugar != null && lugaresOcupados.contains(_selectedLugar)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedLugar = null);
+      });
     }
 
     if (cupoMaximo <= 0) return const SizedBox.shrink();
@@ -636,16 +1078,18 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                 Text(
                   'Selecciona tu Lugar',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppTheme.neutral900,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.neutral900,
+                  ),
                 ),
                 const SizedBox(height: AppTheme.spacingSmall),
                 if (plano != null)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SizedBox(
-                      width: plano!.columnas * 50.0, // 50 pixels per column to enforce squareness and horizontal scroll on small devices
+                      width:
+                          plano!.columnas *
+                          50.0, // 50 pixels per column to enforce squareness and horizontal scroll on small devices
                       child: GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
@@ -658,16 +1102,20 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                         itemBuilder: (context, index) {
                           final fila = index ~/ plano!.columnas;
                           final columna = index % plano!.columnas;
-                          
+
                           // Find position
                           ActivityAreaPlanoPositionModel? pos;
                           try {
                             pos = plano!.posiciones.firstWhere(
-                              (p) => p.filaIndex == fila && p.columnaIndex == columna
+                              (p) =>
+                                  p.filaIndex == fila &&
+                                  p.columnaIndex == columna,
                             );
                           } catch (_) {}
 
-                          if (pos == null || pos.tipo == 'vacio' || !pos.isActive) {
+                          if (pos == null ||
+                              pos.tipo == 'vacio' ||
+                              !pos.isActive) {
                             return const SizedBox.shrink();
                           }
 
@@ -678,33 +1126,51 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Center(
-                                child: Icon(Icons.person, color: Colors.white, size: 20),
+                                child: Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                               ),
                             );
                           }
 
                           // Tipo: Lugar
                           final lugarLabel = pos.etiqueta;
-                          final isOccupied = lugaresOcupados.contains(lugarLabel);
+                          final isOccupied = lugaresOcupados.contains(
+                            lugarLabel,
+                          );
                           final isSelected = _selectedLugar == lugarLabel;
 
                           return InkWell(
-                            onTap: isOccupied ? null : () {
-                              setState(() {
-                                _selectedLugar = isSelected ? null : lugarLabel;
-                              });
-                            },
+                            onTap: isOccupied
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _selectedLugar = isSelected
+                                          ? null
+                                          : lugarLabel;
+                                    });
+                                  },
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: isOccupied 
-                                    ? AppTheme.neutral200 
-                                    : (isSelected ? AppTheme.primaryColor : AppTheme.successColor.withValues(alpha: 0.15)),
+                                color: isOccupied
+                                    ? AppTheme.neutral200
+                                    : (isSelected
+                                          ? AppTheme.primaryColor
+                                          : AppTheme.successColor.withValues(
+                                              alpha: 0.15,
+                                            )),
                                 borderRadius: BorderRadius.circular(8),
                                 border: Border.all(
-                                  color: isOccupied 
-                                      ? AppTheme.neutral300 
-                                      : (isSelected ? AppTheme.primaryColor : AppTheme.successColor.withValues(alpha: 0.5)),
+                                  color: isOccupied
+                                      ? AppTheme.neutral300
+                                      : (isSelected
+                                            ? AppTheme.primaryColor
+                                            : AppTheme.successColor.withValues(
+                                                alpha: 0.5,
+                                              )),
                                   width: 1.5,
                                 ),
                               ),
@@ -712,9 +1178,11 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                                 child: Text(
                                   lugarLabel,
                                   style: TextStyle(
-                                    color: isOccupied 
-                                        ? AppTheme.neutral500 
-                                        : (isSelected ? Colors.white : AppTheme.successColor),
+                                    color: isOccupied
+                                        ? AppTheme.neutral500
+                                        : (isSelected
+                                              ? Colors.white
+                                              : AppTheme.successColor),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 12,
                                   ),
@@ -730,11 +1198,12 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 5,
-                      crossAxisSpacing: 8,
-                      mainAxisSpacing: 8,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 5,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                        ),
                     itemCount: cupoMaximo,
                     itemBuilder: (context, index) {
                       final lugarLabel = (index + 1).toString();
@@ -742,31 +1211,41 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                       final isSelected = _selectedLugar == lugarLabel;
 
                       return InkWell(
-                        onTap: isOccupied ? null : () {
-                          setState(() {
-                            _selectedLugar = isSelected ? null : lugarLabel;
-                          });
-                        },
+                        onTap: isOccupied
+                            ? null
+                            : () {
+                                setState(() {
+                                  _selectedLugar = isSelected
+                                      ? null
+                                      : lugarLabel;
+                                });
+                              },
                         borderRadius: BorderRadius.circular(8),
                         child: Container(
                           decoration: BoxDecoration(
-                            color: isOccupied 
-                                ? AppTheme.neutral200 
-                                : (isSelected ? AppTheme.primaryColor : Colors.white),
+                            color: isOccupied
+                                ? AppTheme.neutral200
+                                : (isSelected
+                                      ? AppTheme.primaryColor
+                                      : Colors.white),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: isOccupied 
-                                  ? AppTheme.neutral300 
-                                  : (isSelected ? AppTheme.primaryColor : AppTheme.neutral300),
+                              color: isOccupied
+                                  ? AppTheme.neutral300
+                                  : (isSelected
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.neutral300),
                             ),
                           ),
                           child: Center(
                             child: Text(
                               lugarLabel,
                               style: TextStyle(
-                                color: isOccupied 
-                                    ? AppTheme.neutral500 
-                                    : (isSelected ? Colors.white : AppTheme.neutral900),
+                                color: isOccupied
+                                    ? AppTheme.neutral500
+                                    : (isSelected
+                                          ? Colors.white
+                                          : AppTheme.neutral900),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -789,38 +1268,40 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
     return grupo.equipos.map((equipo) {
       final key = "${equipo.id}-null";
       final isChecked = _selectedItems.contains(key);
-      
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 12.0),
         child: InkWell(
-          onTap: isFull ? null : () {
-            setState(() {
-              if (_selectedGroupId != grupo.id) {
-                _selectedGroupId = grupo.id;
-                _selectedItems.clear();
-                _expandedDays.clear();
-                _selectedLugar = null;
-              }
-              if (isChecked) {
-                _selectedItems.remove(key);
-              } else {
-                _selectedItems.add(key);
-              }
-              _selectedBeneficiary = null;
-              _selectedLugar = null;
-            });
-          },
+          onTap: isFull
+              ? null
+              : () {
+                  setState(() {
+                    if (_selectedGroupId != grupo.id) {
+                      _selectedGroupId = grupo.id;
+                      _selectedGroupId = grupo.id;
+                      _selectedItems.clear();
+                      _selectedLugar = null;
+                    }
+                    if (isChecked) {
+                      _selectedItems.remove(key);
+                    } else {
+                      _selectedItems.add(key);
+                    }
+                    _selectedBeneficiary = null;
+                    _selectedLugar = null;
+                  });
+                },
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isChecked 
-                  ? AppTheme.primaryColor.withValues(alpha: 0.08) 
+              color: isChecked
+                  ? AppTheme.primaryColor.withValues(alpha: 0.08)
                   : (isFull ? AppTheme.neutral100 : Colors.white),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: isChecked 
-                    ? AppTheme.primaryColor 
+                color: isChecked
+                    ? AppTheme.primaryColor
                     : (isFull ? AppTheme.neutral200 : AppTheme.neutral300),
                 width: isChecked ? 2 : 1,
               ),
@@ -832,11 +1313,31 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(equipo.nombre, style: TextStyle(fontWeight: FontWeight.w900, color: isFull ? AppTheme.neutral500 : (isChecked ? AppTheme.primaryColor : AppTheme.neutral900), fontSize: 14)),
+                      Text(
+                        equipo.nombre,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: isFull
+                              ? AppTheme.neutral500
+                              : (isChecked
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.neutral900),
+                          fontSize: 14,
+                        ),
+                      ),
                       if (equipo.horarios.isEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text('Modalidad de Torneo / Equipo completo', style: TextStyle(fontSize: 13, color: isFull ? AppTheme.neutral500 : AppTheme.neutral600, fontStyle: FontStyle.italic)),
+                          child: Text(
+                            'Modalidad de Torneo / Equipo completo',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isFull
+                                  ? AppTheme.neutral500
+                                  : AppTheme.neutral600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         )
                       else
                         Column(
@@ -846,9 +1347,24 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                               padding: const EdgeInsets.only(top: 8),
                               child: Row(
                                 children: [
-                                  Icon(Icons.access_time_filled_rounded, size: 14, color: isFull ? AppTheme.neutral400 : AppTheme.neutral600),
+                                  Icon(
+                                    Icons.access_time_filled_rounded,
+                                    size: 14,
+                                    color: isFull
+                                        ? AppTheme.neutral400
+                                        : AppTheme.neutral600,
+                                  ),
                                   const SizedBox(width: 8),
-                                  Text('${_diaToString(horario.diaSemana)} de ${horario.horaInicio.substring(0, 5)} a ${horario.horaFin.substring(0, 5)}', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: isFull ? AppTheme.neutral500 : AppTheme.neutral700)),
+                                  Text(
+                                    '${_diaToString(horario.diaSemana)} de ${horario.horaInicio.substring(0, 5)} a ${horario.horaFin.substring(0, 5)}',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: isFull
+                                          ? AppTheme.neutral500
+                                          : AppTheme.neutral700,
+                                    ),
+                                  ),
                                 ],
                               ),
                             );
@@ -859,11 +1375,13 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
                 ),
                 const SizedBox(width: 12),
                 Icon(
-                  isChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, 
-                  size: 24, 
-                  color: isChecked 
-                      ? AppTheme.primaryColor 
-                      : (isFull ? AppTheme.neutral300 : AppTheme.neutral400)
+                  isChecked
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded,
+                  size: 24,
+                  color: isChecked
+                      ? AppTheme.primaryColor
+                      : (isFull ? AppTheme.neutral300 : AppTheme.neutral400),
                 ),
               ],
             ),
@@ -874,16 +1392,21 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
   }
 
   List<Widget> _buildHorarioLevelRadios(ActivityGroupModel grupo, bool isFull) {
-    // Agrupar los horarios por día de la semana
-    Map<int, List<Map<String, dynamic>>> schedulesByDay = {};
-    List<Widget> fallbackChildren = [];
+    if (grupo.equipos.isEmpty) return [];
 
+    if (_selectedGroupId == null && widget.activity.grupos.length == 1) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedGroupId = grupo.id);
+      });
+    }
+
+    Map<int, List<Map<String, dynamic>>> schedulesByDay =
+        {}; // keyed by diaSemana
+    bool hasSchedules = false;
     for (var equipo in grupo.equipos) {
-      if (equipo.horarios.isEmpty) {
-        continue; // No presentamos "equipos" vacíos (sin horarios) en actividades individuales
-      }
-
+      if (equipo.horarios.isEmpty) continue;
       for (var horario in equipo.horarios) {
+        hasSchedules = true;
         int day = horario.diaSemana;
         schedulesByDay.putIfAbsent(day, () => []);
         schedulesByDay[day]!.add({
@@ -897,251 +1420,613 @@ class _ActivitySubscriptionViewState extends ConsumerState<ActivitySubscriptionV
       }
     }
 
-    if (schedulesByDay.isEmpty) {
-      return fallbackChildren;
+    if (!hasSchedules) return [];
+
+    // Map `diaSemana` to upcoming dates (next 7 days)
+    DateTime now = DateTime.now();
+    List<Map<String, dynamic>> upcomingDates = [];
+
+    for (int i = 0; i < 7; i++) {
+      DateTime targetDate = now.add(Duration(days: i));
+      int targetWeekday = targetDate.weekday; // 1 = Mon, 7 = Sun
+
+      if (schedulesByDay.containsKey(targetWeekday)) {
+        // filter out passed times if it's today
+        List<Map<String, dynamic>> validSchedules = [];
+        for (var sched in schedulesByDay[targetWeekday]!) {
+          bool hasPassed = false;
+          if (i == 0) {
+            try {
+              final parts = sched['hora_inicio'].split(':');
+              final schedTime = DateTime(
+                now.year,
+                now.month,
+                now.day,
+                int.parse(parts[0]),
+                int.parse(parts[1]),
+              );
+              if (schedTime.isBefore(now)) {
+                hasPassed = true;
+              }
+            } catch (_) {}
+          }
+          if (!hasPassed) {
+            validSchedules.add(sched);
+          }
+        }
+
+        if (validSchedules.isNotEmpty) {
+          upcomingDates.add({
+            'date': targetDate,
+            'weekday': targetWeekday,
+            'schedules': validSchedules,
+            'dateStr':
+                '${targetDate.year}-${targetDate.month.toString().padLeft(2, '0')}-${targetDate.day.toString().padLeft(2, '0')}',
+          });
+        }
+      }
     }
 
-    final sortedDays = schedulesByDay.keys.toList()..sort();
-    
-    // Fila superior de días estructurada como un calendario accesible
-    Widget calendarRow = LayoutBuilder(
-      builder: (context, constraints) {
-        // Cálculo para que quepan 4 cuadrados íntegros y el quinto se asome (cue de scroll),
-        // usando el espacio interior libre disponible en el contenedor.
-        double itemWidth = (constraints.maxWidth - (12.0 * 4)) / 4.5;
-        // Limitar para que en pantallas extrañas no se deforme drásticamente.
-        itemWidth = itemWidth.clamp(60.0, 76.0);
+    if (upcomingDates.isEmpty) {
+      return [
+        const Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Text(
+            "No hay clases disponibles en los próximos 7 días.",
+            style: TextStyle(color: AppTheme.neutral500),
+          ),
+        ),
+      ];
+    }
 
-        return SingleChildScrollView(
+    // Set initial active date string to first available if not set
+    if (!_activeDayFilters.containsKey(grupo.id)) {
+      _activeDayFilters[grupo.id] = upcomingDates.first['weekday'];
+    }
+
+    int currentWeekday = _activeDayFilters[grupo.id]!;
+    // verify the current weekday still exists in valid upcoming dates
+    if (!upcomingDates.any((d) => d['weekday'] == currentWeekday)) {
+      currentWeekday = upcomingDates.first['weekday'];
+      _activeDayFilters[grupo.id] = currentWeekday;
+    }
+
+    final activeDateObj = upcomingDates.firstWhere(
+      (d) => d['weekday'] == currentWeekday,
+    );
+    List<Map<String, dynamic>> currentSchedules = activeDateObj['schedules'];
+    currentSchedules.sort(
+      (a, b) =>
+          (a['hora_inicio'] as String).compareTo(b['hora_inicio'] as String),
+    );
+
+    List<Widget> children = [];
+
+    // Horizontal Scrollable Day Selector (Pills)
+    children.add(
+      Padding(
+        padding: const EdgeInsets.only(top: 12.0, bottom: 8.0),
+        child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           child: Row(
-            children: sortedDays.map((day) {
-              final isDaySelected = _expandedDays.contains(day);
-              
-              return GestureDetector(
-                onTap: isFull ? null : () {
-                  setState(() {
-                    if (isDaySelected) {
-                      _expandedDays.remove(day);
-                      _selectedItems.removeWhere((item) {
-                        final parts = item.split('-');
-                        if (parts.length != 2) return false;
-                        int eqId = int.parse(parts[0]);
-                        int? hId = parts[1] == 'null' ? null : int.parse(parts[1]);
-                        return schedulesByDay[day]!.any((s) => s['equipo_id'] == eqId && s['horario_id'] == hId);
-                      });
-                    } else {
-                      _expandedDays.add(day);
-                    }
-                  });
-                },
-                child: Container(
-                  margin: const EdgeInsets.only(right: 12.0, top: 4, bottom: 4),
-                  width: itemWidth,
-                  height: itemWidth,
-                  decoration: BoxDecoration(
-                    color: isDaySelected ? AppTheme.primaryColor : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isDaySelected ? AppTheme.primaryColor : AppTheme.neutral300,
-                  width: isDaySelected ? 2 : 1,
-                ),
-                boxShadow: isDaySelected 
-                  ? [BoxShadow(color: AppTheme.primaryColor.withValues(alpha: 0.25), blurRadius: 10, offset: const Offset(0, 4))]
-                  : null,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _shortDia(day).toUpperCase(),
+            children: upcomingDates.map((dateObj) {
+              DateTime d = dateObj['date'];
+              int wd = dateObj['weekday'];
+              final isSelected = currentWeekday == wd;
+
+              String dateLabel = "";
+              if (d.year == now.year &&
+                  d.month == now.month &&
+                  d.day == now.day) {
+                dateLabel = "Hoy, ${_shortDia(wd)} ${d.day}";
+              } else if (d.year == now.year &&
+                  d.month == now.month &&
+                  d.day == now.add(const Duration(days: 1)).day) {
+                dateLabel = "Mañana, ${_shortDia(wd)} ${d.day}";
+              } else {
+                List<String> months = [
+                  'Ene',
+                  'Feb',
+                  'Mar',
+                  'Abr',
+                  'May',
+                  'Jun',
+                  'Jul',
+                  'Ago',
+                  'Sep',
+                  'Oct',
+                  'Nov',
+                  'Dic',
+                ];
+                dateLabel =
+                    "${_shortDia(wd)} ${d.day} de ${months[d.month - 1]}";
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: ChoiceChip(
+                  label: Text(
+                    dateLabel,
                     style: TextStyle(
-                      color: isDaySelected ? Colors.white : AppTheme.neutral800,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      letterSpacing: 0.5,
+                      fontWeight: isSelected
+                          ? FontWeight.w900
+                          : FontWeight.w600,
+                      fontSize: 13,
+                      color: isSelected ? Colors.white : AppTheme.neutral700,
                     ),
                   ),
-                  if (isDaySelected)
-                    Container(
-                      margin: const EdgeInsets.only(top: 6),
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  },
-);
-
-    List<Widget> children = [...fallbackChildren, calendarRow, const SizedBox(height: 12)];
-
-    if (_expandedDays.isEmpty) {
-      children.add(
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            'Toca uno o más días arriba para ver y seleccionar sus horarios disponibles.',
-            style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic, fontSize: 13),
+                  selected: isSelected,
+                  selectedColor: AppTheme.primaryColor,
+                  backgroundColor: AppTheme.neutral100,
+                  side: BorderSide.none,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  showCheckmark: false,
+                  onSelected: (val) {
+                    if (val && !isSelected) {
+                      setState(() {
+                        _activeDayFilters[grupo.id] = wd;
+                        _selectedItems
+                            .clear(); // Limpiar el horario seleccionado del dia anterior
+                      });
+                    }
+                  },
+                ),
+              );
+            }).toList(),
           ),
         ),
-      );
-    }
+      ),
+    );
 
-    for (var day in sortedDays) {
-      if (!_expandedDays.contains(day)) continue; // Solo mostramos si el día está seleccionado
-      
-      schedulesByDay[day]!.sort((a, b) => (a['hora_inicio'] as String).compareTo(b['hora_inicio'] as String));
-      
-      List<Widget> chips = schedulesByDay[day]!.map((sched) {
-        final key = "${sched['equipo_id']}-${sched['horario_id']}";
-        final isChecked = _selectedItems.contains(key);
-        final timeStr = "${(sched['hora_inicio'] as String).substring(0, 5)} - ${(sched['hora_fin'] as String).substring(0, 5)} hrs";
+    List<Widget> chips = currentSchedules.map((sched) {
+      final key = "${sched['equipo_id']}-${sched['horario_id']}";
+      final isChecked = _selectedItems.contains(key);
+      final timeStr =
+          "${(sched['hora_inicio'] as String).substring(0, 5)} - ${(sched['hora_fin'] as String).substring(0, 5)} hrs";
 
-        final bool tieneCupo = sched['tiene_cupo'] as bool? ?? false;
-        final int? cupoDisp = sched['cupo_disponible'] as int?;
-        final bool isHorarioFull = tieneCupo && cupoDisp != null && cupoDisp <= 0;
-        final bool isDisabled = isFull || isHorarioFull;
+      final bool tieneCupo = sched['tiene_cupo'] as bool? ?? false;
+      final int? cupoDisp = sched['cupo_disponible'] as int?;
+      final bool isHorarioFull = tieneCupo && cupoDisp != null && cupoDisp <= 0;
+      final bool isDisabled = isFull || isHorarioFull;
 
-        return InkWell(
-          onTap: isDisabled ? null : () {
-            setState(() {
-              if (_selectedGroupId != grupo.id) {
-                _selectedGroupId = grupo.id;
-                _selectedItems.clear();
-                _expandedDays.clear();
-              }
-              if (isChecked) {
-                _selectedItems.remove(key);
-              } else {
-                // Opcional: Para permitir solo un horario por día, removemos el anterior (Radio Button per day)
-                _selectedItems.removeWhere((item) {
-                  final parts = item.split('-');
-                  if (parts.length != 2) return false;
-                  int eqId = int.parse(parts[0]);
-                  int? hId = parts[1] == 'null' ? null : int.parse(parts[1]);
-                  return schedulesByDay[day]!.any((s) => s['equipo_id'] == eqId && s['horario_id'] == hId);
+      return InkWell(
+        onTap: isDisabled
+            ? null
+            : () {
+                setState(() {
+                  if (_selectedGroupId != grupo.id) {
+                    _selectedGroupId = grupo.id;
+                    _selectedItems.clear();
+                  }
+                  if (isChecked) {
+                    _selectedItems.remove(key);
+                  } else {
+                    _selectedItems.removeWhere((item) {
+                      final parts = item.split('-');
+                      if (parts.length != 2) return false;
+                      int eqId = int.parse(parts[0]);
+                      int? hId = parts[1] == 'null'
+                          ? null
+                          : int.parse(parts[1]);
+                      return currentSchedules.any(
+                        (s) => s['equipo_id'] == eqId && s['horario_id'] == hId,
+                      );
+                    });
+                    _selectedItems.add(key);
+                  }
+                  // Bugfix: Evitar resetear beneficiario y lugar
                 });
-                
-                _selectedItems.add(key);
-              }
-              _selectedBeneficiary = null;
-              _selectedLugar = null;
-            });
-          },
-          borderRadius: BorderRadius.circular(14),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-            decoration: BoxDecoration(
-              color: isChecked 
-                  ? AppTheme.primaryColor.withValues(alpha: 0.08) 
-                  : (isDisabled ? AppTheme.neutral100 : Colors.white),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isChecked 
-                    ? AppTheme.primaryColor 
-                    : (isDisabled ? AppTheme.neutral200 : AppTheme.neutral300),
-                width: isChecked ? 2 : 1,
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Icon(
-                  isChecked ? Icons.check_box_rounded : Icons.check_box_outline_blank_rounded, 
-                  size: 18, 
-                  color: isChecked 
-                      ? AppTheme.primaryColor 
-                      : (isDisabled ? AppTheme.neutral300 : AppTheme.neutral400)
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        timeStr,
-                        style: TextStyle(
-                          color: isChecked 
-                              ? AppTheme.primaryColor 
-                              : (isDisabled ? AppTheme.neutral400 : AppTheme.neutral900),
-                          fontWeight: isChecked ? FontWeight.w900 : FontWeight.w600,
-                          fontSize: 13,
-                          decoration: isHorarioFull ? TextDecoration.lineThrough : null,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (tieneCupo && cupoDisp != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            isHorarioFull ? 'Agotado' : 'Quedan $cupoDisp lugares',
-                            style: TextStyle(
-                              color: isHorarioFull 
-                                  ? AppTheme.dangerColor 
-                                  : (cupoDisp <= 3 ? Colors.orange : AppTheme.secondaryColor),
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
+              },
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: isChecked
+                ? AppTheme.primaryColor.withValues(alpha: 0.08)
+                : (isDisabled ? AppTheme.neutral100 : Colors.white),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isChecked
+                  ? AppTheme.primaryColor
+                  : (isDisabled ? AppTheme.neutral200 : AppTheme.neutral300),
+              width: isChecked ? 2 : 1,
             ),
           ),
-        );
-      }).toList();
-
-      children.add(
-        Padding(
-          padding: const EdgeInsets.only(top: 8, bottom: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(shape: BoxShape.circle, color: AppTheme.primaryColor),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    _diaToString(day).toUpperCase(),
-                    style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.neutral900, fontSize: 13, letterSpacing: 0.5),
-                  ),
-                ],
+              Icon(
+                isChecked
+                    ? Icons.check_circle_rounded
+                    : Icons.radio_button_unchecked_rounded,
+                size: 18,
+                color: isChecked
+                    ? AppTheme.primaryColor
+                    : (isDisabled ? AppTheme.neutral300 : AppTheme.neutral400),
               ),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final itemWidth = (constraints.maxWidth - 10) / 2;
-                  return Wrap(
-                    spacing: 10.0,
-                    runSpacing: 10.0,
-                    children: chips.map((c) => SizedBox(width: itemWidth, child: c)).toList(),
-                  );
-                },
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      timeStr,
+                      style: TextStyle(
+                        color: isChecked
+                            ? AppTheme.primaryColor
+                            : (isDisabled
+                                  ? AppTheme.neutral400
+                                  : AppTheme.neutral800),
+                        fontWeight: isChecked
+                            ? FontWeight.w900
+                            : FontWeight.w600,
+                        fontSize: 12,
+                        decoration: isHorarioFull
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                      maxLines: 1,
+                    ),
+                    if (tieneCupo && cupoDisp != null)
+                      Text(
+                        isHorarioFull ? 'Agotado' : '$cupoDisp lugares',
+                        style: TextStyle(
+                          color: isHorarioFull
+                              ? AppTheme.dangerColor
+                              : (cupoDisp <= 3
+                                    ? Colors.orange
+                                    : AppTheme.secondaryColor),
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       );
-    }
+    }).toList();
 
+    children.add(
+      LayoutBuilder(
+        builder: (context, constraints) {
+          final itemWidth = (constraints.maxWidth - 8) / 2;
+          return Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            children: chips
+                .map((c) => SizedBox(width: itemWidth, child: c))
+                .toList(),
+          );
+        },
+      ),
+    );
+
+    children.add(const SizedBox(height: 8));
     return children;
+  }
+}
+
+// ── Diálogo de Confirmación post-inscripción ──────────────────────────────────
+class _ConfirmacionDialog extends StatelessWidget {
+  final String beneficiario;
+  final String actividad;
+  final String? lugar;
+  final String? horarioStr;
+
+  const _ConfirmacionDialog({
+    required this.beneficiario,
+    required this.actividad,
+    this.lugar,
+    this.horarioStr,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ✅ Icono
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.successColor.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.check_circle_rounded,
+                color: AppTheme.successColor,
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              '¡Reserva confirmada!',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppTheme.neutral900,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              beneficiario,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppTheme.neutral500,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // ── Info card ──────────────────────────────────────────────────
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.neutral50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppTheme.neutral200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _row(Icons.fitness_center_rounded, actividad),
+                  if (horarioStr != null) ...[
+                    const SizedBox(height: 8),
+                    _row(Icons.calendar_today_rounded, horarioStr!),
+                  ],
+                  if (lugar != null) ...[
+                    const SizedBox(height: 8),
+                    _row(
+                      Icons.event_seat_rounded,
+                      'Asiento: $lugar',
+                      highlight: true,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // ── Botones ────────────────────────────────────────────────────
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.list_alt_rounded, size: 18),
+                label: const Text('Ver mis reservas'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.pop(context); // close dialog
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MisReservasView()),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Cerrar',
+                style: TextStyle(color: AppTheme.neutral500),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _row(IconData icon, String text, {bool highlight = false}) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: highlight ? AppTheme.primaryColor : AppTheme.neutral500,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
+              color: highlight ? AppTheme.primaryColor : AppTheme.neutral700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Step Progress Bar ────────────────────────────────────────────────────────
+class _StepProgressBar extends StatelessWidget {
+  final bool step1Done;
+  final bool step2Done;
+  final bool step3Done;
+
+  const _StepProgressBar({
+    required this.step1Done,
+    required this.step2Done,
+    required this.step3Done,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        _StepDot(number: 1, done: step1Done, active: true, label: 'Horario'),
+        _StepConnector(done: step1Done),
+        _StepDot(
+            number: 2,
+            done: step2Done,
+            active: step1Done,
+            label: 'Beneficiario'),
+        _StepConnector(done: step2Done),
+        _StepDot(
+            number: 3,
+            done: step3Done,
+            active: step2Done,
+            label: 'Confirmar'),
+      ],
+    );
+  }
+}
+
+class _StepDot extends StatelessWidget {
+  final int number;
+  final bool done;
+  final bool active;
+  final String label;
+
+  const _StepDot({
+    required this.number,
+    required this.done,
+    required this.active,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final Color color = done
+        ? AppTheme.successColor
+        : active
+            ? AppTheme.primaryColor
+            : AppTheme.neutral300;
+
+    return Expanded(
+      child: Column(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: done ? AppTheme.successColor : (active ? Colors.white : AppTheme.neutral100),
+              shape: BoxShape.circle,
+              border: Border.all(color: color, width: 2),
+            ),
+            child: Center(
+              child: done
+                  ? const Icon(Icons.check_rounded, size: 16, color: Colors.white)
+                  : Text(
+                      '$number',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: active ? AppTheme.primaryColor : AppTheme.neutral400,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: done
+                  ? AppTheme.successColor
+                  : active
+                      ? AppTheme.primaryColor
+                      : AppTheme.neutral400,
+              letterSpacing: 0.2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StepConnector extends StatelessWidget {
+  final bool done;
+  const _StepConnector({required this.done});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 400),
+          height: 2,
+          color: done ? AppTheme.successColor : AppTheme.neutral200,
+        ),
+      ),
+    );
+  }
+}
+
+// ── Step Label ───────────────────────────────────────────────────────────────
+class _StepLabel extends StatelessWidget {
+  final int number;
+  final String label;
+  final bool done;
+
+  const _StepLabel({
+    required this.number,
+    required this.label,
+    required this.done,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          width: 26,
+          height: 26,
+          decoration: BoxDecoration(
+            color: done ? AppTheme.successColor : AppTheme.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: done
+                ? const Icon(Icons.check_rounded, size: 14, color: Colors.white)
+                : Text(
+                    '$number',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: done ? AppTheme.successColor : AppTheme.neutral900,
+              ),
+        ),
+        if (done) ...[
+          const SizedBox(width: 6),
+          const Icon(Icons.check_circle_outline_rounded,
+              size: 14, color: AppTheme.successColor),
+        ],
+      ],
+    );
   }
 }

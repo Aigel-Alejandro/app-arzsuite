@@ -3,6 +3,15 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'activity_model.freezed.dart';
 part 'activity_model.g.dart';
 
+/// Convierte listas mixtas de int/string a List<int> (PHP puede devolver IDs como strings)
+List<int> _parseIntList(dynamic json) {
+  if (json == null) return [];
+  return (json as List)
+      .map((e) => int.tryParse(e.toString()) ?? 0)
+      .where((e) => e != 0)
+      .toList();
+}
+
 @freezed
 class ActivityModel with _$ActivityModel {
   const factory ActivityModel({
@@ -91,6 +100,7 @@ class ActivityScheduleModel with _$ActivityScheduleModel {
     @JsonKey(name: 'tiene_cupo') @Default(false) bool tieneCupo,
     @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
     @JsonKey(name: 'lugares_ocupados') @Default([]) List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList) @Default([]) List<int> alumnosInscritos,
     @JsonKey(name: 'area_id') int? areaId,
     @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   }) = _ActivityScheduleModel;

@@ -169,6 +169,9 @@ _$ActivityScheduleModelImpl _$$ActivityScheduleModelImplFromJson(
           ?.map((e) => e as String)
           .toList() ??
       const [],
+  alumnosInscritos: json['alumnos_inscritos'] == null
+      ? const []
+      : _parseIntList(json['alumnos_inscritos']),
   areaId: (json['area_id'] as num?)?.toInt(),
   plano: json['plano'] == null
       ? null
@@ -187,6 +190,7 @@ Map<String, dynamic> _$$ActivityScheduleModelImplToJson(
   'tiene_cupo': instance.tieneCupo,
   'cupo_maximo': instance.cupoMaximo,
   'lugares_ocupados': instance.lugaresOcupados,
+  'alumnos_inscritos': instance.alumnosInscritos,
   'area_id': instance.areaId,
   'plano': instance.plano,
 };

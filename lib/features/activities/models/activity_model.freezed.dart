@@ -1625,6 +1625,8 @@ mixin _$ActivityScheduleModel {
   int? get cupoMaximo => throw _privateConstructorUsedError;
   @JsonKey(name: 'lugares_ocupados')
   List<String> get lugaresOcupados => throw _privateConstructorUsedError;
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos => throw _privateConstructorUsedError;
   @JsonKey(name: 'area_id')
   int? get areaId => throw _privateConstructorUsedError;
   @JsonKey(name: 'plano')
@@ -1657,6 +1659,8 @@ abstract class $ActivityScheduleModelCopyWith<$Res> {
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
     @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
     @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    List<int> alumnosInscritos,
     @JsonKey(name: 'area_id') int? areaId,
     @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   });
@@ -1691,6 +1695,7 @@ class _$ActivityScheduleModelCopyWithImpl<
     Object? tieneCupo = null,
     Object? cupoMaximo = freezed,
     Object? lugaresOcupados = null,
+    Object? alumnosInscritos = null,
     Object? areaId = freezed,
     Object? plano = freezed,
   }) {
@@ -1732,6 +1737,10 @@ class _$ActivityScheduleModelCopyWithImpl<
                 ? _value.lugaresOcupados
                 : lugaresOcupados // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            alumnosInscritos: null == alumnosInscritos
+                ? _value.alumnosInscritos
+                : alumnosInscritos // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
             areaId: freezed == areaId
                 ? _value.areaId
                 : areaId // ignore: cast_nullable_to_non_nullable
@@ -1779,6 +1788,8 @@ abstract class _$$ActivityScheduleModelImplCopyWith<$Res>
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
     @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
     @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    List<int> alumnosInscritos,
     @JsonKey(name: 'area_id') int? areaId,
     @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   });
@@ -1811,6 +1822,7 @@ class __$$ActivityScheduleModelImplCopyWithImpl<$Res>
     Object? tieneCupo = null,
     Object? cupoMaximo = freezed,
     Object? lugaresOcupados = null,
+    Object? alumnosInscritos = null,
     Object? areaId = freezed,
     Object? plano = freezed,
   }) {
@@ -1852,6 +1864,10 @@ class __$$ActivityScheduleModelImplCopyWithImpl<$Res>
             ? _value._lugaresOcupados
             : lugaresOcupados // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        alumnosInscritos: null == alumnosInscritos
+            ? _value._alumnosInscritos
+            : alumnosInscritos // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
         areaId: freezed == areaId
             ? _value.areaId
             : areaId // ignore: cast_nullable_to_non_nullable
@@ -1879,9 +1895,12 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
     @JsonKey(name: 'cupo_maximo') this.cupoMaximo,
     @JsonKey(name: 'lugares_ocupados')
     final List<String> lugaresOcupados = const [],
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    final List<int> alumnosInscritos = const [],
     @JsonKey(name: 'area_id') this.areaId,
     @JsonKey(name: 'plano') this.plano,
-  }) : _lugaresOcupados = lugaresOcupados;
+  }) : _lugaresOcupados = lugaresOcupados,
+       _alumnosInscritos = alumnosInscritos;
 
   factory _$ActivityScheduleModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityScheduleModelImplFromJson(json);
@@ -1917,6 +1936,16 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
     return EqualUnmodifiableListView(_lugaresOcupados);
   }
 
+  final List<int> _alumnosInscritos;
+  @override
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos {
+    if (_alumnosInscritos is EqualUnmodifiableListView)
+      return _alumnosInscritos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_alumnosInscritos);
+  }
+
   @override
   @JsonKey(name: 'area_id')
   final int? areaId;
@@ -1926,7 +1955,7 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
 
   @override
   String toString() {
-    return 'ActivityScheduleModel(id: $id, diaSemana: $diaSemana, horaInicio: $horaInicio, horaFin: $horaFin, lugar: $lugar, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo, cupoMaximo: $cupoMaximo, lugaresOcupados: $lugaresOcupados, areaId: $areaId, plano: $plano)';
+    return 'ActivityScheduleModel(id: $id, diaSemana: $diaSemana, horaInicio: $horaInicio, horaFin: $horaFin, lugar: $lugar, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo, cupoMaximo: $cupoMaximo, lugaresOcupados: $lugaresOcupados, alumnosInscritos: $alumnosInscritos, areaId: $areaId, plano: $plano)';
   }
 
   @override
@@ -1951,6 +1980,10 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
               other._lugaresOcupados,
               _lugaresOcupados,
             ) &&
+            const DeepCollectionEquality().equals(
+              other._alumnosInscritos,
+              _alumnosInscritos,
+            ) &&
             (identical(other.areaId, areaId) || other.areaId == areaId) &&
             (identical(other.plano, plano) || other.plano == plano));
   }
@@ -1968,6 +2001,7 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
     tieneCupo,
     cupoMaximo,
     const DeepCollectionEquality().hash(_lugaresOcupados),
+    const DeepCollectionEquality().hash(_alumnosInscritos),
     areaId,
     plano,
   );
@@ -2001,6 +2035,8 @@ abstract class _ActivityScheduleModel implements ActivityScheduleModel {
     @JsonKey(name: 'tiene_cupo') final bool tieneCupo,
     @JsonKey(name: 'cupo_maximo') final int? cupoMaximo,
     @JsonKey(name: 'lugares_ocupados') final List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    final List<int> alumnosInscritos,
     @JsonKey(name: 'area_id') final int? areaId,
     @JsonKey(name: 'plano') final ActivityAreaPlanoModel? plano,
   }) = _$ActivityScheduleModelImpl;
@@ -2033,6 +2069,9 @@ abstract class _ActivityScheduleModel implements ActivityScheduleModel {
   @override
   @JsonKey(name: 'lugares_ocupados')
   List<String> get lugaresOcupados;
+  @override
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos;
   @override
   @JsonKey(name: 'area_id')
   int? get areaId;
