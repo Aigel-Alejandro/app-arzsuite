@@ -241,7 +241,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           children: [
                             Center(
                               child: Image.asset(
-                                'assets/images/logo-centro-libanes.png',
+                                isDark ? 'assets/images/CENTRO_LIBANES_LOGO_NEGRO.png' : 'assets/images/logo-centro-libanes.png',
                                 height: 90,
                                 errorBuilder: (c, e, s) => const Icon(Icons.account_balance_wallet, size: 60, color: AppTheme.primaryColor),
                               ),
@@ -250,7 +250,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             Text(
                               'Ecosistema Centro Libanés',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.neutral500),
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: isDark ? AppTheme.neutral200 : AppTheme.neutral500,
+                              ),
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
                             
