@@ -1670,8 +1670,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         children: [
           _buildSectionHeader(context, 'Beneficiarios Legales', Icons.family_restroom_rounded),
           const SizedBox(height: 16),
-          const Text('Asigna a miembros de tu familia autorizados en caso de fallecimiento (máximo 3).'),
+          const Text('Próximamente podrás registrar tus beneficiarios legales a través de esta aplicación.'),
           const SizedBox(height: 16),
+          /*
           _buildCard(
             context,
             child: Column(
@@ -1720,6 +1721,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          */
           const SizedBox(height: 120),
         ],
       ),
