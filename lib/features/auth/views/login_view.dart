@@ -129,7 +129,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
       }
     } on DioException catch (e) {
       if (mounted) {
-        String errorMsg = e.response?.data['message'] ?? 'Error al solicitar código';
+        String errorMsg = e.response?.data['message'] ?? e.message ?? 'Error al solicitar código';
         ToastAlerts.showError(context, errorMsg);
       }
     } finally {
@@ -199,7 +199,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         }
       } on DioException catch (e) {
         if (mounted) {
-          String errorMsg = e.response?.data['message'] ?? 'Credenciales incorrectas';
+          String errorMsg = e.response?.data['message'] ?? e.message ?? 'Credenciales incorrectas';
           ToastAlerts.showError(context, errorMsg);
         }
       } finally {
@@ -259,7 +259,8 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 controller: _userController,
                                 keyboardType: TextInputType.number,
                                 decoration: const InputDecoration(
-                                  labelText: 'Número de Membresía',
+                                  labelText: 'Membresía',
+                                  helperText: 'Número de Membresía a 7 dígitos',
                                   prefixIcon: Icon(Icons.badge_outlined, size: 20),
                                 ),
                                 validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
