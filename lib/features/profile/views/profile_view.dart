@@ -2157,6 +2157,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         data: (data) {
           final pendingBalance = data['pending_balance'] ?? 0;
           final nextCharge = data['next_charge_amount'] ?? 0;
+          final dueMonths = data['due_months'] ?? 0;
+          final paymentFrequency = data['payment_frequency'] as String?;
           
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2185,13 +2187,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     icon: Icons.account_balance_wallet_rounded, 
                     title: 'Saldo Por Pagar', 
                     value: '\$${pendingBalance.toString()}',
-                    isPrimary: true,
+                    isPrimary: pendingBalance > 0,
                   ),
                   _buildFinanceCard(
                     context, 
-                    icon: Icons.calendar_today_rounded, 
-                    title: 'Próximo cargo', 
-                    value: nextCharge > 0 ? '\$${nextCharge.toString()}' : '--',
+                    icon: Icons.calendar_month_rounded, 
+                    title: 'Meses Pendientes', 
+                    value: dueMonths > 0 ? '$dueMonths ${dueMonths == 1 ? 'mes' : 'meses'}' : 'Al corriente',
+                    isPrimary: dueMonths > 0,
                   ),
                 ],
               ),
@@ -2199,8 +2202,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               _buildFinanceCard(
                 context, 
                 icon: Icons.credit_card_rounded, 
-                title: 'Estado de membresía', 
-                value: 'Activa',
+                title: 'Frecuencia de Pago', 
+                value: paymentFrequency ?? 'Activa',
                 isStatus: true,
                 fullWidth: true,
               ),
