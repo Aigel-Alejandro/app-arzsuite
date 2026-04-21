@@ -19,6 +19,7 @@ class ApiEndpoints {
   static const String requestAppCode = "auth/request-socio-code";
   static const String logout = "auth/logout";
   static const String verifyToken = "auth/verify";
+  static const String refreshSocio = "auth/refresh-socio";
 
   // ---------------------------------------------------------------------------
   // USUARIOS

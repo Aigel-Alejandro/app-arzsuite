@@ -15,8 +15,8 @@ class ApiClient {
   })  : _token = token,
         _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
+          connectTimeout: const Duration(seconds: 45),
+          receiveTimeout: const Duration(seconds: 45),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -52,7 +52,7 @@ class ApiClient {
       },
     ));
 
-    if (kDebugMode && !kIsWeb) {
+    if (kDebugMode && !kIsWeb && baseUrl.contains('ecosistema-centro.ddev.site')) {
       _dio.httpClientAdapter = IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();

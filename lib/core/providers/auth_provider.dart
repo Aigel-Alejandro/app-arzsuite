@@ -47,6 +47,8 @@ class AuthNotifier extends StateNotifier<Member?> {
   void logout() {
     state = null;
     _prefs.remove('saved_token');
+    _prefs.remove('saved_refresh_token');
+    _prefs.remove('use_biometrics');
     _prefs.remove('saved_username');
     _prefs.remove('saved_fullname');
     _prefs.remove('saved_id');

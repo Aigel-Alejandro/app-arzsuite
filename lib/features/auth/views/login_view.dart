@@ -57,38 +57,72 @@ class _LoginViewState extends ConsumerState<LoginView> {
       );
 
       if (didAuthenticate && mounted) {
+        setState(() => _isLoading = true);
         final prefs = await SharedPreferences.getInstance();
-        final savedUser = prefs.getString('saved_username') ?? '';
-        final savedToken = prefs.getString('saved_token');
+        final savedRefreshToken = prefs.getString('saved_refresh_token');
 
-        final savedMemberType = prefs.getString('saved_member_type') ?? 'Titular';
-        final savedPermissions = prefs.getStringList('saved_permissions') ?? [];
-        final savedId = prefs.getString('saved_id') ?? '0';
-
-        // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
-        if (savedToken != null) {
-          ref.read(apiClientNotifierProvider.notifier).updateToken(savedToken);
+        if (savedRefreshToken == null || savedRefreshToken.isEmpty) {
+          ToastAlerts.showWarning(context, 'Tu sesión ha expirado, inicia sesión con código por favor.');
+          setState(() => _isLoading = false);
+          return;
         }
 
-        ref.read(authProvider.notifier).setLoggedInMember(
-          Member(
-            id: savedId,
-            membershipNumber: savedUser,
-            firstName: 'Socio',
-            lastName: 'Identificado',
-            secondLastName: '',
-            memberType: savedMemberType,
-            isTitular: savedMemberType.toLowerCase() == 'titular',
-            token: savedToken,
-            permissions: savedPermissions,
-          ),
-        );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeView()),
-        );
+        try {
+          // Solicitar un nuevo access token usando el refresh token al backend
+          final dio = ref.read(apiClientProvider).dio;
+          final response = await dio.post(
+            ApiEndpoints.refreshSocio,
+            data: {'refresh_token': savedRefreshToken},
+          );
+
+          if (mounted) {
+            final userData = response.data['data']['socio'];
+            final memberType = userData['app_role'] ?? 'titular';
+            final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
+            final accessToken = response.data['data']['access_token'];
+            final newRefreshToken = response.data['data']['refresh_token'];
+            final username = userData['entityid'] ?? '';
+            final savedId = userData['id'].toString();
+
+            // Guardar el nuevo refresh token
+            if (newRefreshToken != null) {
+              await prefs.setString('saved_refresh_token', newRefreshToken);
+            }
+
+            // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+            ref.read(apiClientNotifierProvider.notifier).updateToken(accessToken);
+
+            ref.read(authProvider.notifier).setLoggedInMember(
+              Member(
+                id: savedId,
+                membershipNumber: username,
+                firstName: userData['fullname'] ?? 'Socio',
+                lastName: '',
+                secondLastName: '',
+                memberType: memberType,
+                isTitular: memberType.toLowerCase() == 'titular',
+                token: accessToken,
+                permissions: permissions,
+              ),
+            );
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const HomeView()),
+            );
+          }
+        } on DioException catch (e) {
+          if (mounted) {
+            ToastAlerts.showError(context, 'Por seguridad, debes iniciar sesión de nuevo.');
+            await prefs.setBool('use_biometrics', false);
+            setState(() {
+              _isLoading = false;
+              _hasBiometricsSaved = false;
+            });
+          }
+        }
       }
     } catch (e) {
       debugPrint('Error using biometrics: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -191,6 +225,9 @@ class _LoginViewState extends ConsumerState<LoginView> {
           if (_rememberMe) {
             final prefs = await SharedPreferences.getInstance();
             await prefs.setBool('use_biometrics', true);
+            if (response.data['data']['refresh_token'] != null) {
+              await prefs.setString('saved_refresh_token', response.data['data']['refresh_token']);
+            }
           }
 
           Navigator.of(context).pushReplacement(
