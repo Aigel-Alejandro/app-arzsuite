@@ -894,7 +894,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            'Utiliza este código para acceder a las instalaciones del club.',
+                            'Utiliza este código para identificarte en temas relacionados con tu membresía.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppTheme.neutral500,
