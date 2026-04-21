@@ -26,7 +26,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
   bool _codeSent = false;
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _hasBiometricsSaved = false;
@@ -44,6 +43,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
       setState(() => _hasBiometricsSaved = true);
       final savedUser = prefs.getString('saved_username');
       if (savedUser != null) _userController.text = savedUser;
+      
+      // Auto-trigger biometric authentication if saved
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _authenticateWithBiometrics();
+      });
     }
   }
 
@@ -222,12 +226,13 @@ class _LoginViewState extends ConsumerState<LoginView> {
           // 2. Notificar al sistema del nuevo usuario. El AuthNotifier ahora guarda automáticamente en SharedPreferences.
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
-          if (_rememberMe) {
-            final prefs = await SharedPreferences.getInstance();
+          final prefs = await SharedPreferences.getInstance();
+          final isAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
+          if (isAvailable) {
             await prefs.setBool('use_biometrics', true);
-            if (response.data['data']['refresh_token'] != null) {
-              await prefs.setString('saved_refresh_token', response.data['data']['refresh_token']);
-            }
+          }
+          if (response.data['data']['refresh_token'] != null) {
+            await prefs.setString('saved_refresh_token', response.data['data']['refresh_token']);
           }
 
           Navigator.of(context).pushReplacement(
@@ -357,13 +362,6 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             ],
 
                             const SizedBox(height: AppTheme.spacingMedium),
-                            CheckboxListTile(
-                              value: _rememberMe,
-                              onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                              title: const Text('Recordarme y usar Biometría', style: TextStyle(fontSize: 13)),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                            ),
                             
                             if (_hasBiometricsSaved && !_codeSent) ...[
                               OutlinedButton.icon(
