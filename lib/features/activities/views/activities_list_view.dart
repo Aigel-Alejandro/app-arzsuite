@@ -452,13 +452,13 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
         curve: Curves.easeOutCubic,
         transform: Matrix4.identity()..translate(0.0, _isHovered ? -4.0 : 0.0),
         decoration: BoxDecoration(
-          color: const Color(0xFFFDFDFD),
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
           boxShadow: [
             BoxShadow(
               color: _isHovered 
                 ? widget.accentColor.withValues(alpha: 0.15) 
-                : AppTheme.neutral900.withValues(alpha: 0.05),
+                : Theme.of(context).shadowColor.withValues(alpha: 0.05),
               blurRadius: _isHovered ? 25 : 15,
               offset: Offset(0, _isHovered ? 12 : 8),
             )
@@ -502,7 +502,7 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                         color: widget.accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: (widget.emojiIcon != null && widget.emojiIcon!.isNotEmpty && widget.emojiIcon!.length <= 4)
+                      child: (widget.emojiIcon != null && widget.emojiIcon!.isNotEmpty && !RegExp(r'[a-zA-Z]').hasMatch(widget.emojiIcon!))
                           ? Text(widget.emojiIcon!, style: const TextStyle(fontSize: 24))
                           : Icon(widget.icon, color: widget.accentColor, size: 28),
                     ),
@@ -515,7 +515,6 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                             widget.title,
                             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w900,
-                              color: AppTheme.neutral900,
                               fontSize: 18,
                               letterSpacing: -0.2,
                             ),
@@ -524,8 +523,8 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                             const SizedBox(height: 4),
                             Text(
                               widget.description!,
-                              style: const TextStyle(
-                                color: AppTheme.neutral600,
+                              style: TextStyle(
+                                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                                 fontSize: 13,
                               ),
                               maxLines: 2,
@@ -535,12 +534,12 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.person_outline_rounded, size: 14, color: AppTheme.neutral500),
+                              Icon(Icons.person_outline_rounded, size: 14, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
                               const SizedBox(width: 4),
                               Text(
                                 widget.instructor,
-                                style: const TextStyle(
-                                  color: AppTheme.neutral600, 
+                                style: TextStyle(
+                                  color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7), 
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -556,16 +555,16 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                                 color: widget.activity.tieneCosto ? AppTheme.warningColor : AppTheme.successColor,
                               ),
                               const SizedBox(width: 4),
-                              Text(
-                                widget.activity.tieneCosto 
-                                    ? (widget.activity.monto != null ? '\$${widget.activity.monto!.toStringAsFixed(2)} MXN' : 'Con Costo') 
-                                    : 'Sin costo',
-                                style: TextStyle(
-                                  color: widget.activity.tieneCosto ? AppTheme.neutral800 : AppTheme.successColor, 
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
+                                Text(
+                                  widget.activity.tieneCosto 
+                                      ? (widget.activity.monto != null ? '\$${widget.activity.monto!.toStringAsFixed(2)} MXN' : 'Con Costo') 
+                                      : 'Sin costo',
+                                  style: TextStyle(
+                                    color: widget.activity.tieneCosto ? Theme.of(context).textTheme.bodyLarge?.color : AppTheme.successColor, 
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ],
@@ -590,9 +589,9 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                   ],
                 ),
                 
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
-                  child: Divider(color: AppTheme.neutral100, height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppTheme.spacingMedium),
+                  child: Divider(color: Theme.of(context).dividerColor, height: 1),
                 ),
                 
                 Row(
@@ -603,20 +602,20 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'HORARIO',
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w900,
-                              color: AppTheme.neutral400,
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                               letterSpacing: 1.0,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             widget.schedule,
-                            style: const TextStyle(
-                              color: AppTheme.neutral700,
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.bodyLarge?.color,
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
                             ),

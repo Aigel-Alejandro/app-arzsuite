@@ -2535,10 +2535,10 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                        color: Theme.of(context).cardColor,
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                        boxShadow: [BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2552,7 +2552,14 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(item['actividad_nombre'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                child: Text(
+                                  item['actividad_nombre'] ?? '', 
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 16,
+                                    color: Theme.of(context).textTheme.titleLarge?.color,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -2560,40 +2567,40 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                             padding: const EdgeInsets.only(left: 44, top: 4),
                             child: Text(item['grupo_nombre'] ?? '', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w600)),
                           ),
-                          const Divider(height: 24),
+                          Divider(height: 24, color: Theme.of(context).dividerColor),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.calendar_month_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.calendar_month_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['horario'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontWeight: FontWeight.w600, fontSize: 13))),
+                              Expanded(child: Text(item['horario'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontWeight: FontWeight.w600, fontSize: 13))),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.location_on_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.location_on_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['lugar'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                              Expanded(child: Text(item['lugar'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.person_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.person_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
                             ],
                           ),
                         ],

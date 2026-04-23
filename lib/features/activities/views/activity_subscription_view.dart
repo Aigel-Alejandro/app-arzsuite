@@ -431,11 +431,13 @@ class _ActivitySubscriptionViewState
                       color: _getColor(widget.activity.color).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      _getIconData(widget.activity.icono),
-                      color: _getColor(widget.activity.color),
-                      size: 24,
-                    ),
+                    child: (widget.activity.icono != null && widget.activity.icono!.isNotEmpty && !RegExp(r'[a-zA-Z]').hasMatch(widget.activity.icono!))
+                        ? Text(widget.activity.icono!, style: const TextStyle(fontSize: 24))
+                        : Icon(
+                            _getIconData(widget.activity.icono),
+                            color: _getColor(widget.activity.color),
+                            size: 24,
+                          ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -446,7 +448,6 @@ class _ActivitySubscriptionViewState
                           widget.activity.nombre,
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.w900,
-                                color: AppTheme.neutral900,
                               ),
                         ),
                         if (widget.activity.descripcion != null)
@@ -454,8 +455,8 @@ class _ActivitySubscriptionViewState
                             widget.activity.descripcion!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppTheme.neutral500,
+                            style: TextStyle(
+                              color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                               fontSize: 12,
                             ),
                           ),
@@ -485,14 +486,14 @@ class _ActivitySubscriptionViewState
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppTheme.spacingLarge),
                   decoration: BoxDecoration(
-                    color: AppTheme.neutral100,
+                    color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(
                       AppTheme.borderRadiusMedium,
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'No hay horarios ni grupos configurados aún.',
-                    style: TextStyle(color: AppTheme.neutral600),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
                   ),
                 )
               else
@@ -523,14 +524,14 @@ class _ActivitySubscriptionViewState
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppTheme.primaryColor.withValues(alpha: 0.03)
-                            : Colors.white,
+                            : Theme.of(context).cardColor,
                         borderRadius: BorderRadius.circular(
                           AppTheme.borderRadiusGlobal,
                         ),
                         border: Border.all(
                           color: isSelected
                               ? AppTheme.primaryColor
-                              : AppTheme.neutral300,
+                              : Theme.of(context).dividerColor,
                           width: isSelected ? 2 : 1,
                         ),
                         boxShadow: isSelected
@@ -567,14 +568,14 @@ class _ActivitySubscriptionViewState
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
                               color: isFull
-                                  ? AppTheme.neutral500
-                                  : AppTheme.neutral900,
+                                  ? Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                                  : Theme.of(context).textTheme.titleLarge?.color,
                             ),
                           ),
                           subtitle: Text(
                             ageText,
                             style: TextStyle(
-                              color: isFull ? AppTheme.dangerColor : AppTheme.neutral500,
+                              color: isFull ? AppTheme.dangerColor : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                               fontSize: 13,
                               fontWeight: isFull ? FontWeight.bold : FontWeight.w500,
                             ),
@@ -649,12 +650,12 @@ class _ActivitySubscriptionViewState
                           decoration: BoxDecoration(
                             color: _selectedBeneficiaries.isNotEmpty
                                 ? AppTheme.primaryColor.withValues(alpha: 0.05)
-                                : Colors.white,
+                                : Theme.of(context).cardColor,
                             borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
                             border: Border.all(
                               color: _selectedBeneficiaries.isNotEmpty
                                   ? AppTheme.primaryColor
-                                  : AppTheme.neutral300,
+                                  : Theme.of(context).dividerColor,
                               width: _selectedBeneficiaries.isNotEmpty ? 2 : 1,
                             ),
                           ),
@@ -704,8 +705,8 @@ class _ActivitySubscriptionViewState
                                             ? FontWeight.w800
                                             : FontWeight.w500,
                                         color: _selectedBeneficiaries.isNotEmpty
-                                            ? AppTheme.neutral900
-                                            : AppTheme.neutral500,
+                                            ? Theme.of(context).textTheme.titleLarge?.color
+                                            : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
                                       ),
                                     ),
                                   ],
@@ -1344,12 +1345,12 @@ class _ActivitySubscriptionViewState
             decoration: BoxDecoration(
               color: isChecked
                   ? AppTheme.primaryColor.withValues(alpha: 0.08)
-                  : (isFull ? AppTheme.neutral100 : Colors.white),
+                  : (isFull ? Theme.of(context).colorScheme.surfaceContainerHighest : Theme.of(context).cardColor),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(
                 color: isChecked
                     ? AppTheme.primaryColor
-                    : (isFull ? AppTheme.neutral200 : AppTheme.neutral300),
+                    : (isFull ? Theme.of(context).dividerColor : Theme.of(context).dividerColor),
                 width: isChecked ? 2 : 1,
               ),
             ),
@@ -1365,10 +1366,10 @@ class _ActivitySubscriptionViewState
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           color: isFull
-                              ? AppTheme.neutral500
+                              ? Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
                               : (isChecked
                                     ? AppTheme.primaryColor
-                                    : AppTheme.neutral900),
+                                    : Theme.of(context).textTheme.titleLarge?.color),
                           fontSize: 14,
                         ),
                       ),
@@ -1970,7 +1971,7 @@ class _StepDot extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: done ? AppTheme.successColor : (active ? Colors.white : AppTheme.neutral100),
+              color: done ? AppTheme.successColor : (active ? Theme.of(context).cardColor : Theme.of(context).colorScheme.surfaceContainerHighest),
               shape: BoxShape.circle,
               border: Border.all(color: color, width: 2),
             ),
@@ -2019,7 +2020,7 @@ class _StepConnector extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 400),
           height: 2,
-          color: done ? AppTheme.successColor : AppTheme.neutral200,
+          color: done ? AppTheme.successColor : Theme.of(context).dividerColor,
         ),
       ),
     );
@@ -2068,7 +2069,7 @@ class _StepLabel extends StatelessWidget {
           label,
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: done ? AppTheme.successColor : AppTheme.neutral900,
+                color: done ? AppTheme.successColor : Theme.of(context).textTheme.titleLarge?.color,
               ),
         ),
         if (done) ...[
