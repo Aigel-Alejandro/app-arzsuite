@@ -559,6 +559,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 _buildProfileHero(context, profile),
                 const SizedBox(height: 24),
                 GridView.count(
+                  key: const ValueKey('profile_premium_grid'),
+                  padding: EdgeInsets.zero,
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -613,6 +615,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                _buildPremiumMenuTile(
+                  context,
+                  icon: Icons.logout_rounded,
+                  title: 'Cerrar Sesión Completa',
+                  isDestructive: true,
+                  isHorizontal: true,
+                  onTap: () => _showLogoutConfirmation(context, ref),
+                ),
               ],
             ),
           );
@@ -620,6 +631,49 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Cerrar Sesión', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text(
+            '¿Estás seguro de que deseas cerrar tu sesión completamente?\n\n'
+            'Esto removerá tu cuenta del dispositivo y deberás iniciar sesión nuevamente '
+            '(no podrás usar biometría hasta que vuelvas a configurar el acceso con código).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar', style: TextStyle(color: AppTheme.neutral500)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _performFullLogout(ref);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.dangerColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Cerrar Sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _performFullLogout(WidgetRef ref) {
+    ref.read(authProvider.notifier).logout();
+    ref.read(apiClientNotifierProvider.notifier).updateToken('');
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginView()),
+      (route) => false,
     );
   }
 
@@ -663,11 +717,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    bool isDestructive = false,
+    bool isHorizontal = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDestructive ? AppTheme.dangerColor : AppTheme.primaryColor;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDestructive ? color.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -676,7 +734,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
+        border: Border.all(color: isDestructive ? color.withOpacity(0.3) : AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -685,27 +743,59 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
+            child: isHorizontal
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: color, size: 28),
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 15,
+                            color: isDestructive ? color : null,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: color, size: 28),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        title, 
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 13, 
+                          height: 1.2,
+                          color: isDestructive ? color : null,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: AppTheme.primaryColor, size: 28),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  title, 
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, height: 1.2),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
           ),
         ),
       ),

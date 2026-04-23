@@ -54,8 +54,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   }
 
   void _onLogout() {
-    // 1. Limpia el current token en Riverpod / SharedPreferences
-    ref.read(authProvider.notifier).logout();
+    // 1. Bloquea la sesión (estado = null) pero no borra credenciales de biometría
+    ref.read(authProvider.notifier).lockSession();
     
     // 2. Limpia el token en el cliente HTTP (Dio)
     ref.read(apiClientNotifierProvider.notifier).updateToken('');

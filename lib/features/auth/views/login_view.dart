@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
@@ -29,6 +30,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   bool _codeSent = false;
   final LocalAuthentication _localAuth = LocalAuthentication();
   bool _hasBiometricsSaved = false;
+  String _savedFullName = 'Socio';
 
   @override
   void initState() {
@@ -37,12 +39,18 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _checkSavedBiometrics() async {
+    if (kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getBool('use_biometrics') ?? false;
     if (saved && mounted) {
-      setState(() => _hasBiometricsSaved = true);
       final savedUser = prefs.getString('saved_username');
+      final savedName = prefs.getString('saved_user_fullname') ?? 'Socio';
       if (savedUser != null) _userController.text = savedUser;
+      
+      setState(() {
+        _hasBiometricsSaved = true;
+        _savedFullName = savedName;
+      });
       
       // Auto-trigger biometric authentication if saved
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -52,6 +60,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _authenticateWithBiometrics() async {
+    if (kIsWeb) return;
     try {
       final isAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
       if (!isAvailable) return;
@@ -227,9 +236,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
           final prefs = await SharedPreferences.getInstance();
-          final isAvailable = await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported();
+          final isAvailable = !kIsWeb && (await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported());
           if (isAvailable) {
             await prefs.setBool('use_biometrics', true);
+            await prefs.setString('saved_username', mainId);
+            await prefs.setString('saved_user_fullname', fName);
           }
           if (response.data['data']['refresh_token'] != null) {
             await prefs.setString('saved_refresh_token', response.data['data']['refresh_token']);
@@ -298,77 +309,101 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
                             
-                            if (!_codeSent)
-                              TextFormField(
-                                controller: _userController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Membresía',
-                                  helperText: 'Número de Membresía a 7 dígitos',
-                                  prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                            if (_hasBiometricsSaved && !_codeSent) ...[
+                              Text(
+                                '¡Hola de nuevo, $_savedFullName!',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
                                 ),
-                                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                              )
-                            else
-                              Card(
-                                elevation: 0,
-                                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                                child: ListTile(
-                                  dense: true,
-                                  leading: const Icon(Icons.person_pin_circle_outlined),
-                                  title: Text(
-                                    _userController.text,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  trailing: TextButton(
-                                    child: const Text("Editar"),
-                                    onPressed: () => setState(() => _codeSent = false),
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: AppTheme.spacingMedium),
-
-                            if (_codeSent) ...[
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  labelText: 'Código WhatsApp',
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                  ),
-                                ),
-                                validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
                               ),
                               const SizedBox(height: AppTheme.spacingLarge),
-                                ElevatedButton(
-                                  onPressed: _isLoading ? null : _handleLogin,
-                                  child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                              ElevatedButton.icon(
+                                onPressed: _isLoading ? null : _authenticateWithBiometrics,
+                                icon: const Icon(Icons.fingerprint, size: 28),
+                                label: _isLoading 
+                                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Text('Ingresar con Biometría', style: TextStyle(fontSize: 16)),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
-                                const SizedBox(height: AppTheme.spacingMedium),
-                                TextButton(
-                                  onPressed: _isLoading ? null : _requestWhatsAppCode,
-                                  child: const Text('¿No recibiste el código? Reenviar'),
-                                ),
-                              ] else ...[
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _requestWhatsAppCode,
-                                child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Continuar y Recibir Código'),
                               ),
-                            ],
+                              const SizedBox(height: AppTheme.spacingMedium),
+                              TextButton(
+                                onPressed: () async {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('use_biometrics', false);
+                                  setState(() {
+                                    _hasBiometricsSaved = false;
+                                    _userController.clear();
+                                  });
+                                },
+                                child: const Text('Ingresar con otra cuenta'),
+                              ),
+                            ] else ...[
+                              if (!_codeSent)
+                                TextFormField(
+                                  controller: _userController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Membresía',
+                                    helperText: 'Número de Membresía a 7 dígitos',
+                                    prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                                )
+                              else
+                                Card(
+                                  elevation: 0,
+                                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: const Icon(Icons.person_pin_circle_outlined),
+                                    title: Text(
+                                      _userController.text,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                    trailing: TextButton(
+                                      child: const Text("Editar"),
+                                      onPressed: () => setState(() => _codeSent = false),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: AppTheme.spacingMedium),
 
-                            const SizedBox(height: AppTheme.spacingMedium),
-                            
-                            if (_hasBiometricsSaved && !_codeSent) ...[
-                              OutlinedButton.icon(
-                                onPressed: _authenticateWithBiometrics,
-                                icon: const Icon(Icons.fingerprint),
-                                label: const Text('Ingresar con Biometría'),
-                              ),
+                              if (_codeSent) ...[
+                                TextFormField(
+                                  controller: _passwordController,
+                                  obscureText: _obscurePassword,
+                                  decoration: InputDecoration(
+                                    labelText: 'Código WhatsApp',
+                                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    ),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
+                                ),
+                                const SizedBox(height: AppTheme.spacingLarge),
+                                  ElevatedButton(
+                                    onPressed: _isLoading ? null : _handleLogin,
+                                    child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                                  ),
+                                  const SizedBox(height: AppTheme.spacingMedium),
+                                  TextButton(
+                                    onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                    child: const Text('¿No recibiste el código? Reenviar'),
+                                  ),
+                                ] else ...[
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                  child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Continuar y Recibir Código'),
+                                ),
+                              ],
                             ],
                           ],
                         ),
