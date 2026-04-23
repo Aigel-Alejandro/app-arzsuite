@@ -90,7 +90,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
           if (mounted) {
             final userData = response.data['data']['socio'];
-            final memberType = userData['app_role'] ?? 'titular';
+            final memberType = (userData['app_role'] ?? 'titular').toString();
             final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
             final accessToken = response.data['data']['access_token'];
             final newRefreshToken = response.data['data']['refresh_token'];
@@ -113,7 +113,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 lastName: '',
                 secondLastName: '',
                 memberType: memberType,
-                isTitular: memberType.toLowerCase() == 'titular',
+                isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
                 token: accessToken,
                 permissions: permissions,
               ),
@@ -203,7 +203,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
 
         if (mounted) {
           final userData = response.data['data']['socio'] ?? response.data['data']['user'];
-          final memberType = userData['role'] ?? userData['app_role'] ?? 'titular';
+          final memberType = (userData['role'] ?? userData['app_role'] ?? 'titular').toString();
           final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
 
           final mainId = userData['entityid'] ?? userData['username'] ?? username;
@@ -223,7 +223,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             lastName: userData['last_name']?.toString().trim() ?? '',
             secondLastName: '',
             memberType: memberType,
-            isTitular: memberType.toLowerCase() == 'titular',
+            isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
             email: userData['email'],
             phone: userData['phone'],
             token: response.data['data']['access_token'],

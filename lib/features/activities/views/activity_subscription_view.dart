@@ -11,6 +11,7 @@ import 'package:app_arzsuite/features/activities/providers/mock_inscriptions_pro
 import 'package:app_arzsuite/features/activities/providers/activities_provider.dart';
 import 'package:app_arzsuite/core/providers/terms_provider.dart';
 import 'package:app_arzsuite/features/activities/views/mis_reservas_view.dart';
+import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 
 class ActivitySubscriptionView extends ConsumerStatefulWidget {
   final ActivityModel activity;
@@ -23,8 +24,8 @@ class ActivitySubscriptionView extends ConsumerStatefulWidget {
 
 class _ActivitySubscriptionViewState
     extends ConsumerState<ActivitySubscriptionView> {
-  String? _selectedBeneficiary;
-  String? _selectedLugar;
+  Set<String> _selectedBeneficiaries = {};
+  Set<String> _selectedLugares = {};
   bool _termsAccepted = false;
   int? _selectedGroupId;
   Set<String> _selectedItems = {};
@@ -121,9 +122,11 @@ class _ActivitySubscriptionViewState
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
             child: Container(
@@ -191,8 +194,14 @@ class _ActivitySubscriptionViewState
 
                         return InkWell(
                           onTap: () {
-                            setState(() => _selectedBeneficiary = b['name']);
-                            Navigator.pop(context);
+                            setState(() {
+                              if (_selectedBeneficiaries.contains(b['name'])) {
+                                _selectedBeneficiaries.remove(b['name']);
+                              } else {
+                                _selectedBeneficiaries.add(b['name']);
+                              }
+                            });
+                            setSheetState(() {});
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -239,14 +248,14 @@ class _ActivitySubscriptionViewState
                                     ],
                                   ),
                                 ),
-                                if (_selectedBeneficiary == b['name'])
+                                if (_selectedBeneficiaries.contains(b['name']))
                                   const Icon(
                                     Icons.check_circle,
                                     color: AppTheme.primaryColor,
                                   )
                                 else
                                   const Icon(
-                                    Icons.chevron_right,
+                                    Icons.radio_button_unchecked,
                                     color: AppTheme.neutral300,
                                   ),
                               ],
@@ -295,13 +304,29 @@ class _ActivitySubscriptionViewState
                       ),
                     ),
                   const SizedBox(height: 16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: const Text('Listo', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
           ),
         );
-      },
-    );
+        },
+      );
+    },
+  );
   }
 
   @override
@@ -347,8 +372,8 @@ class _ActivitySubscriptionViewState
     }
 
     // ── Detección temprana: ¿el beneficiario ya está inscrito en este horario?
-    bool yaInscrito = false;
-    if (_selectedItems.isNotEmpty && _selectedBeneficiary != null) {
+    List<String> yaInscritosList = [];
+    if (_selectedItems.isNotEmpty && _selectedBeneficiaries.isNotEmpty) {
       final parts = _selectedItems.first.split('-');
       final selHorId = parts.length > 1 && parts[1] != 'null'
           ? int.tryParse(parts[1])
@@ -361,13 +386,15 @@ class _ActivitySubscriptionViewState
             if (eq.id == selEqId) {
               for (final h in eq.horarios) {
                 if (h.id == selHorId) {
-                  final benefId = validBeneficiaries
-                      .where((b) => b['name'] == _selectedBeneficiary)
-                      .map((b) => b['id'] as int)   // ← ya es int gracias al int.tryParse arriba
-                      .firstOrNull;
-                  if (benefId != null && benefId != 0 &&
-                      h.alumnosInscritos.contains(benefId)) {
-                    yaInscrito = true;
+                  for (final bName in _selectedBeneficiaries) {
+                    final benefId = validBeneficiaries
+                        .where((b) => b['name'] == bName)
+                        .map((b) => b['id'] as int)
+                        .firstOrNull;
+                    if (benefId != null && benefId != 0 &&
+                        h.alumnosInscritos.contains(benefId)) {
+                      yaInscritosList.add(bName);
+                    }
                   }
                   break;
                 }
@@ -377,6 +404,7 @@ class _ActivitySubscriptionViewState
         }
       }
     }
+    bool yaInscrito = yaInscritosList.isNotEmpty;
 
 
     return Scaffold(
@@ -441,10 +469,10 @@ class _ActivitySubscriptionViewState
               // ── Barra de progreso ───────────────────────────────
               _StepProgressBar(
                 step1Done: _selectedItems.isNotEmpty,
-                step2Done: _selectedBeneficiary != null,
+                step2Done: _selectedBeneficiaries.isNotEmpty,
                 step3Done: currentSelectedGroup?.requiereSeleccionLugares == true
-                    ? _selectedLugar != null
-                    : _selectedBeneficiary != null,
+                    ? _selectedLugares.length == _selectedBeneficiaries.length && _selectedBeneficiaries.isNotEmpty
+                    : _selectedBeneficiaries.isNotEmpty,
               ),
               const SizedBox(height: 14),
 
@@ -596,7 +624,7 @@ class _ActivitySubscriptionViewState
                       _StepLabel(
                         number: 2,
                         label: '¿Para quién es la clase?',
-                        done: _selectedBeneficiary != null,
+                        done: _selectedBeneficiaries.isNotEmpty,
                       ),
                       const SizedBox(height: AppTheme.spacingSmall),
                       // ── Card de beneficiario ──────────────────────────
@@ -619,15 +647,15 @@ class _ActivitySubscriptionViewState
                             vertical: 10,
                           ),
                           decoration: BoxDecoration(
-                            color: _selectedBeneficiary != null
+                            color: _selectedBeneficiaries.isNotEmpty
                                 ? AppTheme.primaryColor.withValues(alpha: 0.05)
                                 : Colors.white,
                             borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
                             border: Border.all(
-                              color: _selectedBeneficiary != null
+                              color: _selectedBeneficiaries.isNotEmpty
                                   ? AppTheme.primaryColor
                                   : AppTheme.neutral300,
-                              width: _selectedBeneficiary != null ? 2 : 1,
+                              width: _selectedBeneficiaries.isNotEmpty ? 2 : 1,
                             ),
                           ),
                           child: Row(
@@ -636,16 +664,16 @@ class _ActivitySubscriptionViewState
                                 duration: const Duration(milliseconds: 200),
                                 padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: _selectedBeneficiary != null
+                                  color: _selectedBeneficiaries.isNotEmpty
                                       ? AppTheme.primaryColor
                                       : AppTheme.neutral100,
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
-                                  _selectedBeneficiary != null
-                                      ? Icons.person_rounded
+                                  _selectedBeneficiaries.isNotEmpty
+                                      ? Icons.group_rounded
                                       : Icons.person_add_alt_1_rounded,
-                                  color: _selectedBeneficiary != null
+                                  color: _selectedBeneficiaries.isNotEmpty
                                       ? Colors.white
                                       : AppTheme.neutral500,
                                   size: 22,
@@ -656,9 +684,9 @@ class _ActivitySubscriptionViewState
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (_selectedBeneficiary != null)
+                                    if (_selectedBeneficiaries.isNotEmpty)
                                       Text(
-                                        'Asistente seleccionado',
+                                        'Asistentes seleccionados (${_selectedBeneficiaries.length})',
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: AppTheme.primaryColor,
@@ -667,13 +695,15 @@ class _ActivitySubscriptionViewState
                                         ),
                                       ),
                                     Text(
-                                      _selectedBeneficiary ?? 'Seleccionar quién asistirá',
+                                      _selectedBeneficiaries.isNotEmpty
+                                          ? _selectedBeneficiaries.join(', ')
+                                          : 'Seleccionar quién asistirá',
                                       style: TextStyle(
                                         fontSize: 15,
-                                        fontWeight: _selectedBeneficiary != null
+                                        fontWeight: _selectedBeneficiaries.isNotEmpty
                                             ? FontWeight.w800
                                             : FontWeight.w500,
-                                        color: _selectedBeneficiary != null
+                                        color: _selectedBeneficiaries.isNotEmpty
                                             ? AppTheme.neutral900
                                             : AppTheme.neutral500,
                                       ),
@@ -682,10 +712,10 @@ class _ActivitySubscriptionViewState
                                 ),
                               ),
                               Icon(
-                                _selectedBeneficiary != null
+                                _selectedBeneficiaries.isNotEmpty
                                     ? Icons.swap_horiz_rounded
                                     : Icons.chevron_right_rounded,
-                                color: _selectedBeneficiary != null
+                                color: _selectedBeneficiaries.isNotEmpty
                                     ? AppTheme.primaryColor
                                     : AppTheme.neutral400,
                               ),
@@ -703,17 +733,17 @@ class _ActivitySubscriptionViewState
               // ── Paso 3: Lugar ─────────────────────────────────────
               if (currentSelectedGroup?.requiereSeleccionLugares == true) ...[
                 AnimatedOpacity(
-                  opacity: _selectedBeneficiary != null ? 1.0 : 0.4,
+                  opacity: _selectedBeneficiaries.isNotEmpty ? 1.0 : 0.4,
                   duration: const Duration(milliseconds: 300),
                   child: IgnorePointer(
-                    ignoring: _selectedBeneficiary == null || _isEnrolling,
+                    ignoring: _selectedBeneficiaries.isEmpty || _isEnrolling,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _StepLabel(
                           number: 3,
-                          label: 'Elige tu asiento',
-                          done: _selectedLugar != null,
+                          label: 'Elige tus lugares (${_selectedLugares.length}/${_selectedBeneficiaries.length})',
+                          done: _selectedLugares.length == _selectedBeneficiaries.length && _selectedBeneficiaries.isNotEmpty,
                         ),
                         const SizedBox(height: AppTheme.spacingSmall),
                         _buildLugarSelector(context, currentSelectedGroup!),
@@ -842,7 +872,7 @@ class _ActivitySubscriptionViewState
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '$_selectedBeneficiary ya tiene una reserva activa en este horario.',
+                          '${yaInscritosList.join(', ')} ya tienen una reserva activa.',
                           style: const TextStyle(
                             color: AppTheme.dangerColor,
                             fontWeight: FontWeight.w600,
@@ -872,14 +902,14 @@ class _ActivitySubscriptionViewState
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed:
-                      (_selectedBeneficiary != null &&
+                      (_selectedBeneficiaries.isNotEmpty &&
                           _termsAccepted &&
                           _selectedItems.isNotEmpty &&
                           !_isEnrolling &&
                           !yaInscrito &&
                           (!(currentSelectedGroup?.requiereSeleccionLugares ??
                                   false) ||
-                              _selectedLugar != null))
+                              _selectedLugares.length == _selectedBeneficiaries.length))
                       ? () async {
                           setState(() => _isEnrolling = true);
                           try {
@@ -890,24 +920,31 @@ class _ActivitySubscriptionViewState
                                   ? null
                                   : int.parse(parts[1]);
 
-                              final String beneficiarySocioId =
-                                  validBeneficiaries
-                                      .firstWhere(
-                                        (b) =>
-                                            b['name'] == _selectedBeneficiary,
-                                      )['id']
-                                      .toString();
-                              final String finalName = _selectedBeneficiary!
-                                  .replaceAll(' (Titular)', '');
-                              await ref
-                                  .read(activitiesProvider.notifier)
-                                  .inscribirActividad(
-                                    eqId,
-                                    horId,
-                                    finalName,
-                                    beneficiarySocioId,
-                                    lugar: _selectedLugar,
-                                  );
+                              final lugaresList = _selectedLugares.toList();
+
+                              for (int i = 0; i < _selectedBeneficiaries.length; i++) {
+                                final bName = _selectedBeneficiaries.elementAt(i);
+                                final String beneficiarySocioId =
+                                    validBeneficiaries
+                                        .firstWhere((b) => b['name'] == bName)['id']
+                                        .toString();
+                                final String finalName = bName.replaceAll(' (Titular)', '');
+                                
+                                String? assignedLugar;
+                                if (currentSelectedGroup?.requiereSeleccionLugares == true && lugaresList.length > i) {
+                                  assignedLugar = lugaresList[i];
+                                }
+
+                                await ref
+                                    .read(activitiesProvider.notifier)
+                                    .inscribirActividad(
+                                      eqId,
+                                      horId,
+                                      finalName,
+                                      beneficiarySocioId,
+                                      lugar: assignedLugar,
+                                    );
+                              }
                             }
 
                             if (mounted) {
@@ -963,9 +1000,9 @@ class _ActivitySubscriptionViewState
                                 context: context,
                                 barrierDismissible: false,
                                 builder: (_) => _ConfirmacionDialog(
-                                  beneficiario: _selectedBeneficiary ?? '',
+                                  beneficiario: _selectedBeneficiaries.join(', '),
                                   actividad: widget.activity.nombre,
-                                  lugar: _selectedLugar,
+                                  lugar: _selectedLugares.isNotEmpty ? _selectedLugares.join(', ') : null,
                                   horarioStr: fechaClaseLabel,
                                 ),
                               );
@@ -1057,9 +1094,10 @@ class _ActivitySubscriptionViewState
     }
 
     // Auto-deselect if the user picked a seat that turns out to be occupied.
-    if (_selectedLugar != null && lugaresOcupados.contains(_selectedLugar)) {
+    final invalidLugares = _selectedLugares.where((l) => lugaresOcupados.contains(l)).toList();
+    if (invalidLugares.isNotEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(() => _selectedLugar = null);
+        if (mounted) setState(() => _selectedLugares.removeAll(invalidLugares));
       });
     }
 
@@ -1140,16 +1178,21 @@ class _ActivitySubscriptionViewState
                           final isOccupied = lugaresOcupados.contains(
                             lugarLabel,
                           );
-                          final isSelected = _selectedLugar == lugarLabel;
+                          final isSelected = _selectedLugares.contains(lugarLabel);
 
                           return InkWell(
                             onTap: isOccupied
                                 ? null
                                 : () {
                                     setState(() {
-                                      _selectedLugar = isSelected
-                                          ? null
-                                          : lugarLabel;
+                                      if (isSelected) {
+                                        _selectedLugares.remove(lugarLabel);
+                                      } else {
+                                        if (_selectedBeneficiaries.isNotEmpty && _selectedLugares.length >= _selectedBeneficiaries.length) {
+                                          _selectedLugares.remove(_selectedLugares.first);
+                                        }
+                                        _selectedLugares.add(lugarLabel);
+                                      }
                                     });
                                   },
                             borderRadius: BorderRadius.circular(8),
@@ -1208,16 +1251,21 @@ class _ActivitySubscriptionViewState
                     itemBuilder: (context, index) {
                       final lugarLabel = (index + 1).toString();
                       final isOccupied = lugaresOcupados.contains(lugarLabel);
-                      final isSelected = _selectedLugar == lugarLabel;
+                      final isSelected = _selectedLugares.contains(lugarLabel);
 
                       return InkWell(
                         onTap: isOccupied
                             ? null
                             : () {
                                 setState(() {
-                                  _selectedLugar = isSelected
-                                      ? null
-                                      : lugarLabel;
+                                  if (isSelected) {
+                                    _selectedLugares.remove(lugarLabel);
+                                  } else {
+                                    if (_selectedBeneficiaries.isNotEmpty && _selectedLugares.length >= _selectedBeneficiaries.length) {
+                                      _selectedLugares.remove(_selectedLugares.first);
+                                    }
+                                    _selectedLugares.add(lugarLabel);
+                                  }
                                 });
                               },
                         borderRadius: BorderRadius.circular(8),
@@ -1278,17 +1326,16 @@ class _ActivitySubscriptionViewState
                   setState(() {
                     if (_selectedGroupId != grupo.id) {
                       _selectedGroupId = grupo.id;
-                      _selectedGroupId = grupo.id;
                       _selectedItems.clear();
-                      _selectedLugar = null;
+                      _selectedLugares.clear();
                     }
                     if (isChecked) {
                       _selectedItems.remove(key);
                     } else {
                       _selectedItems.add(key);
                     }
-                    _selectedBeneficiary = null;
-                    _selectedLugar = null;
+                    _selectedBeneficiaries.clear();
+                    _selectedLugares.clear();
                   });
                 },
           borderRadius: BorderRadius.circular(14),
@@ -1811,10 +1858,13 @@ class _ConfirmacionDialog extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.pop(context); // close dialog
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MisReservasView()),
+                  Navigator.of(context).pushAndRemoveUntil(
+                    PageRouteBuilder(
+                      pageBuilder: (context, animation, secondaryAnimation) => const ActivitiesDashboardView(),
+                      transitionDuration: Duration.zero,
+                      reverseTransitionDuration: Duration.zero,
+                    ),
+                    (route) => false,
                   );
                 },
               ),

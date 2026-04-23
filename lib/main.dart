@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -61,6 +62,8 @@ class _ArzSuiteAppState extends ConsumerState<ArzSuiteApp> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (kIsWeb) return; // En web no bloqueamos la sesión por inactividad
+
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive || state.name == 'hidden') {
       _pausedTime ??= DateTime.now();
     } else if (state == AppLifecycleState.resumed) {
