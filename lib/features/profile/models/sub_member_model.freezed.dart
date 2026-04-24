@@ -27,7 +27,9 @@ mixin _$SubMemberModel {
   String? get firstName => throw _privateConstructorUsedError;
   @JsonKey(name: 'last_name')
   String? get lastName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'membership_number')
   String get membershipNumber => throw _privateConstructorUsedError;
+  @JsonKey(name: 'member_type')
   String get memberType => throw _privateConstructorUsedError;
   @JsonKey(name: 'birth_date')
   String? get birthDate => throw _privateConstructorUsedError;
@@ -56,8 +58,8 @@ abstract class $SubMemberModelCopyWith<$Res> {
     String fullname,
     @JsonKey(name: 'first_name') String? firstName,
     @JsonKey(name: 'last_name') String? lastName,
-    String membershipNumber,
-    String memberType,
+    @JsonKey(name: 'membership_number') String membershipNumber,
+    @JsonKey(name: 'member_type') String memberType,
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,
@@ -147,8 +149,8 @@ abstract class _$$SubMemberModelImplCopyWith<$Res>
     String fullname,
     @JsonKey(name: 'first_name') String? firstName,
     @JsonKey(name: 'last_name') String? lastName,
-    String membershipNumber,
-    String memberType,
+    @JsonKey(name: 'membership_number') String membershipNumber,
+    @JsonKey(name: 'member_type') String memberType,
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,
@@ -227,11 +229,11 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
 class _$SubMemberModelImpl implements _SubMemberModel {
   const _$SubMemberModelImpl({
     required this.id,
-    required this.fullname,
+    this.fullname = '',
     @JsonKey(name: 'first_name') this.firstName,
     @JsonKey(name: 'last_name') this.lastName,
-    required this.membershipNumber,
-    required this.memberType,
+    @JsonKey(name: 'membership_number') this.membershipNumber = '',
+    @JsonKey(name: 'member_type') this.memberType = '',
     @JsonKey(name: 'birth_date') this.birthDate,
     this.age,
     this.genero,
@@ -243,6 +245,7 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   @override
   final String id;
   @override
+  @JsonKey()
   final String fullname;
   @override
   @JsonKey(name: 'first_name')
@@ -251,8 +254,10 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   @JsonKey(name: 'last_name')
   final String? lastName;
   @override
+  @JsonKey(name: 'membership_number')
   final String membershipNumber;
   @override
+  @JsonKey(name: 'member_type')
   final String memberType;
   @override
   @JsonKey(name: 'birth_date')
@@ -324,11 +329,11 @@ class _$SubMemberModelImpl implements _SubMemberModel {
 abstract class _SubMemberModel implements SubMemberModel {
   const factory _SubMemberModel({
     required final String id,
-    required final String fullname,
+    final String fullname,
     @JsonKey(name: 'first_name') final String? firstName,
     @JsonKey(name: 'last_name') final String? lastName,
-    required final String membershipNumber,
-    required final String memberType,
+    @JsonKey(name: 'membership_number') final String membershipNumber,
+    @JsonKey(name: 'member_type') final String memberType,
     @JsonKey(name: 'birth_date') final String? birthDate,
     final int? age,
     final String? genero,
@@ -348,8 +353,10 @@ abstract class _SubMemberModel implements SubMemberModel {
   @JsonKey(name: 'last_name')
   String? get lastName;
   @override
+  @JsonKey(name: 'membership_number')
   String get membershipNumber;
   @override
+  @JsonKey(name: 'member_type')
   String get memberType;
   @override
   @JsonKey(name: 'birth_date')

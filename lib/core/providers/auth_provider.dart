@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/summer_course/models/member.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,6 +12,14 @@ class AuthNotifier extends StateNotifier<Member?> {
   AuthNotifier(this._prefs) : super(_loadFromPrefs(_prefs));
 
   static Member? _loadFromPrefs(SharedPreferences prefs) {
+    final useBiometrics = prefs.getBool('use_biometrics') ?? false;
+    
+    // Si la biometría está activada (y no es web), forzamos el estado inicial a null 
+    // para que la app inicie en LoginView y solicite la biometría.
+    if (useBiometrics && !kIsWeb) {
+      return null;
+    }
+
     final token = prefs.getString('saved_token');
     final username = prefs.getString('saved_username');
     final fullName = prefs.getString('saved_fullname') ?? 'Socio';
@@ -26,7 +35,7 @@ class AuthNotifier extends StateNotifier<Member?> {
         lastName: '',
         secondLastName: '',
         memberType: memberType,
-        isTitular: memberType == 'Titular',
+        isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
         token: token,
         permissions: permissions,
       );
@@ -47,11 +56,19 @@ class AuthNotifier extends StateNotifier<Member?> {
   void logout() {
     state = null;
     _prefs.remove('saved_token');
+    _prefs.remove('saved_refresh_token');
+    _prefs.remove('use_biometrics');
     _prefs.remove('saved_username');
     _prefs.remove('saved_fullname');
     _prefs.remove('saved_id');
     _prefs.remove('saved_member_type');
     _prefs.remove('saved_permissions');
+  }
+
+  void lockSession() {
+    // Solo ponemos el estado en null para forzar el LoginView (y la pantalla de biometría)
+    // No borramos las preferencias para que pueda reingresar con huella/FaceID.
+    state = null;
   }
 }
 

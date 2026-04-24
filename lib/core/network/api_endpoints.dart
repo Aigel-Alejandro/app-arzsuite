@@ -7,7 +7,7 @@ class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
   static const String baseUrlCakePHP = kReleaseMode 
       ? "https://arzsuite.centrolibanes.org.mx/api/" 
-      : "https://centro.ddev.site/api/"; // Backend local DDEV
+      : "https://arzsuite.centrolibanes.org.mx/api/"; // Cambiado para apuntar siempre a PRD por petición del usuario
 
   // ---------------------------------------------------------------------------
   // AUTH
@@ -15,8 +15,11 @@ class ApiEndpoints {
   static const String login = "auth/login";
   static const String loginSocio = "auth/login-socio";
   static const String requestSocioCode = "auth/request-socio-code";
+  static const String loginAppCode = "auth/login-socio";
+  static const String requestAppCode = "auth/request-socio-code";
   static const String logout = "auth/logout";
   static const String verifyToken = "auth/verify";
+  static const String refreshSocio = "auth/refresh-socio";
 
   // ---------------------------------------------------------------------------
   // USUARIOS

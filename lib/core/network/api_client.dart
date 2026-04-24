@@ -15,8 +15,8 @@ class ApiClient {
   })  : _token = token,
         _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
-          connectTimeout: const Duration(seconds: 15),
-          receiveTimeout: const Duration(seconds: 15),
+          connectTimeout: const Duration(seconds: 45),
+          receiveTimeout: const Duration(seconds: 45),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -26,10 +26,14 @@ class ApiClient {
     // Interceptores para manejo de tokens, logging, etc.
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
+        if (kDebugMode && !kIsWeb && Platform.isAndroid && options.baseUrl.contains('ecosistema-centro.ddev.site')) {
+          options.headers['Host'] = 'ecosistema-centro.ddev.site';
+          options.baseUrl = options.baseUrl.replaceFirst('ecosistema-centro.ddev.site', '10.0.2.2');
+        }
+
         if (_token != null && _token!.isNotEmpty) {
           final cleanToken = _token!.trim();
           options.headers['Authorization'] = 'Bearer $cleanToken';
-          options.headers['X-Authorization'] = 'Bearer $cleanToken';
           // Debug log
           // ignore: avoid_print
           print('ApiClient: Adding Authorization headers with token: $cleanToken');
@@ -48,7 +52,7 @@ class ApiClient {
       },
     ));
 
-    if (kDebugMode) {
+    if (kDebugMode && !kIsWeb && baseUrl.contains('ecosistema-centro.ddev.site')) {
       _dio.httpClientAdapter = IOHttpClientAdapter(
         createHttpClient: () {
           final client = HttpClient();

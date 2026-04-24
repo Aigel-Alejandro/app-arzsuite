@@ -26,6 +26,8 @@ mixin _$ActivityModel {
   int get clubId => throw _privateConstructorUsedError;
   @JsonKey(name: 'club_name')
   String? get clubName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes => throw _privateConstructorUsedError;
   String get nombre => throw _privateConstructorUsedError;
   String? get descripcion => throw _privateConstructorUsedError;
   String? get icono => throw _privateConstructorUsedError;
@@ -57,6 +59,7 @@ abstract class $ActivityModelCopyWith<$Res> {
     int id,
     @JsonKey(name: 'club_id') int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     String nombre,
     String? descripcion,
     String? icono,
@@ -86,6 +89,7 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
     Object? id = null,
     Object? clubId = null,
     Object? clubName = freezed,
+    Object? accesoClubes = freezed,
     Object? nombre = null,
     Object? descripcion = freezed,
     Object? icono = freezed,
@@ -109,6 +113,10 @@ class _$ActivityModelCopyWithImpl<$Res, $Val extends ActivityModel>
                 ? _value.clubName
                 : clubName // ignore: cast_nullable_to_non_nullable
                       as String?,
+            accesoClubes: freezed == accesoClubes
+                ? _value.accesoClubes
+                : accesoClubes // ignore: cast_nullable_to_non_nullable
+                      as List<String>?,
             nombre: null == nombre
                 ? _value.nombre
                 : nombre // ignore: cast_nullable_to_non_nullable
@@ -160,6 +168,7 @@ abstract class _$$ActivityModelImplCopyWith<$Res>
     int id,
     @JsonKey(name: 'club_id') int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     String nombre,
     String? descripcion,
     String? icono,
@@ -188,6 +197,7 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? clubId = null,
     Object? clubName = freezed,
+    Object? accesoClubes = freezed,
     Object? nombre = null,
     Object? descripcion = freezed,
     Object? icono = freezed,
@@ -211,6 +221,10 @@ class __$$ActivityModelImplCopyWithImpl<$Res>
             ? _value.clubName
             : clubName // ignore: cast_nullable_to_non_nullable
                   as String?,
+        accesoClubes: freezed == accesoClubes
+            ? _value._accesoClubes
+            : accesoClubes // ignore: cast_nullable_to_non_nullable
+                  as List<String>?,
         nombre: null == nombre
             ? _value.nombre
             : nombre // ignore: cast_nullable_to_non_nullable
@@ -255,6 +269,7 @@ class _$ActivityModelImpl implements _ActivityModel {
     required this.id,
     @JsonKey(name: 'club_id') required this.clubId,
     @JsonKey(name: 'club_name') this.clubName,
+    @JsonKey(name: 'acceso_clubes') final List<String>? accesoClubes,
     required this.nombre,
     this.descripcion,
     this.icono,
@@ -263,7 +278,8 @@ class _$ActivityModelImpl implements _ActivityModel {
     @JsonKey(name: 'tiene_costo') required this.tieneCosto,
     this.monto,
     final List<ActivityGroupModel> grupos = const [],
-  }) : _grupos = grupos;
+  }) : _accesoClubes = accesoClubes,
+       _grupos = grupos;
 
   factory _$ActivityModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityModelImplFromJson(json);
@@ -276,6 +292,17 @@ class _$ActivityModelImpl implements _ActivityModel {
   @override
   @JsonKey(name: 'club_name')
   final String? clubName;
+  final List<String>? _accesoClubes;
+  @override
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes {
+    final value = _accesoClubes;
+    if (value == null) return null;
+    if (_accesoClubes is EqualUnmodifiableListView) return _accesoClubes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   final String nombre;
   @override
@@ -302,7 +329,7 @@ class _$ActivityModelImpl implements _ActivityModel {
 
   @override
   String toString() {
-    return 'ActivityModel(id: $id, clubId: $clubId, clubName: $clubName, nombre: $nombre, descripcion: $descripcion, icono: $icono, color: $color, tipo: $tipo, tieneCosto: $tieneCosto, monto: $monto, grupos: $grupos)';
+    return 'ActivityModel(id: $id, clubId: $clubId, clubName: $clubName, accesoClubes: $accesoClubes, nombre: $nombre, descripcion: $descripcion, icono: $icono, color: $color, tipo: $tipo, tieneCosto: $tieneCosto, monto: $monto, grupos: $grupos)';
   }
 
   @override
@@ -314,6 +341,10 @@ class _$ActivityModelImpl implements _ActivityModel {
             (identical(other.clubId, clubId) || other.clubId == clubId) &&
             (identical(other.clubName, clubName) ||
                 other.clubName == clubName) &&
+            const DeepCollectionEquality().equals(
+              other._accesoClubes,
+              _accesoClubes,
+            ) &&
             (identical(other.nombre, nombre) || other.nombre == nombre) &&
             (identical(other.descripcion, descripcion) ||
                 other.descripcion == descripcion) &&
@@ -333,6 +364,7 @@ class _$ActivityModelImpl implements _ActivityModel {
     id,
     clubId,
     clubName,
+    const DeepCollectionEquality().hash(_accesoClubes),
     nombre,
     descripcion,
     icono,
@@ -362,6 +394,7 @@ abstract class _ActivityModel implements ActivityModel {
     required final int id,
     @JsonKey(name: 'club_id') required final int clubId,
     @JsonKey(name: 'club_name') final String? clubName,
+    @JsonKey(name: 'acceso_clubes') final List<String>? accesoClubes,
     required final String nombre,
     final String? descripcion,
     final String? icono,
@@ -383,6 +416,9 @@ abstract class _ActivityModel implements ActivityModel {
   @override
   @JsonKey(name: 'club_name')
   String? get clubName;
+  @override
+  @JsonKey(name: 'acceso_clubes')
+  List<String>? get accesoClubes;
   @override
   String get nombre;
   @override
@@ -426,6 +462,8 @@ mixin _$ActivityGroupModel {
   int? get cupoDisponible => throw _privateConstructorUsedError;
   @JsonKey(name: 'tiene_cupo')
   bool get tieneCupo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'requiere_seleccion_lugares')
+  bool get requiereSeleccionLugares => throw _privateConstructorUsedError;
   List<ActivityTeamModel> get equipos => throw _privateConstructorUsedError;
 
   /// Serializes this ActivityGroupModel to a JSON map.
@@ -453,6 +491,7 @@ abstract class $ActivityGroupModelCopyWith<$Res> {
     @JsonKey(name: 'edad_max') int? edadMax,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
+    @JsonKey(name: 'requiere_seleccion_lugares') bool requiereSeleccionLugares,
     List<ActivityTeamModel> equipos,
   });
 }
@@ -479,6 +518,7 @@ class _$ActivityGroupModelCopyWithImpl<$Res, $Val extends ActivityGroupModel>
     Object? edadMax = freezed,
     Object? cupoDisponible = freezed,
     Object? tieneCupo = null,
+    Object? requiereSeleccionLugares = null,
     Object? equipos = null,
   }) {
     return _then(
@@ -511,6 +551,10 @@ class _$ActivityGroupModelCopyWithImpl<$Res, $Val extends ActivityGroupModel>
                 ? _value.tieneCupo
                 : tieneCupo // ignore: cast_nullable_to_non_nullable
                       as bool,
+            requiereSeleccionLugares: null == requiereSeleccionLugares
+                ? _value.requiereSeleccionLugares
+                : requiereSeleccionLugares // ignore: cast_nullable_to_non_nullable
+                      as bool,
             equipos: null == equipos
                 ? _value.equipos
                 : equipos // ignore: cast_nullable_to_non_nullable
@@ -538,6 +582,7 @@ abstract class _$$ActivityGroupModelImplCopyWith<$Res>
     @JsonKey(name: 'edad_max') int? edadMax,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
+    @JsonKey(name: 'requiere_seleccion_lugares') bool requiereSeleccionLugares,
     List<ActivityTeamModel> equipos,
   });
 }
@@ -563,6 +608,7 @@ class __$$ActivityGroupModelImplCopyWithImpl<$Res>
     Object? edadMax = freezed,
     Object? cupoDisponible = freezed,
     Object? tieneCupo = null,
+    Object? requiereSeleccionLugares = null,
     Object? equipos = null,
   }) {
     return _then(
@@ -595,6 +641,10 @@ class __$$ActivityGroupModelImplCopyWithImpl<$Res>
             ? _value.tieneCupo
             : tieneCupo // ignore: cast_nullable_to_non_nullable
                   as bool,
+        requiereSeleccionLugares: null == requiereSeleccionLugares
+            ? _value.requiereSeleccionLugares
+            : requiereSeleccionLugares // ignore: cast_nullable_to_non_nullable
+                  as bool,
         equipos: null == equipos
             ? _value._equipos
             : equipos // ignore: cast_nullable_to_non_nullable
@@ -615,6 +665,8 @@ class _$ActivityGroupModelImpl implements _ActivityGroupModel {
     @JsonKey(name: 'edad_max') this.edadMax,
     @JsonKey(name: 'cupo_disponible') this.cupoDisponible,
     @JsonKey(name: 'tiene_cupo') required this.tieneCupo,
+    @JsonKey(name: 'requiere_seleccion_lugares')
+    this.requiereSeleccionLugares = false,
     final List<ActivityTeamModel> equipos = const [],
   }) : _equipos = equipos;
 
@@ -639,6 +691,9 @@ class _$ActivityGroupModelImpl implements _ActivityGroupModel {
   @override
   @JsonKey(name: 'tiene_cupo')
   final bool tieneCupo;
+  @override
+  @JsonKey(name: 'requiere_seleccion_lugares')
+  final bool requiereSeleccionLugares;
   final List<ActivityTeamModel> _equipos;
   @override
   @JsonKey()
@@ -650,7 +705,7 @@ class _$ActivityGroupModelImpl implements _ActivityGroupModel {
 
   @override
   String toString() {
-    return 'ActivityGroupModel(id: $id, nombre: $nombre, descripcion: $descripcion, edadMin: $edadMin, edadMax: $edadMax, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo, equipos: $equipos)';
+    return 'ActivityGroupModel(id: $id, nombre: $nombre, descripcion: $descripcion, edadMin: $edadMin, edadMax: $edadMax, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo, requiereSeleccionLugares: $requiereSeleccionLugares, equipos: $equipos)';
   }
 
   @override
@@ -668,6 +723,11 @@ class _$ActivityGroupModelImpl implements _ActivityGroupModel {
                 other.cupoDisponible == cupoDisponible) &&
             (identical(other.tieneCupo, tieneCupo) ||
                 other.tieneCupo == tieneCupo) &&
+            (identical(
+                  other.requiereSeleccionLugares,
+                  requiereSeleccionLugares,
+                ) ||
+                other.requiereSeleccionLugares == requiereSeleccionLugares) &&
             const DeepCollectionEquality().equals(other._equipos, _equipos));
   }
 
@@ -682,6 +742,7 @@ class _$ActivityGroupModelImpl implements _ActivityGroupModel {
     edadMax,
     cupoDisponible,
     tieneCupo,
+    requiereSeleccionLugares,
     const DeepCollectionEquality().hash(_equipos),
   );
 
@@ -711,6 +772,8 @@ abstract class _ActivityGroupModel implements ActivityGroupModel {
     @JsonKey(name: 'edad_max') final int? edadMax,
     @JsonKey(name: 'cupo_disponible') final int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') required final bool tieneCupo,
+    @JsonKey(name: 'requiere_seleccion_lugares')
+    final bool requiereSeleccionLugares,
     final List<ActivityTeamModel> equipos,
   }) = _$ActivityGroupModelImpl;
 
@@ -736,6 +799,9 @@ abstract class _ActivityGroupModel implements ActivityGroupModel {
   @JsonKey(name: 'tiene_cupo')
   bool get tieneCupo;
   @override
+  @JsonKey(name: 'requiere_seleccion_lugares')
+  bool get requiereSeleccionLugares;
+  @override
   List<ActivityTeamModel> get equipos;
 
   /// Create a copy of ActivityGroupModel
@@ -755,6 +821,8 @@ mixin _$ActivityTeamModel {
   int get id => throw _privateConstructorUsedError;
   String get nombre => throw _privateConstructorUsedError;
   String? get color => throw _privateConstructorUsedError;
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados => throw _privateConstructorUsedError;
   List<ActivityScheduleModel> get horarios =>
       throw _privateConstructorUsedError;
 
@@ -779,6 +847,7 @@ abstract class $ActivityTeamModelCopyWith<$Res> {
     int id,
     String nombre,
     String? color,
+    @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
     List<ActivityScheduleModel> horarios,
   });
 }
@@ -801,6 +870,7 @@ class _$ActivityTeamModelCopyWithImpl<$Res, $Val extends ActivityTeamModel>
     Object? id = null,
     Object? nombre = null,
     Object? color = freezed,
+    Object? lugaresOcupados = null,
     Object? horarios = null,
   }) {
     return _then(
@@ -817,6 +887,10 @@ class _$ActivityTeamModelCopyWithImpl<$Res, $Val extends ActivityTeamModel>
                 ? _value.color
                 : color // ignore: cast_nullable_to_non_nullable
                       as String?,
+            lugaresOcupados: null == lugaresOcupados
+                ? _value.lugaresOcupados
+                : lugaresOcupados // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
             horarios: null == horarios
                 ? _value.horarios
                 : horarios // ignore: cast_nullable_to_non_nullable
@@ -840,6 +914,7 @@ abstract class _$$ActivityTeamModelImplCopyWith<$Res>
     int id,
     String nombre,
     String? color,
+    @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
     List<ActivityScheduleModel> horarios,
   });
 }
@@ -861,6 +936,7 @@ class __$$ActivityTeamModelImplCopyWithImpl<$Res>
     Object? id = null,
     Object? nombre = null,
     Object? color = freezed,
+    Object? lugaresOcupados = null,
     Object? horarios = null,
   }) {
     return _then(
@@ -877,6 +953,10 @@ class __$$ActivityTeamModelImplCopyWithImpl<$Res>
             ? _value.color
             : color // ignore: cast_nullable_to_non_nullable
                   as String?,
+        lugaresOcupados: null == lugaresOcupados
+            ? _value._lugaresOcupados
+            : lugaresOcupados // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
         horarios: null == horarios
             ? _value._horarios
             : horarios // ignore: cast_nullable_to_non_nullable
@@ -893,8 +973,11 @@ class _$ActivityTeamModelImpl implements _ActivityTeamModel {
     required this.id,
     required this.nombre,
     this.color,
+    @JsonKey(name: 'lugares_ocupados')
+    final List<String> lugaresOcupados = const [],
     final List<ActivityScheduleModel> horarios = const [],
-  }) : _horarios = horarios;
+  }) : _lugaresOcupados = lugaresOcupados,
+       _horarios = horarios;
 
   factory _$ActivityTeamModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityTeamModelImplFromJson(json);
@@ -905,6 +988,15 @@ class _$ActivityTeamModelImpl implements _ActivityTeamModel {
   final String nombre;
   @override
   final String? color;
+  final List<String> _lugaresOcupados;
+  @override
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados {
+    if (_lugaresOcupados is EqualUnmodifiableListView) return _lugaresOcupados;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_lugaresOcupados);
+  }
+
   final List<ActivityScheduleModel> _horarios;
   @override
   @JsonKey()
@@ -916,7 +1008,7 @@ class _$ActivityTeamModelImpl implements _ActivityTeamModel {
 
   @override
   String toString() {
-    return 'ActivityTeamModel(id: $id, nombre: $nombre, color: $color, horarios: $horarios)';
+    return 'ActivityTeamModel(id: $id, nombre: $nombre, color: $color, lugaresOcupados: $lugaresOcupados, horarios: $horarios)';
   }
 
   @override
@@ -927,6 +1019,10 @@ class _$ActivityTeamModelImpl implements _ActivityTeamModel {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.nombre, nombre) || other.nombre == nombre) &&
             (identical(other.color, color) || other.color == color) &&
+            const DeepCollectionEquality().equals(
+              other._lugaresOcupados,
+              _lugaresOcupados,
+            ) &&
             const DeepCollectionEquality().equals(other._horarios, _horarios));
   }
 
@@ -937,6 +1033,7 @@ class _$ActivityTeamModelImpl implements _ActivityTeamModel {
     id,
     nombre,
     color,
+    const DeepCollectionEquality().hash(_lugaresOcupados),
     const DeepCollectionEquality().hash(_horarios),
   );
 
@@ -962,6 +1059,7 @@ abstract class _ActivityTeamModel implements ActivityTeamModel {
     required final int id,
     required final String nombre,
     final String? color,
+    @JsonKey(name: 'lugares_ocupados') final List<String> lugaresOcupados,
     final List<ActivityScheduleModel> horarios,
   }) = _$ActivityTeamModelImpl;
 
@@ -975,6 +1073,9 @@ abstract class _ActivityTeamModel implements ActivityTeamModel {
   @override
   String? get color;
   @override
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados;
+  @override
   List<ActivityScheduleModel> get horarios;
 
   /// Create a copy of ActivityTeamModel
@@ -983,6 +1084,521 @@ abstract class _ActivityTeamModel implements ActivityTeamModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ActivityTeamModelImplCopyWith<_$ActivityTeamModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
+}
+
+ActivityAreaPlanoPositionModel _$ActivityAreaPlanoPositionModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _ActivityAreaPlanoPositionModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ActivityAreaPlanoPositionModel {
+  @JsonKey(name: 'fila_index')
+  int get filaIndex => throw _privateConstructorUsedError;
+  @JsonKey(name: 'columna_index')
+  int get columnaIndex => throw _privateConstructorUsedError;
+  String get etiqueta => throw _privateConstructorUsedError;
+  String get tipo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_active')
+  bool get isActive => throw _privateConstructorUsedError;
+
+  /// Serializes this ActivityAreaPlanoPositionModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ActivityAreaPlanoPositionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ActivityAreaPlanoPositionModelCopyWith<ActivityAreaPlanoPositionModel>
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ActivityAreaPlanoPositionModelCopyWith<$Res> {
+  factory $ActivityAreaPlanoPositionModelCopyWith(
+    ActivityAreaPlanoPositionModel value,
+    $Res Function(ActivityAreaPlanoPositionModel) then,
+  ) =
+      _$ActivityAreaPlanoPositionModelCopyWithImpl<
+        $Res,
+        ActivityAreaPlanoPositionModel
+      >;
+  @useResult
+  $Res call({
+    @JsonKey(name: 'fila_index') int filaIndex,
+    @JsonKey(name: 'columna_index') int columnaIndex,
+    String etiqueta,
+    String tipo,
+    @JsonKey(name: 'is_active') bool isActive,
+  });
+}
+
+/// @nodoc
+class _$ActivityAreaPlanoPositionModelCopyWithImpl<
+  $Res,
+  $Val extends ActivityAreaPlanoPositionModel
+>
+    implements $ActivityAreaPlanoPositionModelCopyWith<$Res> {
+  _$ActivityAreaPlanoPositionModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ActivityAreaPlanoPositionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? filaIndex = null,
+    Object? columnaIndex = null,
+    Object? etiqueta = null,
+    Object? tipo = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            filaIndex: null == filaIndex
+                ? _value.filaIndex
+                : filaIndex // ignore: cast_nullable_to_non_nullable
+                      as int,
+            columnaIndex: null == columnaIndex
+                ? _value.columnaIndex
+                : columnaIndex // ignore: cast_nullable_to_non_nullable
+                      as int,
+            etiqueta: null == etiqueta
+                ? _value.etiqueta
+                : etiqueta // ignore: cast_nullable_to_non_nullable
+                      as String,
+            tipo: null == tipo
+                ? _value.tipo
+                : tipo // ignore: cast_nullable_to_non_nullable
+                      as String,
+            isActive: null == isActive
+                ? _value.isActive
+                : isActive // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ActivityAreaPlanoPositionModelImplCopyWith<$Res>
+    implements $ActivityAreaPlanoPositionModelCopyWith<$Res> {
+  factory _$$ActivityAreaPlanoPositionModelImplCopyWith(
+    _$ActivityAreaPlanoPositionModelImpl value,
+    $Res Function(_$ActivityAreaPlanoPositionModelImpl) then,
+  ) = __$$ActivityAreaPlanoPositionModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    @JsonKey(name: 'fila_index') int filaIndex,
+    @JsonKey(name: 'columna_index') int columnaIndex,
+    String etiqueta,
+    String tipo,
+    @JsonKey(name: 'is_active') bool isActive,
+  });
+}
+
+/// @nodoc
+class __$$ActivityAreaPlanoPositionModelImplCopyWithImpl<$Res>
+    extends
+        _$ActivityAreaPlanoPositionModelCopyWithImpl<
+          $Res,
+          _$ActivityAreaPlanoPositionModelImpl
+        >
+    implements _$$ActivityAreaPlanoPositionModelImplCopyWith<$Res> {
+  __$$ActivityAreaPlanoPositionModelImplCopyWithImpl(
+    _$ActivityAreaPlanoPositionModelImpl _value,
+    $Res Function(_$ActivityAreaPlanoPositionModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ActivityAreaPlanoPositionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? filaIndex = null,
+    Object? columnaIndex = null,
+    Object? etiqueta = null,
+    Object? tipo = null,
+    Object? isActive = null,
+  }) {
+    return _then(
+      _$ActivityAreaPlanoPositionModelImpl(
+        filaIndex: null == filaIndex
+            ? _value.filaIndex
+            : filaIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
+        columnaIndex: null == columnaIndex
+            ? _value.columnaIndex
+            : columnaIndex // ignore: cast_nullable_to_non_nullable
+                  as int,
+        etiqueta: null == etiqueta
+            ? _value.etiqueta
+            : etiqueta // ignore: cast_nullable_to_non_nullable
+                  as String,
+        tipo: null == tipo
+            ? _value.tipo
+            : tipo // ignore: cast_nullable_to_non_nullable
+                  as String,
+        isActive: null == isActive
+            ? _value.isActive
+            : isActive // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ActivityAreaPlanoPositionModelImpl
+    implements _ActivityAreaPlanoPositionModel {
+  const _$ActivityAreaPlanoPositionModelImpl({
+    @JsonKey(name: 'fila_index') required this.filaIndex,
+    @JsonKey(name: 'columna_index') required this.columnaIndex,
+    required this.etiqueta,
+    required this.tipo,
+    @JsonKey(name: 'is_active') required this.isActive,
+  });
+
+  factory _$ActivityAreaPlanoPositionModelImpl.fromJson(
+    Map<String, dynamic> json,
+  ) => _$$ActivityAreaPlanoPositionModelImplFromJson(json);
+
+  @override
+  @JsonKey(name: 'fila_index')
+  final int filaIndex;
+  @override
+  @JsonKey(name: 'columna_index')
+  final int columnaIndex;
+  @override
+  final String etiqueta;
+  @override
+  final String tipo;
+  @override
+  @JsonKey(name: 'is_active')
+  final bool isActive;
+
+  @override
+  String toString() {
+    return 'ActivityAreaPlanoPositionModel(filaIndex: $filaIndex, columnaIndex: $columnaIndex, etiqueta: $etiqueta, tipo: $tipo, isActive: $isActive)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ActivityAreaPlanoPositionModelImpl &&
+            (identical(other.filaIndex, filaIndex) ||
+                other.filaIndex == filaIndex) &&
+            (identical(other.columnaIndex, columnaIndex) ||
+                other.columnaIndex == columnaIndex) &&
+            (identical(other.etiqueta, etiqueta) ||
+                other.etiqueta == etiqueta) &&
+            (identical(other.tipo, tipo) || other.tipo == tipo) &&
+            (identical(other.isActive, isActive) ||
+                other.isActive == isActive));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    filaIndex,
+    columnaIndex,
+    etiqueta,
+    tipo,
+    isActive,
+  );
+
+  /// Create a copy of ActivityAreaPlanoPositionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ActivityAreaPlanoPositionModelImplCopyWith<
+    _$ActivityAreaPlanoPositionModelImpl
+  >
+  get copyWith =>
+      __$$ActivityAreaPlanoPositionModelImplCopyWithImpl<
+        _$ActivityAreaPlanoPositionModelImpl
+      >(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ActivityAreaPlanoPositionModelImplToJson(this);
+  }
+}
+
+abstract class _ActivityAreaPlanoPositionModel
+    implements ActivityAreaPlanoPositionModel {
+  const factory _ActivityAreaPlanoPositionModel({
+    @JsonKey(name: 'fila_index') required final int filaIndex,
+    @JsonKey(name: 'columna_index') required final int columnaIndex,
+    required final String etiqueta,
+    required final String tipo,
+    @JsonKey(name: 'is_active') required final bool isActive,
+  }) = _$ActivityAreaPlanoPositionModelImpl;
+
+  factory _ActivityAreaPlanoPositionModel.fromJson(Map<String, dynamic> json) =
+      _$ActivityAreaPlanoPositionModelImpl.fromJson;
+
+  @override
+  @JsonKey(name: 'fila_index')
+  int get filaIndex;
+  @override
+  @JsonKey(name: 'columna_index')
+  int get columnaIndex;
+  @override
+  String get etiqueta;
+  @override
+  String get tipo;
+  @override
+  @JsonKey(name: 'is_active')
+  bool get isActive;
+
+  /// Create a copy of ActivityAreaPlanoPositionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ActivityAreaPlanoPositionModelImplCopyWith<
+    _$ActivityAreaPlanoPositionModelImpl
+  >
+  get copyWith => throw _privateConstructorUsedError;
+}
+
+ActivityAreaPlanoModel _$ActivityAreaPlanoModelFromJson(
+  Map<String, dynamic> json,
+) {
+  return _ActivityAreaPlanoModel.fromJson(json);
+}
+
+/// @nodoc
+mixin _$ActivityAreaPlanoModel {
+  int get filas => throw _privateConstructorUsedError;
+  int get columnas => throw _privateConstructorUsedError;
+  List<ActivityAreaPlanoPositionModel> get posiciones =>
+      throw _privateConstructorUsedError;
+
+  /// Serializes this ActivityAreaPlanoModel to a JSON map.
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+
+  /// Create a copy of ActivityAreaPlanoModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $ActivityAreaPlanoModelCopyWith<ActivityAreaPlanoModel> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+/// @nodoc
+abstract class $ActivityAreaPlanoModelCopyWith<$Res> {
+  factory $ActivityAreaPlanoModelCopyWith(
+    ActivityAreaPlanoModel value,
+    $Res Function(ActivityAreaPlanoModel) then,
+  ) = _$ActivityAreaPlanoModelCopyWithImpl<$Res, ActivityAreaPlanoModel>;
+  @useResult
+  $Res call({
+    int filas,
+    int columnas,
+    List<ActivityAreaPlanoPositionModel> posiciones,
+  });
+}
+
+/// @nodoc
+class _$ActivityAreaPlanoModelCopyWithImpl<
+  $Res,
+  $Val extends ActivityAreaPlanoModel
+>
+    implements $ActivityAreaPlanoModelCopyWith<$Res> {
+  _$ActivityAreaPlanoModelCopyWithImpl(this._value, this._then);
+
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
+
+  /// Create a copy of ActivityAreaPlanoModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? filas = null,
+    Object? columnas = null,
+    Object? posiciones = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            filas: null == filas
+                ? _value.filas
+                : filas // ignore: cast_nullable_to_non_nullable
+                      as int,
+            columnas: null == columnas
+                ? _value.columnas
+                : columnas // ignore: cast_nullable_to_non_nullable
+                      as int,
+            posiciones: null == posiciones
+                ? _value.posiciones
+                : posiciones // ignore: cast_nullable_to_non_nullable
+                      as List<ActivityAreaPlanoPositionModel>,
+          )
+          as $Val,
+    );
+  }
+}
+
+/// @nodoc
+abstract class _$$ActivityAreaPlanoModelImplCopyWith<$Res>
+    implements $ActivityAreaPlanoModelCopyWith<$Res> {
+  factory _$$ActivityAreaPlanoModelImplCopyWith(
+    _$ActivityAreaPlanoModelImpl value,
+    $Res Function(_$ActivityAreaPlanoModelImpl) then,
+  ) = __$$ActivityAreaPlanoModelImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    int filas,
+    int columnas,
+    List<ActivityAreaPlanoPositionModel> posiciones,
+  });
+}
+
+/// @nodoc
+class __$$ActivityAreaPlanoModelImplCopyWithImpl<$Res>
+    extends
+        _$ActivityAreaPlanoModelCopyWithImpl<$Res, _$ActivityAreaPlanoModelImpl>
+    implements _$$ActivityAreaPlanoModelImplCopyWith<$Res> {
+  __$$ActivityAreaPlanoModelImplCopyWithImpl(
+    _$ActivityAreaPlanoModelImpl _value,
+    $Res Function(_$ActivityAreaPlanoModelImpl) _then,
+  ) : super(_value, _then);
+
+  /// Create a copy of ActivityAreaPlanoModel
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? filas = null,
+    Object? columnas = null,
+    Object? posiciones = null,
+  }) {
+    return _then(
+      _$ActivityAreaPlanoModelImpl(
+        filas: null == filas
+            ? _value.filas
+            : filas // ignore: cast_nullable_to_non_nullable
+                  as int,
+        columnas: null == columnas
+            ? _value.columnas
+            : columnas // ignore: cast_nullable_to_non_nullable
+                  as int,
+        posiciones: null == posiciones
+            ? _value._posiciones
+            : posiciones // ignore: cast_nullable_to_non_nullable
+                  as List<ActivityAreaPlanoPositionModel>,
+      ),
+    );
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _$ActivityAreaPlanoModelImpl implements _ActivityAreaPlanoModel {
+  const _$ActivityAreaPlanoModelImpl({
+    required this.filas,
+    required this.columnas,
+    final List<ActivityAreaPlanoPositionModel> posiciones = const [],
+  }) : _posiciones = posiciones;
+
+  factory _$ActivityAreaPlanoModelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ActivityAreaPlanoModelImplFromJson(json);
+
+  @override
+  final int filas;
+  @override
+  final int columnas;
+  final List<ActivityAreaPlanoPositionModel> _posiciones;
+  @override
+  @JsonKey()
+  List<ActivityAreaPlanoPositionModel> get posiciones {
+    if (_posiciones is EqualUnmodifiableListView) return _posiciones;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_posiciones);
+  }
+
+  @override
+  String toString() {
+    return 'ActivityAreaPlanoModel(filas: $filas, columnas: $columnas, posiciones: $posiciones)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$ActivityAreaPlanoModelImpl &&
+            (identical(other.filas, filas) || other.filas == filas) &&
+            (identical(other.columnas, columnas) ||
+                other.columnas == columnas) &&
+            const DeepCollectionEquality().equals(
+              other._posiciones,
+              _posiciones,
+            ));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
+    filas,
+    columnas,
+    const DeepCollectionEquality().hash(_posiciones),
+  );
+
+  /// Create a copy of ActivityAreaPlanoModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$ActivityAreaPlanoModelImplCopyWith<_$ActivityAreaPlanoModelImpl>
+  get copyWith =>
+      __$$ActivityAreaPlanoModelImplCopyWithImpl<_$ActivityAreaPlanoModelImpl>(
+        this,
+        _$identity,
+      );
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$ActivityAreaPlanoModelImplToJson(this);
+  }
+}
+
+abstract class _ActivityAreaPlanoModel implements ActivityAreaPlanoModel {
+  const factory _ActivityAreaPlanoModel({
+    required final int filas,
+    required final int columnas,
+    final List<ActivityAreaPlanoPositionModel> posiciones,
+  }) = _$ActivityAreaPlanoModelImpl;
+
+  factory _ActivityAreaPlanoModel.fromJson(Map<String, dynamic> json) =
+      _$ActivityAreaPlanoModelImpl.fromJson;
+
+  @override
+  int get filas;
+  @override
+  int get columnas;
+  @override
+  List<ActivityAreaPlanoPositionModel> get posiciones;
+
+  /// Create a copy of ActivityAreaPlanoModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$ActivityAreaPlanoModelImplCopyWith<_$ActivityAreaPlanoModelImpl>
+  get copyWith => throw _privateConstructorUsedError;
 }
 
 ActivityScheduleModel _$ActivityScheduleModelFromJson(
@@ -1005,6 +1621,16 @@ mixin _$ActivityScheduleModel {
   int? get cupoDisponible => throw _privateConstructorUsedError;
   @JsonKey(name: 'tiene_cupo')
   bool get tieneCupo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'cupo_maximo')
+  int? get cupoMaximo => throw _privateConstructorUsedError;
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados => throw _privateConstructorUsedError;
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos => throw _privateConstructorUsedError;
+  @JsonKey(name: 'area_id')
+  int? get areaId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'plano')
+  ActivityAreaPlanoModel? get plano => throw _privateConstructorUsedError;
 
   /// Serializes this ActivityScheduleModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -1031,7 +1657,15 @@ abstract class $ActivityScheduleModelCopyWith<$Res> {
     String? lugar,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
+    @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
+    @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    List<int> alumnosInscritos,
+    @JsonKey(name: 'area_id') int? areaId,
+    @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   });
+
+  $ActivityAreaPlanoModelCopyWith<$Res>? get plano;
 }
 
 /// @nodoc
@@ -1059,6 +1693,11 @@ class _$ActivityScheduleModelCopyWithImpl<
     Object? lugar = freezed,
     Object? cupoDisponible = freezed,
     Object? tieneCupo = null,
+    Object? cupoMaximo = freezed,
+    Object? lugaresOcupados = null,
+    Object? alumnosInscritos = null,
+    Object? areaId = freezed,
+    Object? plano = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -1090,9 +1729,43 @@ class _$ActivityScheduleModelCopyWithImpl<
                 ? _value.tieneCupo
                 : tieneCupo // ignore: cast_nullable_to_non_nullable
                       as bool,
+            cupoMaximo: freezed == cupoMaximo
+                ? _value.cupoMaximo
+                : cupoMaximo // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            lugaresOcupados: null == lugaresOcupados
+                ? _value.lugaresOcupados
+                : lugaresOcupados // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            alumnosInscritos: null == alumnosInscritos
+                ? _value.alumnosInscritos
+                : alumnosInscritos // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+            areaId: freezed == areaId
+                ? _value.areaId
+                : areaId // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            plano: freezed == plano
+                ? _value.plano
+                : plano // ignore: cast_nullable_to_non_nullable
+                      as ActivityAreaPlanoModel?,
           )
           as $Val,
     );
+  }
+
+  /// Create a copy of ActivityScheduleModel
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $ActivityAreaPlanoModelCopyWith<$Res>? get plano {
+    if (_value.plano == null) {
+      return null;
+    }
+
+    return $ActivityAreaPlanoModelCopyWith<$Res>(_value.plano!, (value) {
+      return _then(_value.copyWith(plano: value) as $Val);
+    });
   }
 }
 
@@ -1113,7 +1786,16 @@ abstract class _$$ActivityScheduleModelImplCopyWith<$Res>
     String? lugar,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') bool tieneCupo,
+    @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
+    @JsonKey(name: 'lugares_ocupados') List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    List<int> alumnosInscritos,
+    @JsonKey(name: 'area_id') int? areaId,
+    @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   });
+
+  @override
+  $ActivityAreaPlanoModelCopyWith<$Res>? get plano;
 }
 
 /// @nodoc
@@ -1138,6 +1820,11 @@ class __$$ActivityScheduleModelImplCopyWithImpl<$Res>
     Object? lugar = freezed,
     Object? cupoDisponible = freezed,
     Object? tieneCupo = null,
+    Object? cupoMaximo = freezed,
+    Object? lugaresOcupados = null,
+    Object? alumnosInscritos = null,
+    Object? areaId = freezed,
+    Object? plano = freezed,
   }) {
     return _then(
       _$ActivityScheduleModelImpl(
@@ -1169,6 +1856,26 @@ class __$$ActivityScheduleModelImplCopyWithImpl<$Res>
             ? _value.tieneCupo
             : tieneCupo // ignore: cast_nullable_to_non_nullable
                   as bool,
+        cupoMaximo: freezed == cupoMaximo
+            ? _value.cupoMaximo
+            : cupoMaximo // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        lugaresOcupados: null == lugaresOcupados
+            ? _value._lugaresOcupados
+            : lugaresOcupados // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        alumnosInscritos: null == alumnosInscritos
+            ? _value._alumnosInscritos
+            : alumnosInscritos // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        areaId: freezed == areaId
+            ? _value.areaId
+            : areaId // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        plano: freezed == plano
+            ? _value.plano
+            : plano // ignore: cast_nullable_to_non_nullable
+                  as ActivityAreaPlanoModel?,
       ),
     );
   }
@@ -1185,7 +1892,15 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
     this.lugar,
     @JsonKey(name: 'cupo_disponible') this.cupoDisponible,
     @JsonKey(name: 'tiene_cupo') this.tieneCupo = false,
-  });
+    @JsonKey(name: 'cupo_maximo') this.cupoMaximo,
+    @JsonKey(name: 'lugares_ocupados')
+    final List<String> lugaresOcupados = const [],
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    final List<int> alumnosInscritos = const [],
+    @JsonKey(name: 'area_id') this.areaId,
+    @JsonKey(name: 'plano') this.plano,
+  }) : _lugaresOcupados = lugaresOcupados,
+       _alumnosInscritos = alumnosInscritos;
 
   factory _$ActivityScheduleModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ActivityScheduleModelImplFromJson(json);
@@ -1209,10 +1924,38 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
   @override
   @JsonKey(name: 'tiene_cupo')
   final bool tieneCupo;
+  @override
+  @JsonKey(name: 'cupo_maximo')
+  final int? cupoMaximo;
+  final List<String> _lugaresOcupados;
+  @override
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados {
+    if (_lugaresOcupados is EqualUnmodifiableListView) return _lugaresOcupados;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_lugaresOcupados);
+  }
+
+  final List<int> _alumnosInscritos;
+  @override
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos {
+    if (_alumnosInscritos is EqualUnmodifiableListView)
+      return _alumnosInscritos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_alumnosInscritos);
+  }
+
+  @override
+  @JsonKey(name: 'area_id')
+  final int? areaId;
+  @override
+  @JsonKey(name: 'plano')
+  final ActivityAreaPlanoModel? plano;
 
   @override
   String toString() {
-    return 'ActivityScheduleModel(id: $id, diaSemana: $diaSemana, horaInicio: $horaInicio, horaFin: $horaFin, lugar: $lugar, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo)';
+    return 'ActivityScheduleModel(id: $id, diaSemana: $diaSemana, horaInicio: $horaInicio, horaFin: $horaFin, lugar: $lugar, cupoDisponible: $cupoDisponible, tieneCupo: $tieneCupo, cupoMaximo: $cupoMaximo, lugaresOcupados: $lugaresOcupados, alumnosInscritos: $alumnosInscritos, areaId: $areaId, plano: $plano)';
   }
 
   @override
@@ -1230,7 +1973,19 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
             (identical(other.cupoDisponible, cupoDisponible) ||
                 other.cupoDisponible == cupoDisponible) &&
             (identical(other.tieneCupo, tieneCupo) ||
-                other.tieneCupo == tieneCupo));
+                other.tieneCupo == tieneCupo) &&
+            (identical(other.cupoMaximo, cupoMaximo) ||
+                other.cupoMaximo == cupoMaximo) &&
+            const DeepCollectionEquality().equals(
+              other._lugaresOcupados,
+              _lugaresOcupados,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._alumnosInscritos,
+              _alumnosInscritos,
+            ) &&
+            (identical(other.areaId, areaId) || other.areaId == areaId) &&
+            (identical(other.plano, plano) || other.plano == plano));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1244,6 +1999,11 @@ class _$ActivityScheduleModelImpl implements _ActivityScheduleModel {
     lugar,
     cupoDisponible,
     tieneCupo,
+    cupoMaximo,
+    const DeepCollectionEquality().hash(_lugaresOcupados),
+    const DeepCollectionEquality().hash(_alumnosInscritos),
+    areaId,
+    plano,
   );
 
   /// Create a copy of ActivityScheduleModel
@@ -1273,6 +2033,12 @@ abstract class _ActivityScheduleModel implements ActivityScheduleModel {
     final String? lugar,
     @JsonKey(name: 'cupo_disponible') final int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') final bool tieneCupo,
+    @JsonKey(name: 'cupo_maximo') final int? cupoMaximo,
+    @JsonKey(name: 'lugares_ocupados') final List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+    final List<int> alumnosInscritos,
+    @JsonKey(name: 'area_id') final int? areaId,
+    @JsonKey(name: 'plano') final ActivityAreaPlanoModel? plano,
   }) = _$ActivityScheduleModelImpl;
 
   factory _ActivityScheduleModel.fromJson(Map<String, dynamic> json) =
@@ -1297,6 +2063,21 @@ abstract class _ActivityScheduleModel implements ActivityScheduleModel {
   @override
   @JsonKey(name: 'tiene_cupo')
   bool get tieneCupo;
+  @override
+  @JsonKey(name: 'cupo_maximo')
+  int? get cupoMaximo;
+  @override
+  @JsonKey(name: 'lugares_ocupados')
+  List<String> get lugaresOcupados;
+  @override
+  @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList)
+  List<int> get alumnosInscritos;
+  @override
+  @JsonKey(name: 'area_id')
+  int? get areaId;
+  @override
+  @JsonKey(name: 'plano')
+  ActivityAreaPlanoModel? get plano;
 
   /// Create a copy of ActivityScheduleModel
   /// with the given fields replaced by the non-null parameter values.

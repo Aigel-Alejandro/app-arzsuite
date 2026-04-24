@@ -23,6 +23,8 @@ final familyAgendaProvider = FutureProvider.autoDispose<List<FamilyAgendaItem>>(
       throw Exception(responseData['message'] ?? 'Error fetching agenda');
     }
   } catch (e) {
-    throw Exception('Error: $e');
+    // Gracefully fallback to an empty agenda instead of crashing the UI
+    // print('Error fetching family agenda: $e');
+    return [];
   }
 });

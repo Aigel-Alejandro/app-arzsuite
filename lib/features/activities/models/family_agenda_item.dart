@@ -6,6 +6,7 @@ class FamilyAgendaItem {
   final String title;
   final String subtitle;
   final String personName;
+  final String socioId;
   final String icon;
   final String colorHex;
   final bool isMatch;
@@ -18,6 +19,7 @@ class FamilyAgendaItem {
     required this.title,
     required this.subtitle,
     required this.personName,
+    required this.socioId,
     required this.icon,
     required this.colorHex,
     required this.isMatch,
@@ -32,6 +34,7 @@ class FamilyAgendaItem {
       title: json['title'] ?? '',
       subtitle: json['subtitle'] ?? '',
       personName: json['person_name'] ?? '',
+      socioId: json['socio_id']?.toString() ?? '',
       icon: json['icon'] ?? 'event',
       colorHex: json['color_hex'] ?? '#333333',
       isMatch: json['is_match'] ?? false,

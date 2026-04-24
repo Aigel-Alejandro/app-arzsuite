@@ -559,6 +559,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 _buildProfileHero(context, profile),
                 const SizedBox(height: 24),
                 GridView.count(
+                  key: const ValueKey('profile_premium_grid'),
+                  padding: EdgeInsets.zero,
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -613,6 +615,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       ),
                   ],
                 ),
+                const SizedBox(height: 10),
+                _buildPremiumMenuTile(
+                  context,
+                  icon: Icons.logout_rounded,
+                  title: 'Cerrar Sesión Completa',
+                  isDestructive: true,
+                  isHorizontal: true,
+                  onTap: () => _showLogoutConfirmation(context, ref),
+                ),
               ],
             ),
           );
@@ -620,6 +631,49 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Cerrar Sesión', style: TextStyle(fontWeight: FontWeight.bold)),
+          content: const Text(
+            '¿Estás seguro de que deseas cerrar tu sesión completamente?\n\n'
+            'Esto removerá tu cuenta del dispositivo y deberás iniciar sesión nuevamente '
+            '(no podrás usar biometría hasta que vuelvas a configurar el acceso con código).',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancelar', style: TextStyle(color: AppTheme.neutral500)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+                _performFullLogout(ref);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.dangerColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Cerrar Sesión'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _performFullLogout(WidgetRef ref) {
+    ref.read(authProvider.notifier).logout();
+    ref.read(apiClientNotifierProvider.notifier).updateToken('');
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginView()),
+      (route) => false,
     );
   }
 
@@ -663,11 +717,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    bool isDestructive = false,
+    bool isHorizontal = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDestructive ? AppTheme.dangerColor : AppTheme.primaryColor;
+    
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: isDestructive ? color.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -676,7 +734,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
+        border: Border.all(color: isDestructive ? color.withOpacity(0.3) : AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -685,27 +743,59 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           onTap: onTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
+            child: isHorizontal
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: color, size: 28),
+                      ),
+                      const SizedBox(width: 16),
+                      Flexible(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 15,
+                            color: isDestructive ? color : null,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: color.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(icon, color: color, size: 28),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        title, 
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold, 
+                          fontSize: 13, 
+                          height: 1.2,
+                          color: isDestructive ? color : null,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
-                  child: Icon(icon, color: AppTheme.primaryColor, size: 28),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  title, 
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, height: 1.2),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
           ),
         ),
       ),
@@ -894,7 +984,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           ),
                           const SizedBox(height: 16),
                           const Text(
-                            'Utiliza este código para acceder a las instalaciones del club.',
+                            'Utiliza este código para identificarte en temas relacionados con tu membresía.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: AppTheme.neutral500,
@@ -975,6 +1065,68 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.04),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Cambio de Datos',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Theme.of(context).brightness == Brightness.dark 
+                                ? Colors.white70 
+                                : AppTheme.neutral700,
+                            height: 1.5,
+                          ),
+                          children: const [
+                            TextSpan(text: 'Si detectas que alguno de los datos que se muestran es incorrecto o necesitas actualizarlo '),
+                            TextSpan(text: '(sobre todo para los datos de dirección personales y datos fiscales)', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: ', por favor contáctanos:\n\n'),
+                            TextSpan(text: '• Hermes: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: '55 5228 9933 ext. 2900\n'),
+                            TextSpan(text: '• Glaciar: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: '55 5668 6068 ext. 6107\n'),
+                            TextSpan(text: '• Correo: ', style: TextStyle(fontWeight: FontWeight.w600)),
+                            TextSpan(text: 'cobranza@centrolibanes.org.mx\n\n'),
+                            TextSpan(text: '¡Nos dará mucho gusto apoyarte!', style: TextStyle(fontStyle: FontStyle.italic)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
           _buildSectionHeader(context, 'Datos Personales', Icons.person_outline_rounded),
           const SizedBox(height: 16),
           _buildCard(
@@ -1608,8 +1760,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         children: [
           _buildSectionHeader(context, 'Beneficiarios Legales', Icons.family_restroom_rounded),
           const SizedBox(height: 16),
-          const Text('Asigna a miembros de tu familia autorizados en caso de fallecimiento (máximo 3).'),
+          const Text('Próximamente podrás registrar tus beneficiarios legales a través de esta aplicación.'),
           const SizedBox(height: 16),
+          /*
           _buildCard(
             context,
             child: Column(
@@ -1658,6 +1811,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          */
           const SizedBox(height: 120),
         ],
       ),
@@ -2093,6 +2247,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         data: (data) {
           final pendingBalance = data['pending_balance'] ?? 0;
           final nextCharge = data['next_charge_amount'] ?? 0;
+          final dueMonths = data['due_months'] ?? 0;
+          final paymentFrequency = data['payment_frequency'] as String?;
           
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2121,13 +2277,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     icon: Icons.account_balance_wallet_rounded, 
                     title: 'Saldo Por Pagar', 
                     value: '\$${pendingBalance.toString()}',
-                    isPrimary: true,
+                    isPrimary: pendingBalance > 0,
                   ),
                   _buildFinanceCard(
                     context, 
-                    icon: Icons.calendar_today_rounded, 
-                    title: 'Próximo cargo', 
-                    value: nextCharge > 0 ? '\$${nextCharge.toString()}' : '--',
+                    icon: Icons.calendar_month_rounded, 
+                    title: 'Meses Pendientes', 
+                    value: dueMonths > 0 ? '$dueMonths ${dueMonths == 1 ? 'mes' : 'meses'}' : 'Al corriente',
+                    isPrimary: dueMonths > 0,
                   ),
                 ],
               ),
@@ -2135,8 +2292,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               _buildFinanceCard(
                 context, 
                 icon: Icons.credit_card_rounded, 
-                title: 'Estado de membresía', 
-                value: 'Activa',
+                title: 'Frecuencia de Pago', 
+                value: paymentFrequency ?? 'Activa',
                 isStatus: true,
                 fullWidth: true,
               ),
@@ -2378,10 +2535,10 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                     return Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                        color: Theme.of(context).cardColor,
+                        border: Border.all(color: Theme.of(context).dividerColor),
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+                        boxShadow: [BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2395,7 +2552,14 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(item['actividad_nombre'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                child: Text(
+                                  item['actividad_nombre'] ?? '', 
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold, 
+                                    fontSize: 16,
+                                    color: Theme.of(context).textTheme.titleLarge?.color,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -2403,40 +2567,40 @@ class _ActividadesInscritasSheet extends ConsumerWidget {
                             padding: const EdgeInsets.only(left: 44, top: 4),
                             child: Text(item['grupo_nombre'] ?? '', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w600)),
                           ),
-                          const Divider(height: 24),
+                          Divider(height: 24, color: Theme.of(context).dividerColor),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.calendar_month_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.calendar_month_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['horario'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontWeight: FontWeight.w600, fontSize: 13))),
+                              Expanded(child: Text(item['horario'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontWeight: FontWeight.w600, fontSize: 13))),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.location_on_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.location_on_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['lugar'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                              Expanded(child: Text(item['lugar'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
                             ],
                           ),
                           const SizedBox(height: 8),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Padding(
-                                padding: EdgeInsets.only(top: 2),
-                                child: Icon(Icons.person_rounded, size: 16, color: AppTheme.neutral500),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Icon(Icons.person_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
                               ),
                               const SizedBox(width: 8),
-                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: const TextStyle(color: AppTheme.neutral700, fontSize: 13))),
+                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
                             ],
                           ),
                         ],

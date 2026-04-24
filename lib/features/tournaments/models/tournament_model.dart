@@ -20,6 +20,7 @@ class TournamentModel with _$TournamentModel {
     @JsonKey(name: 'socios_inscritos', defaultValue: []) required List<String> sociosInscritos,
     @JsonKey(name: 'participantes', defaultValue: []) required List<TournamentParticipantModel> participantes,
     @JsonKey(name: 'partidos', defaultValue: []) @Default([]) List<TournamentMatchModel> partidos,
+    @JsonKey(name: 'is_user_inscribed') @Default(false) bool isUserInscribed,
   }) = _TournamentModel;
 
   factory TournamentModel.fromJson(Map<String, dynamic> json) => _$TournamentModelFromJson(json);

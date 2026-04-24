@@ -46,6 +46,8 @@ mixin _$TournamentModel {
       throw _privateConstructorUsedError;
   @JsonKey(name: 'partidos', defaultValue: [])
   List<TournamentMatchModel> get partidos => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_user_inscribed')
+  bool get isUserInscribed => throw _privateConstructorUsedError;
 
   /// Serializes this TournamentModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -83,6 +85,7 @@ abstract class $TournamentModelCopyWith<$Res> {
     List<TournamentParticipantModel> participantes,
     @JsonKey(name: 'partidos', defaultValue: [])
     List<TournamentMatchModel> partidos,
+    @JsonKey(name: 'is_user_inscribed') bool isUserInscribed,
   });
 }
 
@@ -115,6 +118,7 @@ class _$TournamentModelCopyWithImpl<$Res, $Val extends TournamentModel>
     Object? sociosInscritos = null,
     Object? participantes = null,
     Object? partidos = null,
+    Object? isUserInscribed = null,
   }) {
     return _then(
       _value.copyWith(
@@ -174,6 +178,10 @@ class _$TournamentModelCopyWithImpl<$Res, $Val extends TournamentModel>
                 ? _value.partidos
                 : partidos // ignore: cast_nullable_to_non_nullable
                       as List<TournamentMatchModel>,
+            isUserInscribed: null == isUserInscribed
+                ? _value.isUserInscribed
+                : isUserInscribed // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -208,6 +216,7 @@ abstract class _$$TournamentModelImplCopyWith<$Res>
     List<TournamentParticipantModel> participantes,
     @JsonKey(name: 'partidos', defaultValue: [])
     List<TournamentMatchModel> partidos,
+    @JsonKey(name: 'is_user_inscribed') bool isUserInscribed,
   });
 }
 
@@ -239,6 +248,7 @@ class __$$TournamentModelImplCopyWithImpl<$Res>
     Object? sociosInscritos = null,
     Object? participantes = null,
     Object? partidos = null,
+    Object? isUserInscribed = null,
   }) {
     return _then(
       _$TournamentModelImpl(
@@ -298,6 +308,10 @@ class __$$TournamentModelImplCopyWithImpl<$Res>
             ? _value._partidos
             : partidos // ignore: cast_nullable_to_non_nullable
                   as List<TournamentMatchModel>,
+        isUserInscribed: null == isUserInscribed
+            ? _value.isUserInscribed
+            : isUserInscribed // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -325,6 +339,7 @@ class _$TournamentModelImpl implements _TournamentModel {
     required final List<TournamentParticipantModel> participantes,
     @JsonKey(name: 'partidos', defaultValue: [])
     final List<TournamentMatchModel> partidos = const [],
+    @JsonKey(name: 'is_user_inscribed') this.isUserInscribed = false,
   }) : _equiposDisponibles = equiposDisponibles,
        _sociosInscritos = sociosInscritos,
        _participantes = participantes,
@@ -396,8 +411,12 @@ class _$TournamentModelImpl implements _TournamentModel {
   }
 
   @override
+  @JsonKey(name: 'is_user_inscribed')
+  final bool isUserInscribed;
+
+  @override
   String toString() {
-    return 'TournamentModel(id: $id, actividadId: $actividadId, actividadNombre: $actividadNombre, clubNombre: $clubNombre, nombre: $nombre, descripcion: $descripcion, formato: $formato, sede: $sede, fechaInicio: $fechaInicio, fechaFin: $fechaFin, equiposDisponibles: $equiposDisponibles, sociosInscritos: $sociosInscritos, participantes: $participantes, partidos: $partidos)';
+    return 'TournamentModel(id: $id, actividadId: $actividadId, actividadNombre: $actividadNombre, clubNombre: $clubNombre, nombre: $nombre, descripcion: $descripcion, formato: $formato, sede: $sede, fechaInicio: $fechaInicio, fechaFin: $fechaFin, equiposDisponibles: $equiposDisponibles, sociosInscritos: $sociosInscritos, participantes: $participantes, partidos: $partidos, isUserInscribed: $isUserInscribed)';
   }
 
   @override
@@ -433,7 +452,9 @@ class _$TournamentModelImpl implements _TournamentModel {
               other._participantes,
               _participantes,
             ) &&
-            const DeepCollectionEquality().equals(other._partidos, _partidos));
+            const DeepCollectionEquality().equals(other._partidos, _partidos) &&
+            (identical(other.isUserInscribed, isUserInscribed) ||
+                other.isUserInscribed == isUserInscribed));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -454,6 +475,7 @@ class _$TournamentModelImpl implements _TournamentModel {
     const DeepCollectionEquality().hash(_sociosInscritos),
     const DeepCollectionEquality().hash(_participantes),
     const DeepCollectionEquality().hash(_partidos),
+    isUserInscribed,
   );
 
   /// Create a copy of TournamentModel
@@ -493,6 +515,7 @@ abstract class _TournamentModel implements TournamentModel {
     required final List<TournamentParticipantModel> participantes,
     @JsonKey(name: 'partidos', defaultValue: [])
     final List<TournamentMatchModel> partidos,
+    @JsonKey(name: 'is_user_inscribed') final bool isUserInscribed,
   }) = _$TournamentModelImpl;
 
   factory _TournamentModel.fromJson(Map<String, dynamic> json) =
@@ -535,6 +558,9 @@ abstract class _TournamentModel implements TournamentModel {
   @override
   @JsonKey(name: 'partidos', defaultValue: [])
   List<TournamentMatchModel> get partidos;
+  @override
+  @JsonKey(name: 'is_user_inscribed')
+  bool get isUserInscribed;
 
   /// Create a copy of TournamentModel
   /// with the given fields replaced by the non-null parameter values.

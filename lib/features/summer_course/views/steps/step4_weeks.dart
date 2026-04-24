@@ -255,16 +255,29 @@ class Step4Weeks extends ConsumerWidget {
     notifier,
     state,
   ) {
-    // Restauramos las fechas reales del calendario, porque la tabla de la base de datos (courseCosts)
-    // almacena los PAQUETES DE DESCUENTO POR VOLUMEN (1 SEMANA, 2 SEMANAS, 3 SEMANAS...)
-    // y no las semanas calendáricas individuales.
-    final weeks = [
-      {'id': 1, 'label': 'Semana 1', 'date': '21-25 Jul'},
-      {'id': 2, 'label': 'Semana 2', 'date': '28 Jul-01 Ago'},
-      {'id': 3, 'label': 'Semana 3', 'date': '04-08 Ago'},
-      {'id': 4, 'label': 'Semana 4', 'date': '11-15 Ago'},
-      {'id': 5, 'label': 'Semana 5', 'date': '18-22 Ago'},
-    ];
+    // Semanas dinámicas de la BD (sc_weeks del curso activo)
+    final rawWeeks = state.courseWeeks;
+    final weeks = rawWeeks.map((w) {
+      final weekNum = w['week_number'] as int? ?? 0;
+      String dateLabel = '';
+      try {
+        if (w['start_date'] != null && w['end_date'] != null) {
+          final start = DateTime.parse(w['start_date'].toString());
+          final end = DateTime.parse(w['end_date'].toString());
+          final months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+          if (start.month == end.month) {
+            dateLabel = '${start.day}-${end.day} ${months[end.month - 1]}';
+          } else {
+            dateLabel = '${start.day} ${months[start.month - 1]}-${end.day} ${months[end.month - 1]}';
+          }
+        }
+      } catch (_) {}
+      return {
+        'id': weekNum,
+        'label': 'Semana $weekNum',
+        'date': dateLabel,
+      };
+    }).toList();
 
     final activeReg = state.activeRegistration;
     final registeredSociosWeeksRaw = activeReg?['registered_socios_weeks'];

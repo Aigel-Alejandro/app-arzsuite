@@ -54,8 +54,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
   }
 
   void _onLogout() {
-    // 1. Limpia el current token en Riverpod / SharedPreferences
-    ref.read(authProvider.notifier).logout();
+    // 1. Bloquea la sesión (estado = null) pero no borra credenciales de biometría
+    ref.read(authProvider.notifier).lockSession();
     
     // 2. Limpia el token en el cliente HTTP (Dio)
     ref.read(apiClientNotifierProvider.notifier).updateToken('');
@@ -69,6 +69,16 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    // Escuchar cambios en la autenticación para redirigir si se bloquea la sesión
+    ref.listen(authProvider, (previous, current) {
+      if (current == null) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginView()),
+          (route) => false,
+        );
+      }
+    });
+
     final bool isDesktop = MediaQuery.of(context).size.width >= AppTheme.breakpointDesktop;
 
     return Scaffold(

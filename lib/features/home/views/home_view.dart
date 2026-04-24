@@ -4,9 +4,9 @@ import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
 
 import 'package:app_arzsuite/features/summer_course/views/summer_course_wizard_view.dart';
-import 'package:app_arzsuite/features/activities/views/activities_dashboard_view.dart';
 import 'package:app_arzsuite/features/summer_course/widgets/access_card.dart';
 import 'package:app_arzsuite/features/summer_course/views/summer_course_scanner_view.dart';
+import 'package:app_arzsuite/features/summer_course/providers/active_course_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_arzsuite/features/activities/providers/family_agenda_provider.dart';
@@ -24,6 +24,19 @@ class HomeView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMember = ref.watch(authProvider);
+
+    String firstName = '';
+    if (currentMember != null && currentMember.firstName.isNotEmpty) {
+      final parts = currentMember.firstName.trim().split(' ');
+      if (parts.isNotEmpty) {
+        firstName = parts.first;
+        if (int.tryParse(firstName) != null) {
+           firstName = '';
+        } else if (firstName.length > 1) {
+          firstName = firstName[0].toUpperCase() + firstName.substring(1).toLowerCase();
+        }
+      }
+    }
 
     return MainLayout(
       activeIndex: 0,
@@ -46,15 +59,7 @@ class HomeView extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min, // Keep column compact
                     children: [
                       Text(
-                        'Buen día,',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                              fontWeight: FontWeight.w500,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '¡Bienvenido!',
+                        firstName.isNotEmpty ? 'Buen día $firstName' : 'Buen día',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: Theme.of(context).colorScheme.onSurface,
@@ -63,21 +68,6 @@ class HomeView extends ConsumerWidget {
                       ),
                     ],
                   ),
-                ),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Icon(Icons.notifications_none_rounded, color: Theme.of(context).colorScheme.onSurface),
                 ),
               ],
             ),
@@ -93,98 +83,237 @@ class HomeView extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 32),
-                    if (currentMember?.hasPermission('summer_course.enroll') ?? false)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
-                        child: SummerCourseAccessCard(),
-                      ),
-                    // Hero: Summer Course 2026
+                    // ── Accesos Rápidos (verano + torneos unificados) ─────────
+                    Consumer(
+                      builder: (context, ref, _) {
+                        final isStaffOrInstructor = currentMember?.memberType == 'staff' || currentMember?.memberType == 'instructor' || currentMember?.memberType == 'profesor';
+                        final hasTournaments  = currentMember?.hasPermission('tournaments.dashboard') ?? false;
+                        final hasSummerEnroll = currentMember?.hasPermission('summer_course.enroll') ?? false;
+                        if (!hasTournaments && !hasSummerEnroll && !isStaffOrInstructor) return const SizedBox.shrink();
+
+                        final activeCourseAsync = ref.watch(activeSummerCourseProvider);
+
+                        return activeCourseAsync.when(
+                          data: (courseData) {
+                            final hasActiveCourse = courseData?['has_active_course'] == true;
+                            final showSummer = hasActiveCourse && hasSummerEnroll;
+                            final showQRScanner = hasActiveCourse && isStaffOrInstructor;
+                            
+                            if (!showSummer && !hasTournaments && !showQRScanner) return const SizedBox.shrink();
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (showSummer)
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                                    child: SummerCourseAccessCard(),
+                                  ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'ACCESOS RÁPIDOS',
+                                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                              color: AppTheme.primaryColor,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 2,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Row(
+                                        children: [
+                                          // Izquierda: Inscripción > Torneos > vacío
+                                          if (showSummer)
+                                            Expanded(
+                                              child: _CompactActionCard(
+                                                title: 'Inscripción',
+                                                subtitle: 'Curso de Verano',
+                                                icon: Icons.sunny,
+                                                color: AppTheme.primaryColor,
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => const SummerCourseWizardView(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          else if (hasTournaments)
+                                            Expanded(
+                                              child: _CompactActionCard(
+                                                title: 'Torneos',
+                                                subtitle: 'Competencias',
+                                                icon: Icons.emoji_events,
+                                                color: Colors.deepPurple,
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => const TournamentsDashboardView(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                          const SizedBox(width: 16),
+                                          // Derecha: Torneos (cuando ambos activos) o vacío
+                                          if (showSummer && hasTournaments)
+                                            Expanded(
+                                              child: _CompactActionCard(
+                                                title: 'Torneos',
+                                                subtitle: 'Competencias',
+                                                icon: Icons.emoji_events,
+                                                color: Colors.deepPurple,
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => const TournamentsDashboardView(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            )
+                                          else
+                                            const Expanded(child: SizedBox.shrink()),
+                                        ],
+                                      ),
+                                      if (showQRScanner) ...[
+                                        const SizedBox(height: 24),
+                                        Text(
+                                          'STAFF VERANO',
+                                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                                color: const Color(0xFFE65100),
+                                                fontWeight: FontWeight.w900,
+                                                letterSpacing: 2,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: _CompactActionCard(
+                                                title: 'Escáner QR',
+                                                subtitle: 'Control Staff',
+                                                icon: Icons.qr_code_scanner_rounded,
+                                                color: const Color(0xFFE65100),
+                                                onTap: () {
+                                                  Navigator.of(context).push(
+                                                    MaterialPageRoute(
+                                                      builder: (_) => const SummerCourseScannerView(),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(width: 16),
+                                            const Spacer(),
+                                          ],
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                          loading: () {
+                            if (!hasTournaments) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ACCESOS RÁPIDOS',
+                                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 2,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _CompactActionCard(
+                                          title: 'Torneos',
+                                          subtitle: 'Competencias',
+                                          icon: Icons.emoji_events,
+                                          color: Colors.deepPurple,
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => const TournamentsDashboardView(),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                       const SizedBox(width: 16),
+                                       const Expanded(child: SizedBox.shrink()),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          error: (_, __) {
+                            if (!hasTournaments) return const SizedBox.shrink();
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'ACCESOS RÁPIDOS',
+                                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                          color: AppTheme.primaryColor,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 2,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _CompactActionCard(
+                                          title: 'Torneos',
+                                          subtitle: 'Competencias',
+                                          icon: Icons.emoji_events,
+                                          color: Colors.deepPurple,
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (_) => const TournamentsDashboardView(),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                       const SizedBox(width: 16),
+                                       const Expanded(child: SizedBox.shrink()),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingLarge),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if ((currentMember?.hasPermission('summer_course.enroll') ?? false) || (currentMember?.hasPermission('tournaments.dashboard') ?? false)) ...[
-                            Text(
-                              'ACCESOS RÁPIDOS',
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                if (currentMember?.hasPermission('summer_course.enroll') ?? false)
-                                  Expanded(
-                                    child: _CompactActionCard(
-                                      title: 'Inscripción',
-                                      subtitle: 'Cursos 2026',
-                                      icon: Icons.sunny,
-                                      color: AppTheme.primaryColor,
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(builder: (_) => const SummerCourseWizardView()),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                if ((currentMember?.hasPermission('summer_course.enroll') ?? false) && (currentMember?.hasPermission('tournaments.dashboard') ?? false))
-                                  const SizedBox(width: 16),
-                                if (currentMember?.hasPermission('tournaments.dashboard') ?? false)
-                                  Expanded(
-                                    child: _CompactActionCard(
-                                      title: 'Torneos',
-                                      subtitle: 'Competencias',
-                                      icon: Icons.emoji_events,
-                                      color: Colors.deepPurple,
-                                      onTap: () {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(builder: (_) => const TournamentsDashboardView()),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                          if (currentMember?.isTitular ?? false) ...[
-                            const SizedBox(height: 24),
-                            Text(
-                              'STAFF VERANO',
-                              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                                    color: const Color(0xFFE65100),
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 2,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _CompactActionCard(
-                                    title: 'Escáner QR',
-                                    subtitle: 'Control Staff',
-                                    icon: Icons.qr_code_scanner_rounded,
-                                    color: const Color(0xFFE65100),
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (_) => const SummerCourseScannerView()),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                const Spacer(), // Empty spacer to keep grid alignment
-                              ],
-                            ),
-                          ],
                           
                           if (currentMember?.hasPermission('dashboard.agenda') ?? false) ...[
                             const SizedBox(height: 32),
                             Text(
-                              'MINI-AGENDA SEMANAL',
+                              'AGENDA DEPORTIVA',
                               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                                     color: AppTheme.primaryColor,
                                     fontWeight: FontWeight.w900,
@@ -192,7 +321,7 @@ class HomeView extends ConsumerWidget {
                                   ),
                             ),
                             const SizedBox(height: 16),
-                            const _AgendaWidget(),
+                            _AgendaWidget(currentMember: currentMember),
                           ],
                           
                           if (currentMember?.hasPermission('dashboard.tournaments') ?? false) ...[
@@ -328,12 +457,21 @@ class _CompactActionCard extends StatelessWidget {
   }
 }
 
-class _AgendaWidget extends ConsumerWidget {
-  const _AgendaWidget();
+class _AgendaWidget extends ConsumerStatefulWidget {
+  final currentMember;
+  const _AgendaWidget({this.currentMember});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AgendaWidget> createState() => _AgendaWidgetState();
+}
+
+class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
+  String _selectedSocioId = 'ME'; // 'ME', 'ALL', or a specific socioId
+
+  @override
+  Widget build(BuildContext context) {
     final agendaAsync = ref.watch(familyAgendaProvider);
+    final currentMember = widget.currentMember;
 
     return agendaAsync.when(
       data: (items) {
@@ -342,33 +480,86 @@ class _AgendaWidget extends ConsumerWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                'No hay eventos programados en tu familia.',
+                'No hay eventos programados.',
                 style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
               ),
             ),
           );
         }
 
-        return Column(
-          children: items.map((item) {
-            final color = _parseColor(item.colorHex);
-            final icon = _parseIcon(item.icon);
+        final isTitular = currentMember?.isTitular ?? false;
+        final myId = currentMember?.id ?? '';
 
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildAgendaItem(
-                context: context,
-                time: item.timeBlock,
-                duration: item.durationStr,
-                title: item.title,
-                subtitle: item.subtitle,
-                person: item.personName,
-                icon: icon,
-                color: color,
-                isMatch: item.isMatch,
+        // Extract unique members
+        final Map<String, String> membersMap = {};
+        for (var item in items) {
+           if (item.personName.isNotEmpty && item.socioId.isNotEmpty) {
+               membersMap[item.socioId] = item.personName;
+           }
+        }
+
+        // Apply filtering
+        List<FamilyAgendaItem> filteredItems = items;
+        if (!isTitular) {
+          // If not titular, force ONLY own items
+          filteredItems = items.where((i) => i.socioId == myId).toList();
+        } else {
+          // Titular filtering
+          if (_selectedSocioId == 'ME') {
+             filteredItems = items.where((i) => i.socioId == myId).toList();
+          } else if (_selectedSocioId != 'ALL') {
+             filteredItems = items.where((i) => i.socioId == _selectedSocioId).toList();
+          }
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Filter chips (Only for Titular and if there is more than 1 member active in agenda)
+            if (isTitular && membersMap.length > 1) ...[
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _buildPremiumChip('Mis Actividades', 'ME'),
+                  _buildPremiumChip('Todos', 'ALL'),
+                  ...membersMap.entries
+                      .where((e) => e.key != myId)
+                      .map((entry) { final n = entry.value.split(' ').first; final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase(); return _buildPremiumChip(capitalized, entry.key); }),
+                ],
               ),
-            );
-          }).toList(),
+              const SizedBox(height: 16),
+            ],
+
+            if (filteredItems.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                child: Text(
+                  'No hay eventos para la selección.', 
+                  style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
+                ),
+              )
+            else
+              ...filteredItems.map((item) {
+                final color = _parseColor(item.colorHex);
+                final icon = _parseIcon(item.icon);
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _buildAgendaItem(
+                    context: context,
+                    time: item.timeBlock,
+                    duration: item.durationStr,
+                    title: item.title,
+                    subtitle: item.subtitle,
+                    person: isTitular && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
+                    icon: icon,
+                    color: color,
+                    isMatch: item.isMatch,
+                  ),
+                );
+              }),
+          ],
         );
       },
       loading: () => const Center(
@@ -383,6 +574,35 @@ class _AgendaWidget extends ConsumerWidget {
           child: Text('Error cargando agenda', style: TextStyle(color: AppTheme.dangerColor)),
         ),
       ),
+    );
+  }
+
+  Widget _buildPremiumChip(String label, String id) {
+    final isSelected = _selectedSocioId == id;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          fontSize: 14,
+          color: isSelected ? Colors.white : (isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+        ),
+      ),
+      selected: isSelected,
+      showCheckmark: false,
+      backgroundColor: isDark ? AppTheme.neutral900 : Colors.white,
+      selectedColor: AppTheme.primaryColor,
+      side: BorderSide(
+        color: isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+        width: 1.5,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+      onSelected: (bool selected) {
+        if (selected) setState(() => _selectedSocioId = id);
+      },
     );
   }
 
@@ -461,9 +681,11 @@ class _AgendaWidget extends ConsumerWidget {
                 children: [
                   Text(
                     time,
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 16,
+                      height: 1.2,
                       color: isDark ? Colors.white : AppTheme.neutral900,
                     ),
                   ),
@@ -494,16 +716,21 @@ class _AgendaWidget extends ConsumerWidget {
                         ),
                         const SizedBox(width: 6),
                         Expanded(
-                          child: Text(
-                            title,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                              height: 1.2,
-                              color: isDark ? Colors.white : AppTheme.neutral900,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 15,
+                                  height: 1.2,
+                                  color: isDark ? Colors.white : AppTheme.neutral900,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -517,20 +744,23 @@ class _AgendaWidget extends ConsumerWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: AppTheme.neutral100,
-                          child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            person,
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                        if (person.isNotEmpty) ...[
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: AppTheme.neutral100,
+                            child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
                           ),
-                        ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              person,
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ] else
+                          const Spacer(),
                         if (isMatch) const SizedBox(width: 8),
                         if (isMatch)
                           Container(
@@ -561,10 +791,11 @@ class _TournamentsListWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tournamentsAsync = ref.watch(tournamentsProvider);
+    final currentMember = ref.watch(authProvider);
     
     return tournamentsAsync.when(
       data: (tournaments) {
-        final inscribedTournaments = tournaments.where((t) => t.sociosInscritos.isNotEmpty).toList();
+        final inscribedTournaments = tournaments.where((t) => t.isUserInscribed).toList();
 
         if (inscribedTournaments.isEmpty) {
           return const Padding(

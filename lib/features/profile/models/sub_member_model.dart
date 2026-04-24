@@ -7,11 +7,11 @@ part 'sub_member_model.g.dart';
 class SubMemberModel with _$SubMemberModel {
   const factory SubMemberModel({
     required String id,
-    required String fullname,
+    @Default('') String fullname,
     @JsonKey(name: 'first_name') String? firstName,
     @JsonKey(name: 'last_name') String? lastName,
-    required String membershipNumber,
-    required String memberType,
+    @JsonKey(name: 'membership_number') @Default('') String membershipNumber,
+    @JsonKey(name: 'member_type') @Default('') String memberType,
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,

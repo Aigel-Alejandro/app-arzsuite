@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
@@ -27,10 +28,10 @@ class _LoginViewState extends ConsumerState<LoginView> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  bool _rememberMe = false;
   bool _codeSent = false;
   final BiometricAuth _localAuth = BiometricAuth();
   bool _hasBiometricsSaved = false;
+  String _savedFullName = 'Socio';
 
   @override
   void initState() {
@@ -39,16 +40,28 @@ class _LoginViewState extends ConsumerState<LoginView> {
   }
 
   Future<void> _checkSavedBiometrics() async {
+    if (kIsWeb) return;
     final prefs = await SharedPreferences.getInstance();
     final saved = prefs.getBool('use_biometrics') ?? false;
     if (saved && mounted) {
-      setState(() => _hasBiometricsSaved = true);
       final savedUser = prefs.getString('saved_username');
+      final savedName = prefs.getString('saved_user_fullname') ?? 'Socio';
       if (savedUser != null) _userController.text = savedUser;
+      
+      setState(() {
+        _hasBiometricsSaved = true;
+        _savedFullName = savedName;
+      });
+      
+      // Auto-trigger biometric authentication if saved
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _authenticateWithBiometrics();
+      });
     }
   }
 
   Future<void> _authenticateWithBiometrics() async {
+    if (kIsWeb) return;
     try {
       final isAvailable = await _localAuth.canCheckBiometrics() || await _localAuth.isDeviceSupported();
       if (!isAvailable) return;
@@ -58,37 +71,72 @@ class _LoginViewState extends ConsumerState<LoginView> {
       );
 
       if (didAuthenticate && mounted) {
+        setState(() => _isLoading = true);
         final prefs = await SharedPreferences.getInstance();
-        final savedUser = prefs.getString('saved_username') ?? '';
-        final savedToken = prefs.getString('saved_token');
+        final savedRefreshToken = prefs.getString('saved_refresh_token');
 
-        final savedMemberType = prefs.getString('saved_member_type') ?? 'Titular';
-        final savedPermissions = prefs.getStringList('saved_permissions') ?? [];
-
-        // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
-        if (savedToken != null) {
-          ref.read(apiClientNotifierProvider.notifier).updateToken(savedToken);
+        if (savedRefreshToken == null || savedRefreshToken.isEmpty) {
+          ToastAlerts.showWarning(context, 'Tu sesión ha expirado, inicia sesión con código por favor.');
+          setState(() => _isLoading = false);
+          return;
         }
 
-        ref.read(authProvider.notifier).setLoggedInMember(
-          Member(
-            id: '999',
-            membershipNumber: savedUser,
-            firstName: 'Socio',
-            lastName: 'Identificado',
-            secondLastName: '',
-            memberType: savedMemberType,
-            isTitular: savedMemberType == 'Titular',
-            token: savedToken,
-            permissions: savedPermissions,
-          ),
-        );
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeView()),
-        );
+        try {
+          // Solicitar un nuevo access token usando el refresh token al backend
+          final dio = ref.read(apiClientProvider).dio;
+          final response = await dio.post(
+            ApiEndpoints.refreshSocio,
+            data: {'refresh_token': savedRefreshToken},
+          );
+
+          if (mounted) {
+            final userData = response.data['data']['socio'];
+            final memberType = (userData['app_role'] ?? 'titular').toString();
+            final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
+            final accessToken = response.data['data']['access_token'];
+            final newRefreshToken = response.data['data']['refresh_token'];
+            final username = userData['entityid'] ?? '';
+            final savedId = userData['id'].toString();
+
+            // Guardar el nuevo refresh token
+            if (newRefreshToken != null) {
+              await prefs.setString('saved_refresh_token', newRefreshToken);
+            }
+
+            // Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
+            ref.read(apiClientNotifierProvider.notifier).updateToken(accessToken);
+
+            ref.read(authProvider.notifier).setLoggedInMember(
+              Member(
+                id: savedId,
+                membershipNumber: username,
+                firstName: userData['fullname'] ?? 'Socio',
+                lastName: '',
+                secondLastName: '',
+                memberType: memberType,
+                isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
+                token: accessToken,
+                permissions: permissions,
+              ),
+            );
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => const HomeView()),
+            );
+          }
+        } on DioException catch (e) {
+          if (mounted) {
+            ToastAlerts.showError(context, 'Por seguridad, debes iniciar sesión de nuevo.');
+            await prefs.setBool('use_biometrics', false);
+            setState(() {
+              _isLoading = false;
+              _hasBiometricsSaved = false;
+            });
+          }
+        }
       }
     } catch (e) {
       debugPrint('Error using biometrics: $e');
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -104,7 +152,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
     try {
       final dio = ref.read(apiClientProvider).dio;
       final response = await dio.post(
-        ApiEndpoints.requestSocioCode,
+        ApiEndpoints.requestAppCode,
         data: {'username': username},
       );
       
@@ -114,7 +162,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         String? mockCode;
         if (response.data is Map && response.data['data'] != null && response.data['data']['mock_code'] != null) {
           mockCode = response.data['data']['mock_code'].toString();
-          codeMsg += ' (Código: $mockCode)';
+          // Eliminado `codeMsg += ' (Código: $mockCode)';` para no revelarlo en el UI
         }
         
         ToastAlerts.showSuccess(
@@ -129,7 +177,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
       }
     } on DioException catch (e) {
       if (mounted) {
-        String errorMsg = e.response?.data['message'] ?? 'Error al solicitar código';
+        String errorMsg = e.response?.data['message'] ?? e.message ?? 'Error al solicitar código';
         ToastAlerts.showError(context, errorMsg);
       }
     } finally {
@@ -146,7 +194,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
       try {
         final dio = ref.read(apiClientProvider).dio;
         final response = await dio.post(
-          ApiEndpoints.loginSocio,
+          ApiEndpoints.loginAppCode,
           data: {
             'username': username,
             'password': password,
@@ -155,20 +203,30 @@ class _LoginViewState extends ConsumerState<LoginView> {
         );
 
         if (mounted) {
-          final socioData = response.data['data']['socio'];
-          final memberType = socioData['app_role'] ?? 'Titular';
+          final userData = response.data['data']['socio'] ?? response.data['data']['user'];
+          final memberType = (userData['role'] ?? userData['app_role'] ?? 'titular').toString();
           final permissions = List<String>.from(response.data['data']['permissions'] ?? []);
 
+          final mainId = userData['entityid'] ?? userData['username'] ?? username;
+
+          String fName = userData['first_name']?.toString().trim() ?? '';
+          if (fName.isEmpty) {
+            fName = userData['fullname']?.toString().trim() ?? 'Usuario';
+          }
+          if (int.tryParse(fName.split(' ').first) != null) {
+            fName = 'Socio';
+          }
+
           final mappedMember = Member(
-            id: socioData['id'].toString(),
-            membershipNumber: socioData['entityid'] ?? username,
-            firstName: socioData['fullname'] ?? 'Usuario',
-            lastName: '',
+            id: userData['id'].toString(),
+            membershipNumber: mainId,
+            firstName: fName,
+            lastName: userData['last_name']?.toString().trim() ?? '',
             secondLastName: '',
             memberType: memberType,
-            isTitular: memberType == 'Titular',
-            email: socioData['email'],
-            phone: socioData['phone'],
+            isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
+            email: userData['email'],
+            phone: userData['phone'],
             token: response.data['data']['access_token'],
             permissions: permissions,
           );
@@ -178,9 +236,15 @@ class _LoginViewState extends ConsumerState<LoginView> {
           // 2. Notificar al sistema del nuevo usuario. El AuthNotifier ahora guarda automáticamente en SharedPreferences.
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
-          if (_rememberMe) {
-            final prefs = await SharedPreferences.getInstance();
+          final prefs = await SharedPreferences.getInstance();
+          final isAvailable = !kIsWeb && (await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported());
+          if (isAvailable) {
             await prefs.setBool('use_biometrics', true);
+            await prefs.setString('saved_username', mainId);
+            await prefs.setString('saved_user_fullname', fName);
+          }
+          if (response.data['data']['refresh_token'] != null) {
+            await prefs.setString('saved_refresh_token', response.data['data']['refresh_token']);
           }
 
           Navigator.of(context).pushReplacement(
@@ -189,7 +253,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         }
       } on DioException catch (e) {
         if (mounted) {
-          String errorMsg = e.response?.data['message'] ?? 'Credenciales incorrectas';
+          String errorMsg = e.response?.data['message'] ?? e.message ?? 'Credenciales incorrectas';
           ToastAlerts.showError(context, errorMsg);
         }
       } finally {
@@ -231,7 +295,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                           children: [
                             Center(
                               child: Image.asset(
-                                'assets/images/logo-centro-libanes.png',
+                                isDark ? 'assets/images/CENTRO_LIBANES_LOGO_NEGRO.png' : 'assets/images/logo-centro-libanes.png',
                                 height: 90,
                                 errorBuilder: (c, e, s) => const Icon(Icons.account_balance_wallet, size: 60, color: AppTheme.primaryColor),
                               ),
@@ -240,87 +304,107 @@ class _LoginViewState extends ConsumerState<LoginView> {
                             Text(
                               'Ecosistema Centro Libanés',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: AppTheme.neutral500),
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                color: isDark ? AppTheme.neutral200 : AppTheme.neutral500,
+                              ),
                             ),
                             const SizedBox(height: AppTheme.spacingLarge * 1.5),
                             
-                            if (!_codeSent)
-                              TextFormField(
-                                controller: _userController,
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  labelText: 'Número de Membresía',
-                                  prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                            if (_hasBiometricsSaved && !_codeSent) ...[
+                              Text(
+                                '¡Hola de nuevo, $_savedFullName!',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
                                 ),
-                                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                              )
-                            else
-                              Card(
-                                elevation: 0,
-                                color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-                                child: ListTile(
-                                  dense: true,
-                                  leading: const Icon(Icons.person_pin_circle_outlined),
-                                  title: Text(
-                                    _userController.text,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold
-                                    ),
-                                  ),
-                                  trailing: TextButton(
-                                    child: const Text("Editar"),
-                                    onPressed: () => setState(() => _codeSent = false),
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: AppTheme.spacingMedium),
-
-                            if (_codeSent) ...[
-                              TextFormField(
-                                controller: _passwordController,
-                                obscureText: _obscurePassword,
-                                decoration: InputDecoration(
-                                  labelText: 'Código WhatsApp',
-                                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                  ),
-                                ),
-                                validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
                               ),
                               const SizedBox(height: AppTheme.spacingLarge),
-                                ElevatedButton(
-                                  onPressed: _isLoading ? null : _handleLogin,
-                                  child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                              ElevatedButton.icon(
+                                onPressed: _isLoading ? null : _authenticateWithBiometrics,
+                                icon: const Icon(Icons.fingerprint, size: 28),
+                                label: _isLoading 
+                                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                    : const Text('Ingresar con Biometría', style: TextStyle(fontSize: 16)),
+                                style: ElevatedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
                                 ),
-                                const SizedBox(height: AppTheme.spacingMedium),
-                                TextButton(
-                                  onPressed: _isLoading ? null : _requestWhatsAppCode,
-                                  child: const Text('¿No recibiste el código? Reenviar'),
-                                ),
-                              ] else ...[
-                              ElevatedButton(
-                                onPressed: _isLoading ? null : _requestWhatsAppCode,
-                                child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Continuar y Recibir Código'),
                               ),
-                            ],
+                              const SizedBox(height: AppTheme.spacingMedium),
+                              TextButton(
+                                onPressed: () async {
+                                  final prefs = await SharedPreferences.getInstance();
+                                  await prefs.setBool('use_biometrics', false);
+                                  setState(() {
+                                    _hasBiometricsSaved = false;
+                                    _userController.clear();
+                                  });
+                                },
+                                child: const Text('Ingresar con otra cuenta'),
+                              ),
+                            ] else ...[
+                              if (!_codeSent)
+                                TextFormField(
+                                  controller: _userController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Membresía',
+                                    helperText: 'Número de Membresía a 7 dígitos',
+                                    prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                                )
+                              else
+                                Card(
+                                  elevation: 0,
+                                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
+                                  child: ListTile(
+                                    dense: true,
+                                    leading: const Icon(Icons.person_pin_circle_outlined),
+                                    title: Text(
+                                      _userController.text,
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                    trailing: TextButton(
+                                      child: const Text("Editar"),
+                                      onPressed: () => setState(() => _codeSent = false),
+                                    ),
+                                  ),
+                                ),
+                              const SizedBox(height: AppTheme.spacingMedium),
 
-                            const SizedBox(height: AppTheme.spacingMedium),
-                            CheckboxListTile(
-                              value: _rememberMe,
-                              onChanged: (v) => setState(() => _rememberMe = v ?? false),
-                              title: const Text('Recordarme y usar Biometría', style: TextStyle(fontSize: 13)),
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                            ),
-                            
-                            if (_hasBiometricsSaved && !_codeSent) ...[
-                              OutlinedButton.icon(
-                                onPressed: _authenticateWithBiometrics,
-                                icon: const Icon(Icons.fingerprint),
-                                label: const Text('Ingresar con Biometría'),
-                              ),
+                              if (_codeSent) ...[
+                                TextFormField(
+                                  controller: _passwordController,
+                                  obscureText: _obscurePassword,
+                                  decoration: InputDecoration(
+                                    labelText: 'Código WhatsApp',
+                                    prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
+                                    suffixIcon: IconButton(
+                                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                                    ),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
+                                ),
+                                const SizedBox(height: AppTheme.spacingLarge),
+                                  ElevatedButton(
+                                    onPressed: _isLoading ? null : _handleLogin,
+                                    child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                                  ),
+                                  const SizedBox(height: AppTheme.spacingMedium),
+                                  TextButton(
+                                    onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                    child: const Text('¿No recibiste el código? Reenviar'),
+                                  ),
+                                ] else ...[
+                                ElevatedButton(
+                                  onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                  child: _isLoading ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Continuar y Recibir Código'),
+                                ),
+                              ],
                             ],
                           ],
                         ),

@@ -123,6 +123,27 @@ class SummerCourseService {
       return null;
     }
   }
+  /// Verifica si hay un curso de verano activo (status = 'active').
+  /// Retorna el mapa con [has_active_course] y [course], o null si hay error.
+  Future<Map<String, dynamic>?> getActiveCourse() async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/summer-course/active-course',
+      );
+
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+          return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getCosts() async {
     try {
       final apiClient = _ref.read(apiClientProvider);

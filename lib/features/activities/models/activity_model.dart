@@ -3,12 +3,22 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'activity_model.freezed.dart';
 part 'activity_model.g.dart';
 
+/// Convierte listas mixtas de int/string a List<int> (PHP puede devolver IDs como strings)
+List<int> _parseIntList(dynamic json) {
+  if (json == null) return [];
+  return (json as List)
+      .map((e) => int.tryParse(e.toString()) ?? 0)
+      .where((e) => e != 0)
+      .toList();
+}
+
 @freezed
 class ActivityModel with _$ActivityModel {
   const factory ActivityModel({
     required int id,
     @JsonKey(name: 'club_id') required int clubId,
     @JsonKey(name: 'club_name') String? clubName,
+    @JsonKey(name: 'acceso_clubes') List<String>? accesoClubes,
     required String nombre,
     String? descripcion,
     String? icono,
@@ -32,6 +42,7 @@ class ActivityGroupModel with _$ActivityGroupModel {
     @JsonKey(name: 'edad_max') int? edadMax,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') required bool tieneCupo,
+    @JsonKey(name: 'requiere_seleccion_lugares') @Default(false) bool requiereSeleccionLugares,
     @Default([]) List<ActivityTeamModel> equipos,
   }) = _ActivityGroupModel;
 
@@ -44,10 +55,37 @@ class ActivityTeamModel with _$ActivityTeamModel {
     required int id,
     required String nombre,
     String? color,
+    @JsonKey(name: 'lugares_ocupados') @Default([]) List<String> lugaresOcupados,
     @Default([]) List<ActivityScheduleModel> horarios,
   }) = _ActivityTeamModel;
 
   factory ActivityTeamModel.fromJson(Map<String, dynamic> json) => _$ActivityTeamModelFromJson(json);
+}
+
+@freezed
+class ActivityAreaPlanoPositionModel with _$ActivityAreaPlanoPositionModel {
+  const factory ActivityAreaPlanoPositionModel({
+    @JsonKey(name: 'fila_index') required int filaIndex,
+    @JsonKey(name: 'columna_index') required int columnaIndex,
+    required String etiqueta,
+    required String tipo,
+    @JsonKey(name: 'is_active') required bool isActive,
+  }) = _ActivityAreaPlanoPositionModel;
+
+  factory ActivityAreaPlanoPositionModel.fromJson(Map<String, dynamic> json) =>
+      _$ActivityAreaPlanoPositionModelFromJson(json);
+}
+
+@freezed
+class ActivityAreaPlanoModel with _$ActivityAreaPlanoModel {
+  const factory ActivityAreaPlanoModel({
+    required int filas,
+    required int columnas,
+    @Default([]) List<ActivityAreaPlanoPositionModel> posiciones,
+  }) = _ActivityAreaPlanoModel;
+
+  factory ActivityAreaPlanoModel.fromJson(Map<String, dynamic> json) =>
+      _$ActivityAreaPlanoModelFromJson(json);
 }
 
 @freezed
@@ -60,7 +98,13 @@ class ActivityScheduleModel with _$ActivityScheduleModel {
     String? lugar,
     @JsonKey(name: 'cupo_disponible') int? cupoDisponible,
     @JsonKey(name: 'tiene_cupo') @Default(false) bool tieneCupo,
+    @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
+    @JsonKey(name: 'lugares_ocupados') @Default([]) List<String> lugaresOcupados,
+    @JsonKey(name: 'alumnos_inscritos', fromJson: _parseIntList) @Default([]) List<int> alumnosInscritos,
+    @JsonKey(name: 'area_id') int? areaId,
+    @JsonKey(name: 'plano') ActivityAreaPlanoModel? plano,
   }) = _ActivityScheduleModel;
 
-  factory ActivityScheduleModel.fromJson(Map<String, dynamic> json) => _$ActivityScheduleModelFromJson(json);
+  factory ActivityScheduleModel.fromJson(Map<String, dynamic> json) =>
+      _$ActivityScheduleModelFromJson(json);
 }

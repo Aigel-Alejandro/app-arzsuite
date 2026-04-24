@@ -41,13 +41,14 @@ class ActivitiesNotifier extends StateNotifier<AsyncValue<List<ActivityModel>>> 
     }
   }
 
-  Future<void> inscribirActividad(int equipoId, int? horarioId, String beneficiaryName, String beneficiarySocioId) async {
+  Future<void> inscribirActividad(int equipoId, int? horarioId, String beneficiaryName, String beneficiarySocioId, {String? lugar}) async {
     try {
       final response = await _apiClient.dio.post('arzsuite/actividades/inscribir', data: {
         'equipo_id': equipoId,
         'horario_id': horarioId,
         'beneficiary_name': beneficiaryName,
         'beneficiary_socio_id': beneficiarySocioId,
+        if (lugar != null) 'lugar': lugar,
       });
       var data = response.data;
       if (data is String) data = jsonDecode(data);

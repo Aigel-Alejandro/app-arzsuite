@@ -37,7 +37,8 @@ class TournamentsNotifier extends StateNotifier<AsyncValue<List<TournamentModel>
         state = AsyncError(responseData['message'] ?? 'Error desconocido', StackTrace.current);
       }
     } catch (e, st) {
-      state = AsyncError(e, st);
+      // Gracefully handle errors by returning an empty list instead of crashing UI
+      state = const AsyncValue.data([]);
     }
   }
 
