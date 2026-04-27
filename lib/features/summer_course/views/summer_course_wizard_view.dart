@@ -191,7 +191,7 @@ class SummerCourseWizardView extends ConsumerWidget {
   }
 
   bool _isNextDisabled(SummerCourseState state) {
-    if (state.currentStep == 0) return state.selectedParticipants.isEmpty;
+    if (state.currentStep == 0) return false; // Permitir saltar el paso 1 aunque no haya beneficiarios seleccionados
     if (state.currentStep == 1) return state.selectedParticipants.isEmpty; // Al menos un participante (socio o invitado)
     if (state.currentStep == 2) {
       if (state.selectedParticipants.isEmpty) return true;
