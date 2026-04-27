@@ -237,7 +237,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
           ref.read(authProvider.notifier).setLoggedInMember(mappedMember);
 
           final prefs = await SharedPreferences.getInstance();
-          final isAvailable = !kIsWeb && (await _localAuth.canCheckBiometrics || await _localAuth.isDeviceSupported());
+          final isAvailable = !kIsWeb && (await _localAuth.canCheckBiometrics() || await _localAuth.isDeviceSupported());
           if (isAvailable) {
             await prefs.setBool('use_biometrics', true);
             await prefs.setString('saved_username', mainId);

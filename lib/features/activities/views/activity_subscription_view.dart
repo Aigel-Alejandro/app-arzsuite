@@ -117,7 +117,7 @@ class _ActivitySubscriptionViewState
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -148,13 +148,13 @@ class _ActivitySubscriptionViewState
                         const SizedBox(height: 4),
                         Text(
                           'Grupo: ${selectedGroup.nombre}',
-                          style: const TextStyle(color: AppTheme.neutral600),
+                          style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7)),
                         ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Divider(height: 1, color: AppTheme.neutral100),
+                  Divider(height: 1, color: Theme.of(context).dividerColor),
                   ...beneficiaries
                       .where((b) {
                         int? age = b['age'];
@@ -229,10 +229,10 @@ class _ActivitySubscriptionViewState
                                     children: [
                                       Text(
                                         b['name'],
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
-                                          color: AppTheme.neutral900,
+                                          color: Theme.of(context).textTheme.titleLarge?.color,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -240,8 +240,8 @@ class _ActivitySubscriptionViewState
                                         age != null
                                             ? '$age años'
                                             : 'Edad sin proporcionar en perfil',
-                                        style: const TextStyle(
-                                          color: AppTheme.neutral600,
+                                        style: TextStyle(
+                                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                                           fontSize: 13,
                                         ),
                                       ),
@@ -254,9 +254,9 @@ class _ActivitySubscriptionViewState
                                     color: AppTheme.primaryColor,
                                   )
                                 else
-                                  const Icon(
+                                  Icon(
                                     Icons.radio_button_unchecked,
-                                    color: AppTheme.neutral300,
+                                    color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3) ?? AppTheme.neutral300,
                                   ),
                               ],
                             ),
@@ -1778,6 +1778,7 @@ class _ConfirmacionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Theme.of(context).dialogBackgroundColor,
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -1801,7 +1802,7 @@ class _ConfirmacionDialog extends StatelessWidget {
               '¡Reserva confirmada!',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: AppTheme.neutral900,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
               ),
               textAlign: TextAlign.center,
             ),
@@ -1810,7 +1811,7 @@ class _ConfirmacionDialog extends StatelessWidget {
               beneficiario,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppTheme.neutral500,
+                color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -1820,36 +1821,43 @@ class _ConfirmacionDialog extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppTheme.neutral50,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.neutral200),
+                border: Border.all(color: Theme.of(context).dividerColor),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _row(Icons.fitness_center_rounded, actividad),
+                  _row(context, Icons.fitness_center_rounded, actividad),
                   if (horarioStr != null) ...[
                     const SizedBox(height: 8),
-                    _row(Icons.calendar_today_rounded, horarioStr!),
+                    _row(context, Icons.calendar_today_rounded, horarioStr!),
                   ],
                   if (lugar != null) ...[
                     const SizedBox(height: 8),
                     _row(
+                      context,
                       Icons.event_seat_rounded,
-                      'Asiento: $lugar',
+                      'Lugar: $lugar',
                       highlight: true,
                     ),
                   ],
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            Text(
+              'Tu reserva se ha registrado exitosamente. Podrás consultar el detalle de tus clases y horarios en la sección Mis Actividades del menú principal.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.8),
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 16),
             // ── Botones ────────────────────────────────────────────────────
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.list_alt_rounded, size: 18),
-                label: const Text('Ver mis reservas'),
+              child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryColor,
                   foregroundColor: Colors.white,
@@ -1859,23 +1867,9 @@ class _ConfirmacionDialog extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    PageRouteBuilder(
-                      pageBuilder: (context, animation, secondaryAnimation) => const ActivitiesDashboardView(),
-                      transitionDuration: Duration.zero,
-                      reverseTransitionDuration: Duration.zero,
-                    ),
-                    (route) => false,
-                  );
+                  Navigator.of(context).pop();
                 },
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Cerrar',
-                style: TextStyle(color: AppTheme.neutral500),
+                child: const Text('Cerrar'),
               ),
             ),
           ],
@@ -1884,13 +1878,13 @@ class _ConfirmacionDialog extends StatelessWidget {
     );
   }
 
-  Widget _row(IconData icon, String text, {bool highlight = false}) {
+  Widget _row(BuildContext context, IconData icon, String text, {bool highlight = false}) {
     return Row(
       children: [
         Icon(
           icon,
           size: 16,
-          color: highlight ? AppTheme.primaryColor : AppTheme.neutral500,
+          color: highlight ? AppTheme.primaryColor : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -1899,7 +1893,7 @@ class _ConfirmacionDialog extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: highlight ? FontWeight.w700 : FontWeight.w500,
-              color: highlight ? AppTheme.primaryColor : AppTheme.neutral700,
+              color: highlight ? AppTheme.primaryColor : Theme.of(context).textTheme.bodyLarge?.color?.withValues(alpha: 0.8),
             ),
           ),
         ),
