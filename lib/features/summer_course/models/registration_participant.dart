@@ -30,8 +30,11 @@ class RegistrationParticipant with _$RegistrationParticipant {
 
   String get fullName => member?.fullName ?? guest?.fullName ?? 'Unknown';
   
-  String get identifier => member?.membershipNumber ?? guest?.email ?? 'N/A';
-
+  String get identifier {
+    if (member != null) return 'member_${member!.membershipNumber}';
+    if (guest != null) return 'guest_${guest!.email}_${guest!.firstName}_${guest!.lastName}';
+    return 'N/A';
+  }
   bool get isSocio => member != null;
   bool get isGuest => guest != null;
 

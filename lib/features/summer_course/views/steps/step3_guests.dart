@@ -93,7 +93,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
     _rfcController.text = '$p1$p2$p3$yy$mm$dd';
   }
 
-  void _addGuest(BuildContext modalContext, [String? originalEmail]) {
+  void _addGuest(BuildContext modalContext, [String? originalIdentifier]) {
     if (_formKey.currentState!.validate() && _selectedRelationship != null) {
       final state = ref.read(summerCourseProvider);
       final guest = Guest(
@@ -109,8 +109,8 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
         rfc: _rfcController.text,
       );
 
-      if (originalEmail != null) {
-        ref.read(summerCourseProvider.notifier).removeParticipant(originalEmail);
+      if (originalIdentifier != null) {
+        ref.read(summerCourseProvider.notifier).removeParticipant(originalIdentifier);
       }
       ref.read(summerCourseProvider.notifier).addGuest(guest);
       Navigator.pop(modalContext);
@@ -119,7 +119,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
     }
   }
 
-  void _showGuestModal([Guest? guestToEdit]) {
+  void _showGuestModal([Guest? guestToEdit, String? originalIdentifier]) {
     if (guestToEdit != null) {
       _nameController.text = guestToEdit.firstName;
       _lastName1Controller.text = guestToEdit.lastName;
@@ -289,8 +289,8 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                                 child: const Text('Cancelar', style: TextStyle(fontWeight: FontWeight.bold)),
                               ),
                               const SizedBox(width: 8),
-                              ElevatedButton(
-                                onPressed: () => _addGuest(modalContext, guestToEdit?.email),
+                                ElevatedButton(
+                                onPressed: () => _addGuest(modalContext, originalIdentifier),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Theme.of(context).colorScheme.primary,
                                   foregroundColor: Theme.of(context).colorScheme.onPrimary,
@@ -395,9 +395,9 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                     color: Theme.of(context).colorScheme.surface,
                     onSelected: (action) {
                       if (action == 'edit') {
-                        _showGuestModal(guest);
+                        _showGuestModal(guest, participant.identifier);
                       } else if (action == 'delete') {
-                        notifier.removeParticipant(guest.email);
+                        notifier.removeParticipant(participant.identifier);
                       }
                     },
                     itemBuilder: (context) => [
@@ -423,7 +423,7 @@ class _Step3GuestsState extends ConsumerState<Step3Guests> {
                       ),
                     ],
                   ),
-                  onTap: () => _showGuestModal(guest),
+                  onTap: () => _showGuestModal(guest, participant.identifier),
                 ),
               );
             }).toList(),

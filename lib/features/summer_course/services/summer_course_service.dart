@@ -65,13 +65,13 @@ class SummerCourseService {
         data: registrationData,
       );
       
-      if ((response.statusCode == 200 || response.statusCode == 201) && response.data != null) {
+      if ((response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 207) && response.data != null) {
         final dynamic rawData = response.data;
         if (rawData is Map && rawData.containsKey('data')) {
             return rawData['data'] as Map<String, dynamic>;
         }
       }
-      throw Exception('Respuesta inválida del servidor al registrar');
+      throw Exception('Respuesta inválida del servidor al registrar (Status: ${response.statusCode})');
     } catch (e) {
       if (e is DioException && e.response?.data != null && e.response?.data is Map) {
         throw Exception(e.response?.data['message'] ?? e.message);

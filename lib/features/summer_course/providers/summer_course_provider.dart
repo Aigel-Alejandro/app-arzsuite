@@ -25,9 +25,10 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       if (state.currentStep == 1) {
         state = state.copyWith(isLoading: true);
         await refreshCosts();
-        state = state.copyWith(isLoading: false);
+        state = state.copyWith(isLoading: false, currentStep: state.currentStep + 1);
+      } else {
+        state = state.copyWith(currentStep: state.currentStep + 1);
       }
-      state = state.copyWith(currentStep: state.currentStep + 1);
     }
   }
 
@@ -36,9 +37,10 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       if (state.currentStep == 3) {
         state = state.copyWith(isLoading: true);
         await refreshCosts();
-        state = state.copyWith(isLoading: false);
+        state = state.copyWith(isLoading: false, currentStep: state.currentStep - 1);
+      } else {
+        state = state.copyWith(currentStep: state.currentStep - 1);
       }
-      state = state.copyWith(currentStep: state.currentStep - 1);
     }
   }
 
@@ -257,6 +259,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
             'last_name': p.guest!.lastName,
             'email': p.guest!.email,
             'phone': p.guest!.phone,
+            'birth_date': p.guest!.birthDate,
           } : null,
           'type': p.type.name,
           'weeks': p.selectedWeekIds,
