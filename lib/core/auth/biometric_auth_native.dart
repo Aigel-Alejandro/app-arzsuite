@@ -11,10 +11,7 @@ class BiometricAuth {
   Future<bool> authenticate({required String localizedReason}) =>
       _auth.authenticate(
         localizedReason: localizedReason,
-        options: const AuthenticationOptions(
-          biometricOnly: true,
-          useErrorDialogs: true,
-          stickyAuth: true,
-        ),
+        biometricOnly: true,
+        persistAcrossBackgrounding: true,
       );
 }
