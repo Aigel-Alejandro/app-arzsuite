@@ -4,6 +4,8 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Esta aplicación requiere Face ID para iniciar sesión de forma segura y rápida.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Esta aplicación requiere acceso a la galería para actualizar tu foto de perfil de socio.</string>
 	<key>NSCameraUsageDescription</key>

@@ -130,7 +130,7 @@ class HomeView extends ConsumerWidget {
                                             Expanded(
                                               child: _CompactActionCard(
                                                 title: 'Inscripción',
-                                                subtitle: 'Curso de Verano',
+                                                subtitle: courseData?['course']?['name'] ?? 'Curso de Verano',
                                                 icon: Icons.sunny,
                                                 color: AppTheme.primaryColor,
                                                 onTap: () {

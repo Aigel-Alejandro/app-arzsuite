@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import '../providers/summer_course_token_provider.dart';
+import '../providers/active_course_provider.dart';
 import '../providers/active_registration_provider.dart';
 import '../views/summer_course_active_registration_modal.dart';
 
@@ -13,6 +14,9 @@ class SummerCourseAccessCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokenAsync = ref.watch(summerCourseTokenProvider);
     final activeRegAsync = ref.watch(activeRegistrationProvider);
+    final activeCourseAsync = ref.watch(activeSummerCourseProvider);
+    
+    final courseName = activeCourseAsync.value?['course']?['name'] ?? 'Curso de Verano';
 
     return tokenAsync.when(
       data: (tokenData) {
@@ -142,9 +146,9 @@ class SummerCourseAccessCard extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
-                            'Curso de Verano 2026',
-                            style: TextStyle(
+                          Text(
+                            courseName,
+                            style: const TextStyle(
                               color: AppTheme.neutral50, // En lugar de Colors.white
                               fontWeight: FontWeight.bold,
                               fontSize: 16,

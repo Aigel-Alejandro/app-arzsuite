@@ -194,13 +194,22 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       else if (type == ParticipantType.invColaborador) typeKeyEs = 'inv_colaborador';
 
       final costEntry = state.courseCosts.firstWhere(
-        (c) => c['participant_type'] == typeKey || c['participant_type'] == typeKeyEs, 
+        (c) => (c['participant_type'] == typeKey || c['participant_type'] == typeKeyEs) && c['weeks_count'] == weeksCount, 
         orElse: () => <String, dynamic>{}
       );
       
       if (costEntry.isNotEmpty) {
-         double costPerWeek = double.tryParse(costEntry['cost_per_week'].toString()) ?? 0.0;
-         baseCost = costPerWeek * weeksCount;
+         baseCost = double.tryParse(costEntry['cost_per_week'].toString()) ?? 0.0;
+      } else {
+         // Fallback: Si no hay tarifa exacta, usar tarifa de 1 semana multiplicada
+         final baseEntry = state.courseCosts.firstWhere(
+           (c) => (c['participant_type'] == typeKey || c['participant_type'] == typeKeyEs) && (c['weeks_count'] == 1 || c['weeks_count'] == null), 
+           orElse: () => <String, dynamic>{}
+         );
+         if (baseEntry.isNotEmpty) {
+           double costPerWeek = double.tryParse(baseEntry['cost_per_week'].toString()) ?? 0.0;
+           baseCost = costPerWeek * weeksCount;
+         }
       }
     }
 
