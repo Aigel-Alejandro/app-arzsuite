@@ -5,9 +5,12 @@ import 'package:flutter/foundation.dart';
 
 class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
+  // static const String baseUrlCakePHP = kReleaseMode 
+  //     ? "https://arzsuite.centrolibanes.org.mx/api/" 
+  //     : "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
   static const String baseUrlCakePHP = kReleaseMode 
-      ? "https://arzsuite.centrolibanes.org.mx/api/" 
-      : "https://arzsuite.centrolibanes.org.mx/api/"; // Cambiado para apuntar siempre a PRD por petición del usuario
+      ? "https://pruebas-arzsuite.centrolibanes.org.mx/api/" 
+      : "https://pruebas-arzsuite.centrolibanes.org.mx/api/"; // URL Pruebas
 
   // ---------------------------------------------------------------------------
   // AUTH
