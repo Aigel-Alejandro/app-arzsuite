@@ -568,20 +568,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   crossAxisSpacing: 16,
                   childAspectRatio: 1.15,
                   children: [
-                    if (currentMember?.hasPermission('profile.account_data') ?? false)
-                      _buildPremiumMenuTile(
-                        context,
-                        icon: Icons.person_rounded,
-                        title: 'Información de la Cuenta',
-                        onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
-                      ),
-                    if (currentMember?.hasPermission('profile.app_settings') ?? false)
-                      _buildPremiumMenuTile(
-                        context,
-                        icon: Icons.settings_rounded,
-                        title: 'Ajustes de la App',
-                        onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
-                      ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.person_rounded,
+                      title: 'Información de la Cuenta',
+                      onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
+                    ),
+                    _buildPremiumMenuTile(
+                      context,
+                      icon: Icons.settings_rounded,
+                      title: 'Ajustes de la App',
+                      onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
+                    ),
                     if (currentMember?.hasPermission('profile.associated_members') ?? false)
                       _buildPremiumMenuTile(
                         context,
@@ -1342,6 +1340,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   Widget _buildSettingsTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
     final settings = profile.settings;
     final themeMode = ref.watch(themeProvider);
+    final currentMember = ref.watch(authProvider);
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1409,6 +1408,27 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          if ((currentMember?.isTitular ?? false) && profile.associatedMembers.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            _buildSectionHeader(context, 'Control Familiar (Permisos)', Icons.admin_panel_settings_outlined),
+            const SizedBox(height: 16),
+            _buildCard(
+              context,
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: profile.associatedMembers.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final member = entry.value;
+                  return Column(
+                    children: [
+                      if (index > 0) Divider(height: 1, color: AppTheme.neutral200.withOpacity(0.5)),
+                      _buildFamilyMemberPermissions(context, ref, member),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
           const SizedBox(height: 32),
           Center(
             child: Column(
@@ -1499,6 +1519,109 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
+  Widget _buildFamilyMemberPermissions(BuildContext context, WidgetRef ref, SubMemberModel member) {
+    final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+          child: const Icon(Icons.person_outline_rounded, color: AppTheme.primaryColor),
+        ),
+        title: Text(cleanName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text('${member.memberType} • ID: ${member.membershipNumber}', style: const TextStyle(fontSize: 12, color: AppTheme.neutral500)),
+        childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withOpacity(0.02),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              children: [
+                _buildConfigSwitch(
+                  context,
+                  title: 'Saldos y Finanzas',
+                  subtitle: 'Consultar saldos y pagos',
+                  icon: Icons.account_balance_wallet_outlined,
+                  value: member.permissions.contains('financial.view'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'financial.view', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Información de Salud',
+                  subtitle: 'Acceso a expediente médico',
+                  icon: Icons.monitor_heart_outlined,
+                  value: member.permissions.contains('health.medical_data'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'health.medical_data', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Mis Vehículos',
+                  subtitle: 'Registro de automóvil',
+                  icon: Icons.directions_car_outlined,
+                  value: member.permissions.contains('profile.vehicles'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'profile.vehicles', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Inscripción a Actividades',
+                  subtitle: 'Inscripción a actividades deportivas y culturales',
+                  icon: Icons.sports_tennis_rounded,
+                  value: member.permissions.contains('activities.enroll'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'activities.enroll', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Curso de Verano',
+                  subtitle: 'Inscripción al curso de verano',
+                  icon: Icons.wb_sunny_outlined,
+                  value: member.permissions.contains('summer_course.enroll'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'summer_course.enroll', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildAssociatedCard(BuildContext context, SubMemberModel member) {
     final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');

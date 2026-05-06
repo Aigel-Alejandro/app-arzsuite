@@ -35,6 +35,8 @@ mixin _$SubMemberModel {
   String? get birthDate => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
   String? get genero => throw _privateConstructorUsedError;
+  @JsonKey(name: 'permissions')
+  List<String> get permissions => throw _privateConstructorUsedError;
 
   /// Serializes this SubMemberModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -63,6 +65,7 @@ abstract class $SubMemberModelCopyWith<$Res> {
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,
+    @JsonKey(name: 'permissions') List<String> permissions,
   });
 }
 
@@ -90,6 +93,7 @@ class _$SubMemberModelCopyWithImpl<$Res, $Val extends SubMemberModel>
     Object? birthDate = freezed,
     Object? age = freezed,
     Object? genero = freezed,
+    Object? permissions = null,
   }) {
     return _then(
       _value.copyWith(
@@ -129,6 +133,10 @@ class _$SubMemberModelCopyWithImpl<$Res, $Val extends SubMemberModel>
                 ? _value.genero
                 : genero // ignore: cast_nullable_to_non_nullable
                       as String?,
+            permissions: null == permissions
+                ? _value.permissions
+                : permissions // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
           )
           as $Val,
     );
@@ -154,6 +162,7 @@ abstract class _$$SubMemberModelImplCopyWith<$Res>
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,
+    @JsonKey(name: 'permissions') List<String> permissions,
   });
 }
 
@@ -180,6 +189,7 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
     Object? birthDate = freezed,
     Object? age = freezed,
     Object? genero = freezed,
+    Object? permissions = null,
   }) {
     return _then(
       _$SubMemberModelImpl(
@@ -219,6 +229,10 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
             ? _value.genero
             : genero // ignore: cast_nullable_to_non_nullable
                   as String?,
+        permissions: null == permissions
+            ? _value._permissions
+            : permissions // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
       ),
     );
   }
@@ -237,7 +251,8 @@ class _$SubMemberModelImpl implements _SubMemberModel {
     @JsonKey(name: 'birth_date') this.birthDate,
     this.age,
     this.genero,
-  });
+    @JsonKey(name: 'permissions') final List<String> permissions = const [],
+  }) : _permissions = permissions;
 
   factory _$SubMemberModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubMemberModelImplFromJson(json);
@@ -266,10 +281,18 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   final int? age;
   @override
   final String? genero;
+  final List<String> _permissions;
+  @override
+  @JsonKey(name: 'permissions')
+  List<String> get permissions {
+    if (_permissions is EqualUnmodifiableListView) return _permissions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_permissions);
+  }
 
   @override
   String toString() {
-    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType, birthDate: $birthDate, age: $age, genero: $genero)';
+    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType, birthDate: $birthDate, age: $age, genero: $genero, permissions: $permissions)';
   }
 
   @override
@@ -291,7 +314,11 @@ class _$SubMemberModelImpl implements _SubMemberModel {
             (identical(other.birthDate, birthDate) ||
                 other.birthDate == birthDate) &&
             (identical(other.age, age) || other.age == age) &&
-            (identical(other.genero, genero) || other.genero == genero));
+            (identical(other.genero, genero) || other.genero == genero) &&
+            const DeepCollectionEquality().equals(
+              other._permissions,
+              _permissions,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -307,6 +334,7 @@ class _$SubMemberModelImpl implements _SubMemberModel {
     birthDate,
     age,
     genero,
+    const DeepCollectionEquality().hash(_permissions),
   );
 
   /// Create a copy of SubMemberModel
@@ -337,6 +365,7 @@ abstract class _SubMemberModel implements SubMemberModel {
     @JsonKey(name: 'birth_date') final String? birthDate,
     final int? age,
     final String? genero,
+    @JsonKey(name: 'permissions') final List<String> permissions,
   }) = _$SubMemberModelImpl;
 
   factory _SubMemberModel.fromJson(Map<String, dynamic> json) =
@@ -365,6 +394,9 @@ abstract class _SubMemberModel implements SubMemberModel {
   int? get age;
   @override
   String? get genero;
+  @override
+  @JsonKey(name: 'permissions')
+  List<String> get permissions;
 
   /// Create a copy of SubMemberModel
   /// with the given fields replaced by the non-null parameter values.

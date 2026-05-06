@@ -186,4 +186,47 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileModel?>> {
       rethrow;
     }
   }
+
+  Future<void> updateFamilyMemberPermission(String memberId, String permission, bool isGranted) async {
+    try {
+      // Optimistic update
+      if (state.value != null) {
+        final profile = state.value!;
+        final updatedMembers = profile.associatedMembers.map((m) {
+          if (m.id == memberId) {
+            final newPerms = List<String>.from(m.permissions);
+            if (isGranted) {
+              if (!newPerms.contains(permission)) newPerms.add(permission);
+            } else {
+              newPerms.remove(permission);
+            }
+            return m.copyWith(permissions: newPerms);
+          }
+          return m;
+        }).toList();
+        state = AsyncValue.data(profile.copyWith(associatedMembers: updatedMembers));
+      }
+
+      final response = await _apiClient.dio.post(
+        'arzsuite/profile/updateFamilyPermission',
+        data: {
+          'member_id': memberId,
+          'permission_key': permission,
+          'is_granted': isGranted,
+        },
+      );
+      
+      var responseData = response.data;
+      if (responseData is String) {
+        responseData = jsonDecode(responseData);
+      }
+
+      if (responseData['success'] != true) {
+        throw Exception(responseData['message'] ?? 'Error desconocido');
+      }
+    } catch (e) {
+      await fetchProfile(isBackgroundRefresh: true);
+      rethrow;
+    }
+  }
 }

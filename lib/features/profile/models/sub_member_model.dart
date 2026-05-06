@@ -15,6 +15,7 @@ class SubMemberModel with _$SubMemberModel {
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
     String? genero,
+    @JsonKey(name: 'permissions') @Default([]) List<String> permissions,
   }) = _SubMemberModel;
 
   factory SubMemberModel.fromJson(Map<String, dynamic> json) =>

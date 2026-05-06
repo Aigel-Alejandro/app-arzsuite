@@ -8,9 +8,9 @@ class ApiEndpoints {
   // static const String baseUrlCakePHP = kReleaseMode 
   //     ? "https://arzsuite.centrolibanes.org.mx/api/" 
   //     : "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
-  static const String baseUrlCakePHP = kReleaseMode 
-      ? "https://pruebas-arzsuite.centrolibanes.org.mx/api/" 
-      : "https://pruebas-arzsuite.centrolibanes.org.mx/api/"; // URL Pruebas
+  static const String baseUrlCakePHP = kDebugMode 
+      ? "https://ecosistema-centro.ddev.site/api/" // Entorno Local (DDEV)
+      : "https://pruebas-arzsuite.centrolibanes.org.mx/api/"; // URL Pruebas / Producción
 
   // ---------------------------------------------------------------------------
   // AUTH

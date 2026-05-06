@@ -344,7 +344,7 @@ class _ActivitySubscriptionViewState
 
       validBeneficiaries.add({
         'id': int.tryParse(profileAsync.value!.id.toString()) ?? 0,
-        'name': "$cleanTitular (Titular)",
+        'name': cleanTitular,
         'age': profileAsync.value!.age,
       });
       for (var member in profileAsync.value!.associatedMembers) {
