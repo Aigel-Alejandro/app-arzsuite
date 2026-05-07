@@ -571,8 +571,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.person_rounded,
-                      title: 'Información de la Cuenta',
-                      onTap: () => _navigateToSection(context, 'Datos Personales', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, p)),
+                      title: 'Membresía',
+                      onTap: () => _navigateToSection(context, 'Membresía', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, r, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
@@ -591,7 +591,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.directions_car_rounded,
-                        title: 'Vehículos (1 por acceso)',
+                        title: 'Registro de Vehículos',
                         onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                       ),
                     if (currentMember?.hasPermission('health.medical_data') ?? false)
@@ -1054,8 +1054,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildAccountTab(BuildContext context, ProfileModel profile) {
+  Widget _buildAccountTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
     final bool canEdit = profile.canEditSensitiveData;
+    final currentMember = ref.watch(authProvider);
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1328,7 +1329,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             const SizedBox(height: 16),
             ...profile.associatedMembers.map((member) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildAssociatedCard(context, member),
+                  child: (currentMember?.isTitular ?? false)
+                      ? _buildFamilyMemberPermissions(context, ref, member)
+                      : _buildAssociatedCard(context, member),
                 )),
           ],
           const SizedBox(height: 120), // Padding for island menu
@@ -1408,27 +1411,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
-          if ((currentMember?.isTitular ?? false) && profile.associatedMembers.isNotEmpty) ...[
-            const SizedBox(height: 32),
-            _buildSectionHeader(context, 'Control Familiar (Permisos)', Icons.admin_panel_settings_outlined),
-            const SizedBox(height: 16),
-            _buildCard(
-              context,
-              padding: EdgeInsets.zero,
-              child: Column(
-                children: profile.associatedMembers.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final member = entry.value;
-                  return Column(
-                    children: [
-                      if (index > 0) Divider(height: 1, color: AppTheme.neutral200.withOpacity(0.5)),
-                      _buildFamilyMemberPermissions(context, ref, member),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
+
           const SizedBox(height: 32),
           Center(
             child: Column(
@@ -1614,6 +1597,19 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
                     }
                   },
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    icon: const Icon(Icons.list_alt_rounded),
+                    label: const Text('Ver Actividades Inscritas'),
+                    onPressed: () => _mostrarActividades(context, cleanName, member.id),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppTheme.primaryColor,
+                      side: const BorderSide(color: AppTheme.primaryColor),
+                    ),
+                  ),
                 ),
               ],
             ),

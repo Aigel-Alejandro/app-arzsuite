@@ -9,7 +9,8 @@ class ApiEndpoints {
   //     ? "https://arzsuite.centrolibanes.org.mx/api/" 
   //     : "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
   static const String baseUrlCakePHP = kDebugMode 
-      ? "https://ecosistema-centro.ddev.site/api/" // Entorno Local (DDEV)
+      // ? "https://ecosistema-centro.ddev.site/api/" // Entorno Local (DDEV)
+      ? "https://pruebas-arzsuite.centrolibanes.org.mx/api/" // Entorno Local (DDEV)
       : "https://pruebas-arzsuite.centrolibanes.org.mx/api/"; // URL Pruebas / Producción
 
   // ---------------------------------------------------------------------------

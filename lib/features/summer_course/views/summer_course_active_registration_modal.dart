@@ -108,7 +108,7 @@ class _SummerCourseActiveRegistrationModalState
               ),
               const SizedBox(height: 8),
               Text(
-                'Selecciona la disciplina para generar tu pago con Carlo Pay.',
+                'Selecciona la disciplina para generar tu pago con Karlo pay.',
                 style: TextStyle(
                   color: Theme.of(
                     context,
@@ -223,7 +223,7 @@ class _SummerCourseActiveRegistrationModalState
               ],
             ),
             content: Text(
-              'La línea de captura de Carlo Pay ha sido creada:\n$orderId\n\n'
+              'La línea de captura de Karlo pay ha sido creada:\n$orderId\n\n'
               'Una vez que proceses el pago (actualización manual en DB), el verano intensivo ($activityName) se reflejará automáticamente en tu perfil.',
               style: const TextStyle(height: 1.5, fontSize: 13),
             ),
@@ -248,7 +248,7 @@ class _SummerCourseActiveRegistrationModalState
       }
     } on dio.DioException catch (e) {
       if (mounted) {
-        String msg = 'Error al conectar con Carlo Pay.';
+        String msg = 'Error al conectar con Karlo pay.';
         if (e.response != null && e.response?.data != null) {
           msg = 'Error backend: ${e.response?.data}';
         }

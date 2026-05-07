@@ -1,4 +1,5 @@
 class FamilyAgendaItem {
+  final int id;
   final String tipo; // 'clase' o 'partido'
   final int timestamp;
   final String timeBlock;
@@ -12,6 +13,7 @@ class FamilyAgendaItem {
   final bool isMatch;
 
   FamilyAgendaItem({
+    required this.id,
     required this.tipo,
     required this.timestamp,
     required this.timeBlock,
@@ -27,6 +29,7 @@ class FamilyAgendaItem {
 
   factory FamilyAgendaItem.fromJson(Map<String, dynamic> json) {
     return FamilyAgendaItem(
+      id: json['id'] ?? 0,
       tipo: json['tipo'] ?? 'clase',
       timestamp: json['timestamp'] ?? 0,
       timeBlock: json['time_block'] ?? '',

@@ -10,6 +10,7 @@ import 'package:app_arzsuite/features/summer_course/providers/active_course_prov
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:app_arzsuite/features/activities/providers/family_agenda_provider.dart';
+import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
 import 'package:app_arzsuite/features/activities/models/family_agenda_item.dart';
 import 'package:app_arzsuite/features/tournaments/views/tournaments_dashboard_view.dart';
 import 'package:app_arzsuite/features/tournaments/providers/tournaments_provider.dart';
@@ -468,6 +469,40 @@ class _AgendaWidget extends ConsumerStatefulWidget {
 class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
   String _selectedSocioId = 'ME'; // 'ME', 'ALL', or a specific socioId
 
+  Future<void> _cancelar(BuildContext context, int id, String title) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cancelar reserva'),
+        content: Text('¿Estás seguro que deseas cancelar tu lugar en "$title"?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('No')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            child: const Text('Sí, cancelar', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final apiClient = ref.read(apiClientNotifierProvider);
+        final res = await apiClient.dio.post('arzsuite/actividades/cancelar-inscripcion', data: {'inscripcion_id': id});
+        if (res.data['success'] == true) {
+          ref.refresh(familyAgendaProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva cancelada exitosamente')));
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al cancelar: $e')));
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final agendaAsync = ref.watch(familyAgendaProvider);
@@ -556,6 +591,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                     icon: icon,
                     color: color,
                     isMatch: item.isMatch,
+                    onCancel: !item.isMatch ? () => _cancelar(context, item.id, item.title) : null,
                   ),
                 );
               }),
@@ -654,6 +690,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
     required IconData icon,
     required Color color,
     bool isMatch = false,
+    VoidCallback? onCancel,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
@@ -777,6 +814,16 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                 ),
               ),
             ),
+            if (onCancel != null)
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.only(right: 8),
+                child: IconButton(
+                  icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
+                  onPressed: onCancel,
+                  tooltip: 'Cancelar reserva',
+                ),
+              ),
           ],
         ),
       ),
