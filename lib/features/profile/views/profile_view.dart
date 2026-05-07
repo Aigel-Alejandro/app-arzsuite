@@ -1598,6 +1598,21 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Administrador Familiar',
+                  subtitle: 'Gestionar a otros familiares',
+                  icon: Icons.family_restroom_rounded,
+                  value: member.permissions.contains('manage_family'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'manage_family', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,

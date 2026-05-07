@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/providers/api_client_notifier.dart';
 import '../models/inscripcion_model.dart';
@@ -64,6 +65,11 @@ class MisInscripcionesNotifier
         throw Exception(data['message'] ?? 'Error al cancelar');
       }
       await fetch();
+    } on DioException catch (e) {
+      if (e.response != null) {
+         throw Exception("Error del servidor: ${e.response?.data}");
+      }
+      throw Exception(e.toString());
     } catch (e) {
       throw Exception(e.toString().replaceAll('Exception: ', ''));
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/responsive_container.dart';
 import 'package:app_arzsuite/core/widgets/main_layout.dart';
@@ -494,6 +495,11 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva cancelada exitosamente')));
           }
+        }
+      } on DioException catch (e) {
+        if (mounted) {
+          final serverError = e.response?.data != null ? e.response!.data.toString() : e.toString();
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al cancelar: $serverError')));
         }
       } catch (e) {
         if (mounted) {
