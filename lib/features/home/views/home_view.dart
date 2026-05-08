@@ -499,8 +499,13 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
         }
       } on DioException catch (e) {
         if (mounted) {
-          final serverError = e.response?.data != null ? e.response!.data.toString() : e.toString();
-          ToastAlerts.showError(context, 'Error al cancelar: $serverError');
+          String serverError = 'Error desconocido';
+          if (e.response?.data is Map && e.response?.data['message'] != null) {
+            serverError = e.response!.data['message'];
+          } else {
+            serverError = e.message ?? e.toString();
+          }
+          ToastAlerts.showError(context, serverError);
         }
       } catch (e) {
         if (mounted) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/inscripcion_model.dart';
@@ -171,6 +172,14 @@ class _InscripcionCardState extends ConsumerState<_InscripcionCard> {
           .cancelar(widget.inscripcion.id);
       if (mounted) {
         ToastAlerts.showSuccess(context, 'Reserva cancelada exitosamente');
+      }
+    } on DioException catch (e) {
+      if (mounted) {
+        String msg = e.message ?? e.toString();
+        if (e.response?.data is Map && e.response?.data['message'] != null) {
+          msg = e.response!.data['message'];
+        }
+        ToastAlerts.showError(context, msg);
       }
     } catch (e) {
       if (mounted) {
