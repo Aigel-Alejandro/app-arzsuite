@@ -19,6 +19,7 @@ import '../../../core/models/sat_catalogs_model.dart';
 import 'health_view.dart';
 import '../../../core/widgets/custom_premium_app_bar.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+import 'package:intl/intl.dart';
 
 final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
@@ -800,15 +801,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _mostrarActividades(BuildContext context, String nombreBeneficiario, String socioId) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => _ActividadesInscritasSheet(nombreBeneficiario: nombreBeneficiario, socioId: socioId),
-    );
-  }
-
   Widget _buildProfileHero(BuildContext context, ProfileModel profile) {
     final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
@@ -866,12 +858,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: InkWell(
-              onTap: () => _mostrarActividades(context, cleanName, profile.id),
-              borderRadius: BorderRadius.circular(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                   Text(
                     cleanName,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -900,7 +889,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ],
               ),
             ),
-          ),
           const SizedBox(width: 8),
           _buildSmallQr(context, profile),
         ],
@@ -1138,6 +1126,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
+          if (profile.associatedMembers.isNotEmpty) ...[
+            const SizedBox(height: 32),
+            _buildSectionHeader(context, 'Miembros Asociados', Icons.people_outline_rounded),
+            const SizedBox(height: 16),
+            ...profile.associatedMembers.map((member) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: (currentMember?.isTitular ?? false)
+                      ? _buildFamilyMemberPermissions(context, ref, member)
+                      : _buildAssociatedCard(context, member),
+                )),
+          ],
           const SizedBox(height: 32),
           _buildSectionHeader(context, 'Dirección Personal', Icons.location_on_outlined),
           const SizedBox(height: 16),
@@ -1323,17 +1322,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
-          if (profile.associatedMembers.isNotEmpty) ...[
-            const SizedBox(height: 32),
-            _buildSectionHeader(context, 'Miembros Asociados', Icons.people_outline_rounded),
-            const SizedBox(height: 16),
-            ...profile.associatedMembers.map((member) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: (currentMember?.isTitular ?? false)
-                      ? _buildFamilyMemberPermissions(context, ref, member)
-                      : _buildAssociatedCard(context, member),
-                )),
-          ],
           const SizedBox(height: 120), // Padding for island menu
         ],
       ),
@@ -1613,19 +1601,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    icon: const Icon(Icons.list_alt_rounded),
-                    label: const Text('Ver Actividades Inscritas'),
-                    onPressed: () => _mostrarActividades(context, cleanName, member.id),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.primaryColor,
-                      side: const BorderSide(color: AppTheme.primaryColor),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -1636,11 +1611,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildAssociatedCard(BuildContext context, SubMemberModel member) {
     final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
-    return InkWell(
-      onTap: () => _mostrarActividades(context, cleanName, member.id),
-      borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-      child: Container(
-        padding: const EdgeInsets.all(AppTheme.spacingMedium),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.spacingMedium),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
@@ -1669,11 +1641,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right_rounded, color: AppTheme.neutral300),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildCard(BuildContext context, {required Widget child, EdgeInsetsGeometry padding = const EdgeInsets.all(AppTheme.spacingMedium)}) {
@@ -2038,11 +2008,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           children: [
           _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
           const SizedBox(height: 16),
-          const Text('Beneficio Premium: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
+          const Text('Registro informativo: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
           const SizedBox(height: 16),
-            _buildAccessSection(context, 'Vehículos ligados al primer acceso', access1Vehicles, 1),
+            _buildAccessSection(context, 'Placas registradas (Acceso 1)', access1Vehicles, 1),
             const SizedBox(height: 24),
-            _buildAccessSection(context, 'Vehículos ligados al segundo acceso', access2Vehicles, 2),
+            _buildAccessSection(context, 'Placas registradas (Acceso 2)', access2Vehicles, 2),
             const SizedBox(height: 32),
             _buildParkingDisclaimer(),
             const SizedBox(height: 120),
@@ -2097,8 +2067,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
-          const SizedBox(height: 32),
-          _buildParkingDisclaimer(),
           const SizedBox(height: 120),
         ],
       ),
@@ -2383,6 +2351,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           final nextCharge = data['next_charge_amount'] ?? 0;
           final dueMonths = data['due_months'] ?? 0;
           final paymentFrequency = data['payment_frequency'] as String?;
+          final membershipStatus = data['membership_status'] as String? ?? 'Activa';
           
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -2398,38 +2367,34 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ),
               const SizedBox(height: 32),
               
-              GridView.count(
-                crossAxisCount: 2,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                mainAxisSpacing: 16,
-                crossAxisSpacing: 16,
-                childAspectRatio: 0.95,
+              Column(
                 children: [
                   _buildFinanceCard(
                     context, 
                     icon: Icons.account_balance_wallet_rounded, 
-                    title: 'Saldo Por Pagar', 
-                    value: '\$${pendingBalance.toString()}',
+                    title: 'Saldo Vencido', 
+                    value: NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(pendingBalance),
                     isPrimary: pendingBalance > 0,
+                    fullWidth: true,
                   ),
+                  const SizedBox(height: 16),
                   _buildFinanceCard(
                     context, 
-                    icon: Icons.calendar_month_rounded, 
-                    title: 'Meses Pendientes', 
-                    value: dueMonths > 0 ? '$dueMonths ${dueMonths == 1 ? 'mes' : 'meses'}' : 'Al corriente',
-                    isPrimary: dueMonths > 0,
+                    icon: Icons.credit_card_rounded, 
+                    title: 'Frecuencia de Pago', 
+                    value: paymentFrequency ?? 'No registrada',
+                    fullWidth: true,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildFinanceCard(
+                    context, 
+                    icon: Icons.verified_user_rounded, 
+                    title: 'Estatus de la Membresía', 
+                    value: membershipStatus,
+                    isStatus: true,
+                    fullWidth: true,
                   ),
                 ],
-              ),
-              const SizedBox(height: 16),
-              _buildFinanceCard(
-                context, 
-                icon: Icons.credit_card_rounded, 
-                title: 'Frecuencia de Pago', 
-                value: paymentFrequency ?? 'Activa',
-                isStatus: true,
-                fullWidth: true,
               ),
 
               const SizedBox(height: 32),
@@ -2496,7 +2461,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           ),
                           const SizedBox(width: 12),
                           Text(
-                            '\$${h['amount']}',
+                            NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(h['amount'] ?? 0),
                             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                           ),
                         ],
@@ -2563,10 +2528,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.successColor,
+                color: value.toLowerCase() == 'ausente' ? AppTheme.warningColor : AppTheme.successColor,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Text('Activa', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
             )
           else
             Text(
@@ -2581,198 +2546,5 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         ],
       ),
     );
-  }
-}
-
-class _ActividadesInscritasSheet extends ConsumerWidget {
-  final String nombreBeneficiario;
-  final String socioId;
-  const _ActividadesInscritasSheet({required this.nombreBeneficiario, required this.socioId});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return Container(
-      padding: const EdgeInsets.only(top: 24),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.85),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Center(
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(color: AppTheme.neutral300, borderRadius: BorderRadius.circular(2)),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'Actividades de $nombreBeneficiario',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close_rounded, color: AppTheme.neutral500),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: FutureBuilder<List<dynamic>>(
-              future: _fetchActividades(ref),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor));
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text('Error al cargar actividades: ${snapshot.error}', textAlign: TextAlign.center, style: const TextStyle(color: AppTheme.dangerColor)),
-                    ),
-                  );
-                }
-                
-                final ins = snapshot.data ?? [];
-                if (ins.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.pool_rounded, size: 64, color: AppTheme.neutral300),
-                        const SizedBox(height: 16),
-                        Text('Sin inscripciones registradas', style: TextStyle(color: AppTheme.neutral500, fontSize: 16, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.separated(
-                  padding: const EdgeInsets.all(24),
-                  itemCount: ins.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final item = ins[index];
-                    return Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        border: Border.all(color: Theme.of(context).dividerColor),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [BoxShadow(color: Theme.of(context).shadowColor.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
-                                child: const Icon(Icons.sports_rounded, color: AppTheme.primaryColor, size: 20),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  item['actividad_nombre'] ?? '', 
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold, 
-                                    fontSize: 16,
-                                    color: Theme.of(context).textTheme.titleLarge?.color,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 44, top: 4),
-                            child: Text(item['grupo_nombre'] ?? '', style: TextStyle(color: AppTheme.primaryColor, fontSize: 12, fontWeight: FontWeight.w600)),
-                          ),
-                          Divider(height: 24, color: Theme.of(context).dividerColor),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Icon(Icons.calendar_month_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(item['horario'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontWeight: FontWeight.w600, fontSize: 13))),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Icon(Icons.location_on_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(item['lugar'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 2),
-                                child: Icon(Icons.person_rounded, size: 16, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.5)),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(item['instructor_nombre'] ?? '', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8), fontSize: 13))),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<List<dynamic>> _fetchActividades(WidgetRef ref) async {
-    final client = ref.read(apiClientNotifierProvider);
-    final url = '/arzsuite/actividades/mis-actividades?beneficiary_name=${Uri.encodeComponent(nombreBeneficiario)}&beneficiary_socio_id=$socioId';
-    try {
-      final res = await client.dio.get(url);
-      var responseData = res.data;
-      
-      if (responseData is String) {
-        try {
-          responseData = jsonDecode(responseData);
-        } catch (e) {
-          debugPrint("❌ ERROR DE PARSEO JSON EN API. EL SERVIDOR DEVOLVIÓ HTML O TEXTO PLANO:");
-          debugPrint(responseData);
-          rethrow;
-        }
-      }
-
-      if (res.statusCode == 200 && responseData['success'] == true) {
-        return responseData['data'] as List<dynamic>;
-      }
-    } catch (e) {
-      debugPrint("Error al hacer fecth de actividades: $e");
-    }
-    return [];
   }
 }
