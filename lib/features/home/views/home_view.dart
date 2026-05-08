@@ -19,6 +19,7 @@ import 'package:app_arzsuite/features/tournaments/widgets/premium_tournament_car
 import 'package:app_arzsuite/features/tournaments/views/tournament_my_detail_view.dart';
 
 import 'package:app_arzsuite/core/providers/auth_provider.dart';
+import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -493,17 +494,17 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
         if (res.data['success'] == true) {
           ref.refresh(familyAgendaProvider);
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Reserva cancelada exitosamente')));
+            ToastAlerts.showSuccess(context, 'Reserva cancelada exitosamente');
           }
         }
       } on DioException catch (e) {
         if (mounted) {
           final serverError = e.response?.data != null ? e.response!.data.toString() : e.toString();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al cancelar: $serverError')));
+          ToastAlerts.showError(context, 'Error al cancelar: $serverError');
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al cancelar: $e')));
+          ToastAlerts.showError(context, 'Error al cancelar: $e');
         }
       }
     }

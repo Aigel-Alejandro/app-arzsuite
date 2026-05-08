@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
 import '../models/inscripcion_model.dart';
 import '../providers/mis_inscripciones_provider.dart';
+import '../../../core/widgets/toast_alerts.dart';
 
 class MisReservasView extends ConsumerStatefulWidget {
   const MisReservasView({super.key});
@@ -169,21 +170,11 @@ class _InscripcionCardState extends ConsumerState<_InscripcionCard> {
           .read(misInscripcionesProvider.notifier)
           .cancelar(widget.inscripcion.id);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Reserva cancelada exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ToastAlerts.showSuccess(context, 'Reserva cancelada exitosamente');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: AppTheme.dangerColor,
-          ),
-        );
+        ToastAlerts.showError(context, e.toString().replaceAll('Exception: ', ''));
       }
     } finally {
       if (mounted) setState(() => _cancelling = false);
