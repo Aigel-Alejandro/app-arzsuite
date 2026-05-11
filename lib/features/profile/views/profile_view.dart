@@ -19,6 +19,7 @@ import '../../../core/models/sat_catalogs_model.dart';
 import 'health_view.dart';
 import '../../../core/widgets/custom_premium_app_bar.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+import '../../../core/services/resend_service.dart';
 import 'package:intl/intl.dart';
 
 final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
@@ -1107,6 +1108,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           ],
                         ),
                       ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        icon: const Icon(Icons.mark_email_read_outlined, size: 18),
+                        label: const Text('Solicitar Actualización de Datos'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppTheme.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        onPressed: () => _showUpdateDataModal(context, profile),
+                      ),
                     ],
                   ),
                 ),
@@ -1919,6 +1932,132 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           const SizedBox(height: 120),
         ],
       ),
+    );
+  }
+
+  void _showUpdateDataModal(BuildContext context, ProfileModel profile) {
+    String selectedRequest = 'Cambio de dirección';
+    final detailsController = TextEditingController();
+    bool isSending = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+                left: 24, right: 24, top: 24,
+              ),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Actualización de Datos',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Selecciona el tipo de actualización que necesitas:'),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedRequest,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'Cambio de dirección', child: Text('Cambio de dirección')),
+                      DropdownMenuItem(value: 'Actualización de RFC / Datos Fiscales', child: Text('Actualización de RFC / Datos Fiscales')),
+                      DropdownMenuItem(value: 'Cambio de correo electrónico', child: Text('Cambio de correo electrónico')),
+                      DropdownMenuItem(value: 'Cambio de número de teléfono', child: Text('Cambio de número de teléfono')),
+                      DropdownMenuItem(value: 'Otro', child: Text('Otro')),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setModalState(() => selectedRequest = val);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: detailsController,
+                    maxLines: 4,
+                    decoration: InputDecoration(
+                      labelText: 'Detalles de la solicitud',
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      hintText: 'Describe brevemente qué datos necesitas cambiar...',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: isSending ? null : () async {
+                        if (detailsController.text.trim().isEmpty) {
+                          ToastAlerts.showWarning(context, 'Por favor ingresa los detalles de tu solicitud.');
+                          return;
+                        }
+                        
+                        setModalState(() => isSending = true);
+                        
+                        final success = await ResendService.sendUpdateRequest(
+                          memberName: profile.fullname,
+                          memberPhone: profile.phone ?? 'No registrado',
+                          membershipNumber: profile.membershipNumber,
+                          requestType: selectedRequest,
+                          details: detailsController.text.trim(),
+                          memberEmail: profile.email ?? 'No registrado',
+                        );
+                        
+                        setModalState(() => isSending = false);
+                        
+                        if (context.mounted) {
+                          Navigator.pop(context);
+                          if (success) {
+                            ToastAlerts.showSuccess(context, 'Solicitud enviada correctamente. Nos comunicaremos contigo pronto.');
+                          } else {
+                            ToastAlerts.showError(context, 'Ocurrió un error al enviar la solicitud. Intenta más tarde.');
+                          }
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: isSending 
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text('Enviar Solicitud', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+        );
+      },
     );
   }
 
