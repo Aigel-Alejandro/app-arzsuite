@@ -355,12 +355,7 @@ class Step5Confirmation extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Tu registro se ha completado. Hemos generado la orden de venta en nuestro sistema.',
-              style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14, height: 1.4),
-              textAlign: TextAlign.center,
-            ),
+
             
             const SizedBox(height: 32),
 
