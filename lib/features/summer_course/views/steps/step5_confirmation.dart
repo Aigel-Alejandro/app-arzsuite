@@ -385,6 +385,7 @@ class Step5Confirmation extends ConsumerWidget {
                             Text('CÓDIGO DE RECOLECCIÓN', style: TextStyle(color: isDark ? AppTheme.neutral500 : AppTheme.neutral400, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
                             const SizedBox(height: 12),
                             Container(
+                              width: double.infinity,
                               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                               decoration: BoxDecoration(
                                 color: AppTheme.successColor.withOpacity(0.05),
@@ -393,10 +394,11 @@ class Step5Confirmation extends ConsumerWidget {
                               ),
                               child: Text(
                                 state.masterToken!,
+                                textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                  fontSize: 42, 
+                                  fontSize: 26, 
                                   fontWeight: FontWeight.w900, 
-                                  letterSpacing: 8, 
+                                  letterSpacing: 4, 
                                   color: AppTheme.successColor
                                 ),
                               ),
