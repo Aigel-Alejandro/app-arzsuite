@@ -341,30 +341,9 @@ class Step5Confirmation extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              '¡Hola! Aquí tienes los detalles para realizar tu pago de forma segura. Puedes realizarlo en caja, kiosko o a través del portal de KarloPay en el siguiente enlace:',
+              'Tu registro se ha completado. Hemos generado la orden de venta en nuestro sistema.',
               style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14, height: 1.4),
               textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () async {
-                final url = Uri.parse('https://cartera.karlopay.com/auth/login');
-                if (await canLaunchUrl(url)) {
-                  await launchUrl(url, mode: LaunchMode.externalApplication);
-                }
-              },
-              icon: const Icon(Icons.payment_rounded, size: 18),
-              label: const Text('Ir a KarloPay', style: TextStyle(fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
-                foregroundColor: AppTheme.primaryColor,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(100),
-                  side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
-                ),
-                elevation: 0,
-              ),
             ),
             
             const SizedBox(height: 40),
@@ -443,7 +422,7 @@ class Step5Confirmation extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Total Pagado', style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontWeight: FontWeight.bold)),
+                              Text('Total a Pagar', style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontWeight: FontWeight.bold)),
                               Text(NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(state.totalGeneral), style: const TextStyle(fontWeight: FontWeight.w900, color: AppTheme.primaryColor)),
                             ],
                           ),
@@ -455,24 +434,76 @@ class Step5Confirmation extends ConsumerWidget {
               ),
             ),
 
-            const SizedBox(height: 48),
+            const SizedBox(height: 32),
+
+            // KarloPay Action Box
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.neutral800 : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.3)),
+                boxShadow: [
+                  if (!isDark)
+                    BoxShadow(color: AppTheme.primaryColor.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))
+                ]
+              ),
+              child: Column(
+                children: [
+                  const Icon(Icons.payment_rounded, color: AppTheme.primaryColor, size: 32),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Completa tu pago',
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: isDark ? AppTheme.neutral100 : AppTheme.neutral900),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '¡Hola! Aquí tienes los detalles para realizar tu pago de forma segura. Puedes realizarlo en caja, kiosko o a través del portal de KarloPay en el siguiente enlace:',
+                    style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 13, height: 1.4),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final url = Uri.parse('https://cartera.karlopay.com/auth/login');
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        }
+                      },
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: const Text('Ir a KarloPay', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.5)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.all(16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
             
             Column(
               children: [
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () {
                       ref.invalidate(activeRegistrationProvider);
                       ref.invalidate(summerCourseTokenProvider);
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDark ? AppTheme.neutral300 : AppTheme.neutral700,
+                      side: BorderSide(color: isDark ? AppTheme.neutral700 : AppTheme.neutral300),
                       padding: const EdgeInsets.all(18),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-                      elevation: 0,
                     ),
                     child: const Text('FINALIZAR Y SALIR', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1)),
                   ),
