@@ -2025,7 +2025,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         final success = await ResendService.sendUpdateRequest(
                           memberName: profile.fullname,
                           memberPhone: profile.phone ?? 'No registrado',
-                          membershipNumber: profile.membershipNumber,
+                          membershipNumber: profile.entityid,
                           requestType: selectedRequest,
                           details: detailsController.text.trim(),
                           memberEmail: profile.email ?? 'No registrado',
