@@ -321,25 +321,41 @@ class Step5Confirmation extends ConsumerWidget {
         child: Column(
           children: [
             const SizedBox(height: 20),
-            // ICONO DE ÉXITO ANIMADO (SIMULADO)
+            // ICONO DE ÉXITO ANIMADO Y ORDEN NETSUITE
             Container(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppTheme.successColor.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 80),
+              child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 56),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
             Text(
               '¡Inscripción Exitosa!', 
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900, 
                 color: isDark ? AppTheme.neutral100 : AppTheme.neutral900
               ),
               textAlign: TextAlign.center
             ),
             const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('ORDEN NETSUITE:', style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  const SizedBox(width: 8),
+                  Text(orderId, style: TextStyle(color: isDark ? AppTheme.neutral200 : AppTheme.neutral800, fontSize: 12, fontWeight: FontWeight.w900)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             Text(
               'Tu registro se ha completado. Hemos generado la orden de venta en nuestro sistema.',
               style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14, height: 1.4),
@@ -427,20 +443,6 @@ class Step5Confirmation extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(24),
                 child: Column(
                   children: [
-                    // Parte Superior del Ticket
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      color: isDark ? AppTheme.neutral900.withOpacity(0.5) : AppTheme.neutral900,
-                      width: double.infinity,
-                      child: Column(
-                        children: [
-                          const Text('ID DE ORDEN NETSUITE', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
-                          const SizedBox(height: 4),
-                          Text(orderId, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
-                        ],
-                      ),
-                    ),
-                    
                     // Cuerpo del Ticket
                     Padding(
                       padding: const EdgeInsets.all(24),
