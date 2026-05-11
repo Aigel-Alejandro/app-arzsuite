@@ -91,7 +91,7 @@ class HomeView extends ConsumerWidget {
                       builder: (context, ref, _) {
                         final isStaffOrInstructor = currentMember?.memberType == 'staff' || currentMember?.memberType == 'instructor' || currentMember?.memberType == 'profesor';
                         final hasTournaments  = currentMember?.hasPermission('tournaments.dashboard') ?? false;
-                        final hasSummerEnroll = currentMember?.hasPermission('summer_course.enroll') ?? false;
+                        final hasSummerEnroll = (currentMember?.hasPermission('summer_course.enroll') ?? false) || (currentMember?.hasPermission('manage_family') ?? false);
                         if (!hasTournaments && !hasSummerEnroll && !isStaffOrInstructor) return const SizedBox.shrink();
 
                         final activeCourseAsync = ref.watch(activeSummerCourseProvider);
