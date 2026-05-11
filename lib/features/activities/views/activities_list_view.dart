@@ -6,6 +6,7 @@ import 'package:app_arzsuite/core/widgets/main_layout.dart';
 import 'package:app_arzsuite/features/activities/views/activity_subscription_view.dart';
 import '../providers/activities_provider.dart';
 import '../../../core/providers/auth_provider.dart';
+import 'package:app_arzsuite/features/activities/views/mis_reservas_view.dart';
 
 class ActivitiesListView extends ConsumerStatefulWidget {
   final bool isSubscribed;
@@ -351,7 +352,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                         title: activity.nombre,
                         description: activity.descripcion,
                         emojiIcon: activity.icono,
-                        instructor: activity.clubName ?? 'Centro Libanés',
+                        location: activity.clubName ?? 'Sede Principal',
                         schedule: 'Toca para ver grupos y horarios disponibles',
                         icon: _getIconData(activity.icono),
                         accentColor: _getColor(activity.color),
@@ -399,6 +400,19 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
         appBar: AppBar(
           title: Text(widget.isSubscribed ? 'Mis Actividades' : 'Actividades Disponibles'),
           centerTitle: true,
+          actions: [
+            if (!widget.isSubscribed)
+              IconButton(
+                icon: const Icon(Icons.event_note_rounded),
+                tooltip: 'Mis Reservas',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MisReservasView()),
+                  );
+                },
+              ),
+          ],
         ),
         body: content,
       ),
@@ -411,7 +425,7 @@ class _PremiumActivityCard extends StatefulWidget {
   final String title;
   final String? description;
   final String? emojiIcon;
-  final String instructor;
+  final String location;
   final String schedule;
   final IconData icon;
   final Color accentColor;
@@ -424,7 +438,7 @@ class _PremiumActivityCard extends StatefulWidget {
     required this.title,
     this.description,
     this.emojiIcon,
-    required this.instructor,
+    required this.location,
     required this.schedule,
     required this.icon,
     required this.accentColor,
@@ -534,10 +548,10 @@ class _PremiumActivityCardState extends State<_PremiumActivityCard> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.person_outline_rounded, size: 14, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
+                              Icon(Icons.place_outlined, size: 14, color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)),
                               const SizedBox(width: 4),
                               Text(
-                                widget.instructor,
+                                widget.location,
                                 style: TextStyle(
                                   color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7), 
                                   fontSize: 13,

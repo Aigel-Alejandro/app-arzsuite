@@ -194,7 +194,10 @@ class _SummerCourseActiveRegistrationModalState
 
       if (response.statusCode == 200 && mounted) {
         String orderId = 'SO-UPG-UNKNOWN';
+        bool isFree = false;
+        
         if (response.data is Map && response.data['data'] is Map) {
+          isFree = response.data['data']['free'] == true;
           orderId =
               response.data['data']['sales_order_id']?.toString() ?? orderId;
         } else {
@@ -204,6 +207,11 @@ class _SummerCourseActiveRegistrationModalState
 
         // Recargar silenciosamente los datos para que el status "Pendiente" aparezca de inmediato
         ref.invalidate(activeRegistrationProvider);
+
+        if (isFree) {
+          ToastAlerts.showSuccess(context, 'Actividad asignada sin costo adicional.');
+          return;
+        }
 
         showDialog(
           context: context,

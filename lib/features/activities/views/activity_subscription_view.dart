@@ -175,15 +175,40 @@ class _ActivitySubscriptionViewState
                           if (age > selectedGroup.edadMax!) return false;
                         }
 
-                        // Validación Doble Inscripción
-                        bool canEnrollMultiple =
-                            widget.activity.tipo == 'arte' ||
-                            widget.activity.tipo == 'otro';
-                        if (!canEnrollMultiple) {
-                          bool isEnrolled = ref
-                              .read(mockInscriptionsProvider)
-                              .contains('${b['name']}-${widget.activity.id}');
-                          if (isEnrolled) return false;
+                        // Validación Doble Inscripción (real)
+                        int? benefEntityId = b['entityid'] as int?;
+                        if (benefEntityId != null && benefEntityId != 0) {
+                          bool isEnrolledInSelected = false;
+
+                          for (final item in _selectedItems) {
+                            final parts = item.split('-');
+                            final eqId = int.tryParse(parts[0]);
+                            final horId = parts.length > 1 && parts[1] != 'null' ? int.tryParse(parts[1]) : null;
+
+                            for (final eq in selectedGroup.equipos) {
+                              if (eq.id == eqId) {
+                                if (horId != null) {
+                                  for (final h in eq.horarios) {
+                                    if (h.id == horId && h.alumnosInscritos.contains(benefEntityId)) {
+                                      isEnrolledInSelected = true;
+                                      break;
+                                    }
+                                  }
+                                } else {
+                                  for (final h in eq.horarios) {
+                                    if (h.alumnosInscritos.contains(benefEntityId)) {
+                                      isEnrolledInSelected = true;
+                                      break;
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+
+                          if (isEnrolledInSelected) {
+                            return false;
+                          }
                         }
 
                         // Si el grupo no tiene límites de edad, TODOS pasan. Si sí los tiene y el miembro cumple, pasa.
@@ -278,14 +303,39 @@ class _ActivitySubscriptionViewState
                       if (age == null) return false;
                       if (age > selectedGroup.edadMax!) return false;
                     }
-                    bool canEnrollMultiple =
-                        widget.activity.tipo == 'arte' ||
-                        widget.activity.tipo == 'otro';
-                    if (!canEnrollMultiple) {
-                      bool isEnrolled = ref
-                          .read(mockInscriptionsProvider)
-                          .contains('${b['name']}-${widget.activity.id}');
-                      if (isEnrolled) return false;
+                    int? benefEntityId = b['entityid'] as int?;
+                    if (benefEntityId != null && benefEntityId != 0) {
+                      bool isEnrolledInSelected = false;
+
+                      for (final item in _selectedItems) {
+                        final parts = item.split('-');
+                        final eqId = int.tryParse(parts[0]);
+                        final horId = parts.length > 1 && parts[1] != 'null' ? int.tryParse(parts[1]) : null;
+
+                        for (final eq in selectedGroup.equipos) {
+                          if (eq.id == eqId) {
+                            if (horId != null) {
+                              for (final h in eq.horarios) {
+                                if (h.id == horId && h.alumnosInscritos.contains(benefEntityId)) {
+                                  isEnrolledInSelected = true;
+                                  break;
+                                }
+                              }
+                            } else {
+                              for (final h in eq.horarios) {
+                                if (h.alumnosInscritos.contains(benefEntityId)) {
+                                  isEnrolledInSelected = true;
+                                  break;
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+
+                      if (isEnrolledInSelected) {
+                        return false;
+                      }
                     }
                     return true;
                   }).isEmpty)
@@ -344,6 +394,7 @@ class _ActivitySubscriptionViewState
 
       validBeneficiaries.add({
         'id': int.tryParse(profileAsync.value!.id.toString()) ?? 0,
+        'entityid': int.tryParse(profileAsync.value!.entityid.toString()) ?? 0,
         'name': cleanTitular,
         'age': profileAsync.value!.age,
       });
@@ -355,6 +406,7 @@ class _ActivitySubscriptionViewState
           );
           validBeneficiaries.add({
             'id': int.tryParse(member.id.toString()) ?? 0,
+            'entityid': int.tryParse(member.membershipNumber.toString()) ?? 0,
             'name': cleanMember,
             'age': member.age,
           });
@@ -387,12 +439,12 @@ class _ActivitySubscriptionViewState
               for (final h in eq.horarios) {
                 if (h.id == selHorId) {
                   for (final bName in _selectedBeneficiaries) {
-                    final benefId = validBeneficiaries
+                    final benefEntityId = validBeneficiaries
                         .where((b) => b['name'] == bName)
-                        .map((b) => b['id'] as int)
+                        .map((b) => b['entityid'] as int?)
                         .firstOrNull;
-                    if (benefId != null && benefId != 0 &&
-                        h.alumnosInscritos.contains(benefId)) {
+                    if (benefEntityId != null && benefEntityId != 0 &&
+                        h.alumnosInscritos.contains(benefEntityId)) {
                       yaInscritosList.add(bName);
                     }
                   }
@@ -1126,115 +1178,124 @@ class _ActivitySubscriptionViewState
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: SizedBox(
-                      width:
-                          plano!.columnas *
-                          50.0, // 50 pixels per column to enforce squareness and horizontal scroll on small devices
-                      child: GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: plano!.columnas,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 8,
-                        ),
-                        itemCount: plano!.filas * plano!.columnas,
-                        itemBuilder: (context, index) {
-                          final fila = index ~/ plano!.columnas;
-                          final columna = index % plano!.columnas;
+                      width: plano!.columnas * 50.0,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: List.generate(plano!.filas, (filaIndex) {
+                          // Verificar si hay instructor en esta fila
+                          final isInstructorRow = plano!.posiciones.any((p) => p.filaIndex == filaIndex && p.tipo == 'instructor');
+                          
+                          if (isInstructorRow) {
+                            ActivityAreaPlanoPositionModel? instructorPos;
+                            try {
+                              instructorPos = plano!.posiciones.firstWhere((p) => p.filaIndex == filaIndex && p.tipo == 'instructor');
+                            } catch (_) {}
 
-                          // Find position
-                          ActivityAreaPlanoPositionModel? pos;
-                          try {
-                            pos = plano!.posiciones.firstWhere(
-                              (p) =>
-                                  p.filaIndex == fila &&
-                                  p.columnaIndex == columna,
-                            );
-                          } catch (_) {}
-
-                          if (pos == null ||
-                              pos.tipo == 'vacio' ||
-                              !pos.isActive) {
-                            return const SizedBox.shrink();
-                          }
-
-                          if (pos.tipo == 'instructor') {
                             return Container(
+                              margin: const EdgeInsets.only(bottom: 8),
                               decoration: BoxDecoration(
-                                color: Colors.blueAccent,
+                                color: Colors.blueAccent.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                               ),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.person, color: Colors.blueAccent, size: 20),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    instructorPos?.etiqueta.isNotEmpty == true ? instructorPos!.etiqueta : 'Profesor',
+                                    style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
                             );
                           }
 
-                          // Tipo: Lugar
-                          final lugarLabel = pos.etiqueta;
-                          final isOccupied = lugaresOcupados.contains(
-                            lugarLabel,
-                          );
-                          final isSelected = _selectedLugares.contains(lugarLabel);
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: Row(
+                              children: List.generate(plano!.columnas, (columnaIndex) {
+                                ActivityAreaPlanoPositionModel? pos;
+                                try {
+                                  pos = plano!.posiciones.firstWhere(
+                                    (p) => p.filaIndex == filaIndex && p.columnaIndex == columnaIndex,
+                                  );
+                                } catch (_) {}
 
-                          return InkWell(
-                            onTap: isOccupied
-                                ? null
-                                : () {
-                                    setState(() {
-                                      if (isSelected) {
-                                        _selectedLugares.remove(lugarLabel);
-                                      } else {
-                                        if (_selectedBeneficiaries.isNotEmpty && _selectedLugares.length >= _selectedBeneficiaries.length) {
-                                          _selectedLugares.remove(_selectedLugares.first);
-                                        }
-                                        _selectedLugares.add(lugarLabel);
-                                      }
-                                    });
-                                  },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isOccupied
-                                    ? AppTheme.neutral200
-                                    : (isSelected
-                                          ? AppTheme.primaryColor
-                                          : AppTheme.successColor.withValues(
-                                              alpha: 0.15,
-                                            )),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: isOccupied
-                                      ? AppTheme.neutral300
-                                      : (isSelected
-                                            ? AppTheme.primaryColor
-                                            : AppTheme.successColor.withValues(
-                                                alpha: 0.5,
-                                              )),
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  lugarLabel,
-                                  style: TextStyle(
-                                    color: isOccupied
-                                        ? AppTheme.neutral500
-                                        : (isSelected
-                                              ? Colors.white
-                                              : AppTheme.successColor),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
+                                if (pos == null || pos.tipo == 'vacio' || !pos.isActive) {
+                                  return Expanded(
+                                    child: Padding(
+                                      padding: EdgeInsets.only(right: columnaIndex == plano!.columnas - 1 ? 0 : 8.0),
+                                      child: const SizedBox.shrink(),
+                                    )
+                                  );
+                                }
+
+                                final lugarLabel = pos.etiqueta;
+                                final isOccupied = lugaresOcupados.contains(lugarLabel);
+                                final isSelected = _selectedLugares.contains(lugarLabel);
+
+                                return Expanded(
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: columnaIndex == plano!.columnas - 1 ? 0 : 8.0),
+                                    child: AspectRatio(
+                                      aspectRatio: 1.0,
+                                      child: InkWell(
+                                        onTap: isOccupied
+                                            ? null
+                                            : () {
+                                                setState(() {
+                                                  if (isSelected) {
+                                                    _selectedLugares.remove(lugarLabel);
+                                                  } else {
+                                                    if (_selectedBeneficiaries.isNotEmpty && _selectedLugares.length >= _selectedBeneficiaries.length) {
+                                                      _selectedLugares.remove(_selectedLugares.first);
+                                                    }
+                                                    _selectedLugares.add(lugarLabel);
+                                                  }
+                                                });
+                                              },
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            color: isOccupied
+                                                ? AppTheme.neutral200
+                                                : (isSelected
+                                                      ? AppTheme.primaryColor
+                                                      : AppTheme.successColor.withValues(alpha: 0.15)),
+                                            borderRadius: BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: isOccupied
+                                                  ? AppTheme.neutral300
+                                                  : (isSelected
+                                                        ? AppTheme.primaryColor
+                                                        : AppTheme.successColor.withValues(alpha: 0.5)),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Center(
+                                            child: Text(
+                                              lugarLabel,
+                                              style: TextStyle(
+                                                color: isOccupied
+                                                    ? AppTheme.neutral500
+                                                    : (isSelected ? Colors.white : AppTheme.successColor),
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              }),
                             ),
                           );
-                        },
+                        }),
                       ),
                     ),
                   )

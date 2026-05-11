@@ -534,7 +534,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
           );
         }
 
-        final isTitular = currentMember?.isTitular ?? false;
+        final canManageFamily = (currentMember?.isTitular ?? false) || (currentMember?.hasPermission('manage_family') ?? false);
         final myId = currentMember?.id ?? '';
 
         // Extract unique members
@@ -547,11 +547,11 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
 
         // Apply filtering
         List<FamilyAgendaItem> filteredItems = items;
-        if (!isTitular) {
-          // If not titular, force ONLY own items
+        if (!canManageFamily) {
+          // If not manager, force ONLY own items
           filteredItems = items.where((i) => i.socioId == myId).toList();
         } else {
-          // Titular filtering
+          // Manager filtering
           if (_selectedSocioId == 'ME') {
              filteredItems = items.where((i) => i.socioId == myId).toList();
           } else if (_selectedSocioId != 'ALL') {
@@ -562,8 +562,8 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Filter chips (Only for Titular and if there is more than 1 member active in agenda)
-            if (isTitular && membersMap.length > 1) ...[
+            // Filter chips (Only for Manager and if there is more than 1 member active in agenda)
+            if (canManageFamily && membersMap.length > 1) ...[
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -599,7 +599,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                     duration: item.durationStr,
                     title: item.title,
                     subtitle: item.subtitle,
-                    person: isTitular && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
+                    person: canManageFamily && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
                     icon: icon,
                     color: color,
                     isMatch: item.isMatch,
