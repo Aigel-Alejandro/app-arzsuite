@@ -8,6 +8,7 @@ import 'package:app_arzsuite/features/summer_course/providers/summer_course_toke
 import 'package:app_arzsuite/features/summer_course/providers/active_registration_provider.dart';
 import 'package:app_arzsuite/core/widgets/terms_conditions_view.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Step5Confirmation extends ConsumerWidget {
   const Step5Confirmation({super.key});
@@ -340,9 +341,30 @@ class Step5Confirmation extends ConsumerWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Tu registro se ha completado. Hemos generado la orden de venta en nuestro sistema.',
+              '¡Hola! Aquí tienes los detalles para realizar tu pago de forma segura. Puedes realizarlo en caja, kiosko o a través del portal de KarloPay en el siguiente enlace:',
               style: TextStyle(color: isDark ? AppTheme.neutral400 : AppTheme.neutral500, fontSize: 14, height: 1.4),
               textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final url = Uri.parse('https://cartera.karlopay.com/auth/login');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const Icon(Icons.payment_rounded, size: 18),
+              label: const Text('Ir a KarloPay', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+                foregroundColor: AppTheme.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(100),
+                  side: BorderSide(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+                ),
+                elevation: 0,
+              ),
             ),
             
             const SizedBox(height: 40),

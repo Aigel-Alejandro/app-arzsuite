@@ -2016,6 +2016,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           requestType: selectedRequest,
                           details: detailsController.text.trim(),
                           memberEmail: profile.email ?? 'No registrado',
+                          dio: ref.read(apiClientNotifierProvider).dio,
                         );
                         
                         setModalState(() => isSending = false);
