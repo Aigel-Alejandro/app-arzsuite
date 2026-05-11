@@ -1085,27 +1085,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context).brightness == Brightness.dark 
-                                ? Colors.white70 
-                                : AppTheme.neutral700,
-                            height: 1.5,
-                          ),
-                          children: const [
-                            TextSpan(text: 'Si detectas que alguno de los datos que se muestran es incorrecto o necesitas actualizarlo '),
-                            TextSpan(text: '(sobre todo para los datos de dirección personales y datos fiscales)', style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: ', por favor contáctanos:\n\n'),
-                            TextSpan(text: '• Hermes: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: '55 5228 9933 ext. 2900\n'),
-                            TextSpan(text: '• Glaciar: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: '55 5668 6068 ext. 6107\n'),
-                            TextSpan(text: '• Correo: ', style: TextStyle(fontWeight: FontWeight.w600)),
-                            TextSpan(text: 'cobranza@centrolibanes.org.mx\n\n'),
-                            TextSpan(text: '¡Nos dará mucho gusto apoyarte!', style: TextStyle(fontStyle: FontStyle.italic)),
-                          ],
+                      Text(
+                        'Si necesitas actualizar tus datos personales o fiscales, envíanos una solicitud y nos comunicaremos contigo para ayudarte.',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Theme.of(context).brightness == Brightness.dark 
+                              ? Colors.white70 
+                              : AppTheme.neutral700,
+                          height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 16),
