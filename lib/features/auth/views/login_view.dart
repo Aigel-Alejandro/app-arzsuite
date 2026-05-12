@@ -213,9 +213,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
           if (fName.isEmpty) {
             fName = userData['fullname']?.toString().trim() ?? 'Usuario';
           }
-          if (int.tryParse(fName.split(' ').first) != null) {
-            fName = 'Socio';
+          final parts = fName.split(' ');
+          while (parts.isNotEmpty && int.tryParse(parts.first) != null) {
+            parts.removeAt(0);
           }
+          fName = parts.isNotEmpty ? parts.join(' ') : 'Socio';
 
           final mappedMember = Member(
             id: userData['id'].toString(),

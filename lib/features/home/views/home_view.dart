@@ -20,6 +20,7 @@ import 'package:app_arzsuite/features/tournaments/views/tournament_my_detail_vie
 
 import 'package:app_arzsuite/core/providers/auth_provider.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
+import 'package:app_arzsuite/features/profile/providers/profile_provider.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -28,14 +29,38 @@ class HomeView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentMember = ref.watch(authProvider);
 
+    final profileAsync = ref.watch(profileProvider);
+
     String firstName = '';
-    if (currentMember != null && currentMember.firstName.isNotEmpty) {
-      final parts = currentMember.firstName.trim().split(' ');
+    String fullNameToParse = '';
+
+    // Intentamos obtener el nombre del perfil (más preciso) o del authProvider
+    profileAsync.whenData((profile) {
+      if (profile != null) {
+        fullNameToParse = profile.firstName?.isNotEmpty == true 
+            ? profile.firstName! 
+            : profile.fullname;
+      }
+    });
+
+    if (fullNameToParse.isEmpty && currentMember != null && currentMember.firstName.isNotEmpty) {
+      fullNameToParse = currentMember.firstName;
+    }
+
+    if (fullNameToParse.isNotEmpty) {
+      final parts = fullNameToParse.trim().split(' ');
+      
+      // Remover números iniciales (ej. número de membresía)
+      while (parts.isNotEmpty && int.tryParse(parts.first) != null) {
+        parts.removeAt(0);
+      }
+      
       if (parts.isNotEmpty) {
         firstName = parts.first;
-        if (int.tryParse(firstName) != null) {
-           firstName = '';
-        } else if (firstName.length > 1) {
+        if (firstName.toLowerCase() == 'socio' && parts.length > 1) {
+            firstName = parts[1]; // Saltar la palabra 'Socio'
+        }
+        if (firstName.length > 1) {
           firstName = firstName[0].toUpperCase() + firstName.substring(1).toLowerCase();
         }
       }
