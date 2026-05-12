@@ -62,7 +62,7 @@ class HomeView extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min, // Keep column compact
                     children: [
                       Text(
-                        firstName.isNotEmpty ? 'Buen día $firstName' : 'Buen día',
+                        firstName.isNotEmpty ? 'Hola $firstName' : 'Hola',
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                               fontWeight: FontWeight.w900,
                               color: Theme.of(context).colorScheme.onSurface,
