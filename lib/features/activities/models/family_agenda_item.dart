@@ -11,6 +11,7 @@ class FamilyAgendaItem {
   final String icon;
   final String colorHex;
   final bool isMatch;
+  final String? lugarSeleccionado;
 
   FamilyAgendaItem({
     required this.id,
@@ -25,6 +26,7 @@ class FamilyAgendaItem {
     required this.icon,
     required this.colorHex,
     required this.isMatch,
+    this.lugarSeleccionado,
   });
 
   factory FamilyAgendaItem.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class FamilyAgendaItem {
       icon: json['icon'] ?? 'event',
       colorHex: json['color_hex'] ?? '#333333',
       isMatch: json['is_match'] ?? false,
+      lugarSeleccionado: json['lugar_seleccionado'],
     );
   }
 }

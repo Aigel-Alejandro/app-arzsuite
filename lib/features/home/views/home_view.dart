@@ -623,7 +623,9 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                     time: item.timeBlock,
                     duration: item.durationStr,
                     title: item.title,
-                    subtitle: item.subtitle,
+                    subtitle: item.lugarSeleccionado != null && item.lugarSeleccionado!.isNotEmpty 
+                        ? '${item.subtitle}: ${item.lugarSeleccionado}' 
+                        : item.subtitle,
                     person: canManageFamily && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
                     icon: icon,
                     color: color,

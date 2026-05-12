@@ -1177,71 +1177,78 @@ class _ActivitySubscriptionViewState
                 if (plano != null)
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
-                    child: SizedBox(
-                      width: plano!.columnas * 50.0,
-                      child: Column(
+                    child: IntrinsicHeight(
+                      child: Row(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: List.generate(plano!.filas, (filaIndex) {
-                          // Verificar si hay instructor en esta fila
-                          final isInstructorRow = plano!.posiciones.any((p) => p.filaIndex == filaIndex && p.tipo == 'instructor');
-                          
-                          if (isInstructorRow) {
-                            ActivityAreaPlanoPositionModel? instructorPos;
-                            try {
-                              instructorPos = plano!.posiciones.firstWhere((p) => p.filaIndex == filaIndex && p.tipo == 'instructor');
-                            } catch (_) {}
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.blueAccent.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.person, color: Colors.blueAccent, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    instructorPos?.etiqueta.isNotEmpty == true ? instructorPos!.etiqueta : 'Profesor',
-                                    style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                        children: [
+                          if (plano!.posiciones.any((p) => p.tipo == 'instructor'))
+                            Builder(
+                              builder: (context) {
+                                final instructorPos = plano!.posiciones.firstWhere((p) => p.tipo == 'instructor');
+                                return Container(
+                                  width: 60,
+                                  margin: const EdgeInsets.only(right: 12.0, bottom: 8.0),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blueAccent.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                                   ),
-                                ],
-                              ),
-                            );
-                          }
+                                  child: Center(
+                                    child: RotatedBox(
+                                      quarterTurns: 3,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.person, color: Colors.blueAccent, size: 20),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            instructorPos.etiqueta.isNotEmpty ? instructorPos.etiqueta : 'Profesor',
+                                            style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
+                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: List.generate(plano!.filas, (filaIndex) {
+                              return Row(
+                                children: List.generate(plano!.columnas, (columnaIndex) {
+                                  // El backoffice reserva la columna 0 para el instructor.
+                                  // Si estamos en la columna 0 y ya extrajimos al instructor, la omitimos en el grid para no duplicar el espacio.
+                                  if (columnaIndex == 0) {
+                                    bool hasSeatsInCol0 = plano!.posiciones.any((p) => p.columnaIndex == 0 && p.tipo != 'instructor' && p.tipo != 'vacio' && p.isActive);
+                                    if (!hasSeatsInCol0) return const SizedBox.shrink();
+                                  }
 
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: Row(
-                              children: List.generate(plano!.columnas, (columnaIndex) {
-                                ActivityAreaPlanoPositionModel? pos;
-                                try {
-                                  pos = plano!.posiciones.firstWhere(
-                                    (p) => p.filaIndex == filaIndex && p.columnaIndex == columnaIndex,
-                                  );
-                                } catch (_) {}
+                                  ActivityAreaPlanoPositionModel? pos;
+                                  try {
+                                    pos = plano!.posiciones.firstWhere(
+                                      (p) => p.filaIndex == filaIndex && p.columnaIndex == columnaIndex,
+                                    );
+                                  } catch (_) {}
 
-                                if (pos == null || pos.tipo == 'vacio' || !pos.isActive) {
-                                  return Expanded(
-                                    child: Padding(
-                                      padding: EdgeInsets.only(right: columnaIndex == plano!.columnas - 1 ? 0 : 8.0),
-                                      child: const SizedBox.shrink(),
-                                    )
-                                  );
-                                }
+                                  // Mantener el cuadro vacío para mantener la forma del grid (pasillos dinámicos)
+                                  if (pos == null || pos.tipo == 'vacio' || !pos.isActive || pos.tipo == 'instructor') {
+                                    return const Padding(
+                                      padding: EdgeInsets.only(bottom: 8.0, right: 8.0),
+                                      child: SizedBox(width: 50, height: 50),
+                                    );
+                                  }
 
-                                final lugarLabel = pos.etiqueta;
-                                final isOccupied = lugaresOcupados.contains(lugarLabel);
-                                final isSelected = _selectedLugares.contains(lugarLabel);
+                                  final lugarLabel = pos.etiqueta;
+                                  final isOccupied = lugaresOcupados.contains(lugarLabel);
+                                  final isSelected = _selectedLugares.contains(lugarLabel);
 
-                                return Expanded(
-                                  child: Padding(
-                                    padding: EdgeInsets.only(right: columnaIndex == plano!.columnas - 1 ? 0 : 8.0),
-                                    child: AspectRatio(
-                                      aspectRatio: 1.0,
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0, right: 8.0),
+                                    child: SizedBox(
+                                      width: 50,
+                                      height: 50,
                                       child: InkWell(
                                         onTap: isOccupied
                                             ? null
@@ -1290,12 +1297,12 @@ class _ActivitySubscriptionViewState
                                         ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              }),
-                            ),
-                          );
-                        }),
+                                  );
+                                }),
+                              );
+                            }),
+                          ),
+                        ],
                       ),
                     ),
                   )
