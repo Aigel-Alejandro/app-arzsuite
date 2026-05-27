@@ -236,6 +236,63 @@ class SummerCourseService {
       return false;
     }
   }
+
+  Future<Map<String, dynamic>?> generatePickupPass(int participantId, String authorizedName, bool canLeaveAlone) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/summer-course/pickup-pass',
+        data: {
+          'participant_id': participantId,
+          'authorized_name': authorizedName,
+          'can_leave_alone': canLeaveAlone,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      if (e is DioException && e.response?.data != null && e.response?.data is Map) {
+        throw Exception(e.response?.data['message'] ?? e.message);
+      }
+      rethrow;
+    }
+  }
+
+  Future<Map<String, dynamic>?> validatePickupPass(String token) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/summer-course/validate-pickup-pass',
+        data: {'token': token},
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        return response.data; 
+      }
+      return null;
+    } catch (e) {
+      print('Error validando pickup pass: $e');
+      return null;
+    }
+  }
+
+  Future<bool> processPickupPass(String token) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/summer-course/process-pickup-pass',
+        data: {'token': token},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error procesando pickup pass: $e');
+      return false;
+    }
+  }
 }
 
 final summerCourseServiceProvider = Provider<SummerCourseService>((ref) {

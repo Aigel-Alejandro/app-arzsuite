@@ -4,8 +4,8 @@ Aquí tienes los datos exactos del proyecto de Arzsuite, listos para tu configur
 
 - **Nombre exacto de los Flavors:** Actualmente **no hay flavors configurados** en el proyecto. Se utiliza la configuración por defecto (`debug`, `profile`, `release`).
 - **Entry points (Target):** El archivo principal de entrada es `lib/main.dart`.
-- **Bundle ID (iOS):** `mx.org.centrolibanes.app.arzsuite` (registrado en Xcode / `project.pbxproj`).
-- **Application ID (Android):** `mx.org.centrolibanes.app.arzsuite` (registrado en `build.gradle.kts`).
+- **Bundle ID (iOS):** `mx.org.centrolibanes.oficial` (registrado en Xcode / `project.pbxproj`).
+- **Application ID (Android):** `mx.org.centrolibanes.app` (registrado en `build.gradle.kts`).
 - **Versiones (Workspace):**
   - **Flutter:** `3.41.2`
   - **Dart:** `3.11.0`

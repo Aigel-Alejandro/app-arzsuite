@@ -4,6 +4,10 @@ import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../services/summer_course_service.dart';
 import '../providers/active_registration_provider.dart';
@@ -273,6 +277,145 @@ class _SummerCourseActiveRegistrationModalState
     }
   }
 
+  void _showGeneratePassDialog(BuildContext parentContext, int participantId, String childName) {
+    final TextEditingController nameController = TextEditingController();
+    bool isGenerating = false;
+    bool canLeaveAlone = false;
+
+    showDialog(
+      context: parentContext,
+      barrierDismissible: false,
+      builder: (dCtx) => StatefulBuilder(
+        builder: (sbContext, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Text('Pase de Salida', style: TextStyle(fontWeight: FontWeight.bold)),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Generar pase para $childName', style: const TextStyle(fontSize: 13, color: AppTheme.neutral500)),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre de la persona autorizada',
+                    hintText: 'Ej. Juan Pérez (Chofer)',
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    filled: true,
+                    fillColor: AppTheme.neutral50,
+                  ),
+                  enabled: !isGenerating && !canLeaveAlone,
+                ),
+                const SizedBox(height: 12),
+                CheckboxListTile(
+                  title: const Text(
+                    'Autorizo a mi hijo(a) a salir o moverse por el club sin un adulto',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                  value: canLeaveAlone,
+                  activeColor: AppTheme.primaryColor,
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: isGenerating ? null : (bool? value) {
+                    setState(() {
+                      canLeaveAlone = value ?? false;
+                      if (canLeaveAlone) {
+                        nameController.text = 'AUTORIZADO PARA MOVERSE SOLO';
+                      } else {
+                        nameController.clear();
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: isGenerating ? null : () => Navigator.pop(dCtx),
+                child: const Text('Cancelar', style: TextStyle(color: AppTheme.neutral500)),
+              ),
+              ElevatedButton(
+                onPressed: isGenerating
+                    ? null
+                    : () async {
+                        final authorizedName = nameController.text.trim();
+                        if (authorizedName.isEmpty) {
+                          ToastAlerts.showError(dCtx, 'Ingresa el nombre de la persona autorizada.');
+                          return;
+                        }
+                        setState(() => isGenerating = true);
+                        try {
+                          final service = ref.read(summerCourseServiceProvider);
+                          final passData = await service.generatePickupPass(participantId, authorizedName, canLeaveAlone);
+                          if (passData != null && passData['url'] != null) {
+                            Navigator.pop(dCtx);
+                            
+                            final shareText = 'Pase de Salida Curso de Verano:\nNiño(a): $childName\nAutorizado: $authorizedName\n\nAbre este enlace para mostrar el QR en la salida:\n${passData['url']}';
+                            
+                            if (kIsWeb) {
+                              Clipboard.setData(ClipboardData(text: shareText));
+                              ToastAlerts.showSuccess(parentContext, '¡Pase generado! Link copiado. Da clic en "Ver Pase de Salida Activo" para abrirlo.');
+                            } else {
+                              try {
+                                await Share.share(shareText);
+                              } catch (shareError) {
+                                Clipboard.setData(ClipboardData(text: shareText));
+                                ToastAlerts.showSuccess(parentContext, '¡Pase generado! Link copiado.');
+                                launchUrl(Uri.parse(passData['url'].toString()));
+                              }
+                            }
+                            
+                            // Invalidar provider para que se actualice la UI automáticamente con el nuevo pase
+                            ref.invalidate(activeRegistrationProvider);
+                          } else {
+                            ToastAlerts.showError(dCtx, 'No se pudo generar el pase.');
+                            setState(() => isGenerating = false);
+                          }
+                        } catch (e) {
+                          if (dCtx.mounted) {
+                            ToastAlerts.showError(dCtx, 'Error: $e');
+                            setState(() => isGenerating = false);
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                child: isGenerating
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Generar y Compartir'),
+              ),
+            ],
+          );
+        }
+      ),
+    );
+  }
+
+  Future<void> _shareExistingPass(BuildContext context, String childName, Map<String, dynamic> passData) async {
+    final authorizedName = passData['authorized_name']?.toString() ?? 'Autorizado';
+    final url = passData['url']?.toString() ?? '';
+    
+    final shareText = 'Pase de Salida Curso de Verano:\nNiño(a): $childName\nAutorizado: $authorizedName\n\nAbre este enlace para mostrar el QR en la salida:\n$url';
+    
+    try {
+      if (kIsWeb) {
+        Clipboard.setData(ClipboardData(text: shareText));
+        ToastAlerts.showSuccess(context, 'Link copiado. Abriendo pase...');
+        launchUrl(Uri.parse(url));
+      } else {
+        await Share.share(shareText);
+      }
+    } catch (shareError) {
+      Clipboard.setData(ClipboardData(text: shareText));
+      ToastAlerts.showSuccess(context, 'Link copiado al portapapeles.');
+      launchUrl(Uri.parse(url));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeRegAsync = ref.watch(activeRegistrationProvider);
@@ -430,32 +573,45 @@ class _SummerCourseActiveRegistrationModalState
                                     ),
                                     if (p['weeks'] != null &&
                                         (p['weeks'] as List).isNotEmpty) ...[
-                                      const SizedBox(height: 4),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.successColor
-                                              .withOpacity(0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                          border: Border.all(
-                                            color: AppTheme.successColor
-                                                .withOpacity(0.3),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Semanas Registradas: ${(p['weeks'] as List).join(', ')}',
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: AppTheme.successColor,
-                                            fontWeight: FontWeight.w900,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
+                                      const SizedBox(height: 6),
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 6,
+                                        children: (p['weeks'] as List).map((weekLabel) {
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.primaryColor.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: AppTheme.primaryColor.withOpacity(0.3),
+                                              ),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(
+                                                  Icons.calendar_today_rounded,
+                                                  size: 10,
+                                                  color: AppTheme.primaryColor,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  weekLabel.toString(),
+                                                  style: const TextStyle(
+                                                    fontSize: 10,
+                                                    color: AppTheme.primaryColor,
+                                                    fontWeight: FontWeight.w800,
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }).toList(),
                                       ),
                                     ],
                                   ],
@@ -605,6 +761,155 @@ class _SummerCourseActiveRegistrationModalState
                                   ),
                                 ),
                               ),
+                            ),
+                            const SizedBox(height: 12),
+                            Builder(
+                              builder: (context) {
+                                final activePickupPass = p['active_pickup_pass'] as Map<String, dynamic>?;
+                                final hasActivePass = activePickupPass != null;
+                                final passUsedToday = (p['pass_used_today'] as bool?) ?? false;
+                                
+                                if (passUsedToday) {
+                                  return Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.successColor.withOpacity(0.12),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppTheme.successColor.withOpacity(0.4),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.check_circle_rounded, size: 20, color: AppTheme.successColor),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Salida Registrada Hoy',
+                                          style: TextStyle(
+                                            color: AppTheme.successColor,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }
+                                
+                                if (hasActivePass) {
+                                  return Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: _isSaving ? null : () {
+                                        _shareExistingPass(
+                                          context,
+                                          (p['full_name'] ?? 'Participante').toString(),
+                                          activePickupPass,
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.warningColor.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: AppTheme.warningColor.withOpacity(0.4),
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            const Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.visibility_rounded, size: 20, color: AppTheme.warningColor),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                  'Ver Pase de Salida Activo',
+                                                  style: TextStyle(
+                                                    color: AppTheme.warningColor,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'Autorizado: ${activePickupPass["authorized_name"]}',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: AppTheme.warningColor.withOpacity(0.9),
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                                final canGenerate = p['can_generate_pickup_pass'] == true;
+                                final reason = p['reason_cannot_generate']?.toString() ?? 'No se puede generar.';
+
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: _isSaving ? null : () {
+                                      if (!canGenerate) {
+                                        ToastAlerts.showError(context, reason);
+                                        return;
+                                      }
+                                      _showGeneratePassDialog(
+                                        context,
+                                        pId,
+                                        (p['full_name'] ?? 'Participante').toString(),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                      decoration: BoxDecoration(
+                                        color: canGenerate 
+                                            ? AppTheme.primaryColor.withOpacity(0.08)
+                                            : AppTheme.neutral200.withOpacity(0.5),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: canGenerate
+                                              ? AppTheme.primaryColor.withOpacity(0.3)
+                                              : AppTheme.neutral300,
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            canGenerate ? Icons.qr_code_2_rounded : Icons.lock_rounded, 
+                                            size: 20, 
+                                            color: canGenerate ? AppTheme.primaryColor : AppTheme.neutral500
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            canGenerate ? 'Generar Pase de Salida' : 'Generación No Disponible',
+                                            style: TextStyle(
+                                              color: canGenerate ? AppTheme.primaryColor : AppTheme.neutral500,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }
                             ),
                           ],
                         ],

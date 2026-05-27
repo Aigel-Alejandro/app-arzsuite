@@ -15,6 +15,8 @@ class _SummerCourseScannerViewState extends ConsumerState<SummerCourseScannerVie
   bool _isLoading = false;
   Map<String, dynamic>? _validationData;
 
+  bool _isPickupPass = false;
+
   Future<void> _validateToken() async {
     final token = _tokenController.text.trim();
     if (token.isEmpty) return;
@@ -22,10 +24,17 @@ class _SummerCourseScannerViewState extends ConsumerState<SummerCourseScannerVie
     setState(() {
       _isLoading = true;
       _validationData = null;
+      _isPickupPass = token.length > 20 || token.contains('-'); // Basic UUID check
     });
 
     final service = ref.read(summerCourseServiceProvider);
-    final data = await service.validateToken(token);
+    Map<String, dynamic>? data;
+    
+    if (_isPickupPass) {
+      data = await service.validatePickupPass(token);
+    } else {
+      data = await service.validateToken(token);
+    }
 
     if (mounted) {
       setState(() {
@@ -48,14 +57,20 @@ class _SummerCourseScannerViewState extends ConsumerState<SummerCourseScannerVie
     
     setState(() => _isLoading = true);
     final service = ref.read(summerCourseServiceProvider);
-    final success = await service.processAttendance(_tokenController.text.trim(), type);
+    bool success = false;
+
+    if (_isPickupPass) {
+      success = await service.processPickupPass(_tokenController.text.trim());
+    } else {
+      success = await service.processAttendance(_tokenController.text.trim(), type);
+    }
     
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(type == 'check_in' ? 'Check-in exitoso' : 'Check-out exitoso'),
+            content: Text(_isPickupPass ? 'Retiro autorizado registrado exitosamente' : (type == 'check_in' ? 'Check-in exitoso' : 'Check-out exitoso')),
             backgroundColor: AppTheme.successColor,
           ),
         );
@@ -127,6 +142,58 @@ class _SummerCourseScannerViewState extends ConsumerState<SummerCourseScannerVie
 
   Widget _buildResultCard() {
     final msg = _validationData!['message'] ?? 'Autorizado';
+    
+    if (_isPickupPass) {
+      final data = _validationData!['data'] as Map<String, dynamic>? ?? {};
+      final authorizedName = data['authorized_name'] ?? 'Autorizado';
+      final childName = data['participant_name'] ?? 'Niño(a)';
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.successColor.withOpacity(0.1),
+          border: Border.all(color: AppTheme.successColor),
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              msg,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'RETIRO AUTORIZADO A:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: AppTheme.successColor, letterSpacing: 1),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              authorizedName,
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24, color: AppTheme.primaryColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Para: $childName',
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _process('check_out'),
+                style: ElevatedButton.styleFrom(backgroundColor: AppTheme.secondaryColor),
+                icon: const Icon(Icons.logout_rounded, color: Colors.white),
+                label: const Text('REGISTRAR SALIDA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     final participants = _validationData!['data'] as List<dynamic>? ?? [];
 
     return Container(

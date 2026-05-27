@@ -1,4 +1,4 @@
-package mx.org.centrolibanes.app.arzsuite
+package mx.org.centrolibanes.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

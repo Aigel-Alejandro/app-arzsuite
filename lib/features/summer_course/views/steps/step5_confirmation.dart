@@ -403,8 +403,16 @@ class Step5Confirmation extends ConsumerWidget {
                     child: ElevatedButton.icon(
                       onPressed: () async {
                         final url = Uri.parse('https://cartera.karlopay.com/auth/login');
-                        if (await canLaunchUrl(url)) {
-                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                        try {
+                          final launched = await launchUrl(
+                            url, 
+                            mode: LaunchMode.externalApplication
+                          );
+                          if (!launched) {
+                            debugPrint('Could not launch $url');
+                          }
+                        } catch (e) {
+                          debugPrint('Error launching url: $e');
                         }
                       },
                       icon: const Icon(Icons.open_in_new_rounded, size: 20),
