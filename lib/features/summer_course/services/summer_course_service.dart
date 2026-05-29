@@ -237,7 +237,7 @@ class SummerCourseService {
     }
   }
 
-  Future<Map<String, dynamic>?> generatePickupPass(int participantId, String authorizedName, bool canLeaveAlone) async {
+  Future<Map<String, dynamic>?> generatePickupPass(int participantId, String authorizedName, bool canLeaveAlone, {String? photoBase64}) async {
     try {
       final apiClient = _ref.read(apiClientProvider);
       final response = await apiClient.dio.post(
@@ -246,6 +246,7 @@ class SummerCourseService {
           'participant_id': participantId,
           'authorized_name': authorizedName,
           'can_leave_alone': canLeaveAlone,
+          'photo_base64': photoBase64,
         },
       );
       if (response.statusCode == 200 && response.data != null) {

@@ -3,11 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
+import 'package:app_arzsuite/core/network/api_endpoints.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:convert';
+import 'dart:io' as io;
+import 'package:image_picker/image_picker.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../services/summer_course_service.dart';
 import '../providers/active_registration_provider.dart';
@@ -281,6 +286,7 @@ class _SummerCourseActiveRegistrationModalState
     final TextEditingController nameController = TextEditingController();
     bool isGenerating = false;
     bool canLeaveAlone = false;
+    XFile? pickedImage;
 
     showDialog(
       context: parentContext,
@@ -290,45 +296,137 @@ class _SummerCourseActiveRegistrationModalState
           return AlertDialog(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             title: const Text('Pase de Salida', style: TextStyle(fontWeight: FontWeight.bold)),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Generar pase para $childName', style: const TextStyle(fontSize: 13, color: AppTheme.neutral500)),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: nameController,
-                  decoration: InputDecoration(
-                    labelText: 'Nombre de la persona autorizada',
-                    hintText: 'Ej. Juan Pérez (Chofer)',
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                    filled: true,
-                    fillColor: AppTheme.neutral50,
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Generar pase para $childName', style: const TextStyle(fontSize: 13, color: AppTheme.neutral500)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: nameController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre de la persona autorizada',
+                      hintText: 'Ej. Juan Pérez (Chofer)',
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      filled: true,
+                      fillColor: AppTheme.neutral50,
+                    ),
+                    enabled: !isGenerating && !canLeaveAlone,
                   ),
-                  enabled: !isGenerating && !canLeaveAlone,
-                ),
-                const SizedBox(height: 12),
-                CheckboxListTile(
-                  title: const Text(
-                    'Autorizo a mi hijo(a) a salir o moverse por el club sin un adulto',
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    title: const Text(
+                      'Autorizo a mi hijo(a) a salir o moverse por el club sin un adulto',
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                    value: canLeaveAlone,
+                    activeColor: AppTheme.primaryColor,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: isGenerating ? null : (bool? value) {
+                      setState(() {
+                        canLeaveAlone = value ?? false;
+                        if (canLeaveAlone) {
+                          nameController.text = 'AUTORIZADO PARA MOVERSE SOLO';
+                          pickedImage = null;
+                        } else {
+                          nameController.clear();
+                        }
+                      });
+                    },
                   ),
-                  value: canLeaveAlone,
-                  activeColor: AppTheme.primaryColor,
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: isGenerating ? null : (bool? value) {
-                    setState(() {
-                      canLeaveAlone = value ?? false;
-                      if (canLeaveAlone) {
-                        nameController.text = 'AUTORIZADO PARA MOVERSE SOLO';
-                      } else {
-                        nameController.clear();
-                      }
-                    });
-                  },
-                ),
-              ],
+                  if (!canLeaveAlone) ...[
+                    const SizedBox(height: 12),
+                    const Text('Foto de la persona autorizada (Opcional):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.neutral700)),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: isGenerating ? null : () async {
+                              final picker = ImagePicker();
+                              final image = await picker.pickImage(
+                                source: ImageSource.camera,
+                                imageQuality: 70,
+                                maxWidth: 600,
+                              );
+                              if (image != null) {
+                                setState(() {
+                                  pickedImage = image;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.camera_alt, size: 16),
+                            label: const Text('Cámara', style: TextStyle(fontSize: 11)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: isGenerating ? null : () async {
+                              final picker = ImagePicker();
+                              final image = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                imageQuality: 70,
+                                maxWidth: 600,
+                              );
+                              if (image != null) {
+                                setState(() {
+                                  pickedImage = image;
+                                });
+                              }
+                            },
+                            icon: const Icon(Icons.photo_library, size: 16),
+                            label: const Text('Galería', style: TextStyle(fontSize: 11)),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (pickedImage != null) ...[
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Stack(
+                          alignment: Alignment.topRight,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: kIsWeb
+                                  ? Image.network(pickedImage!.path, width: 100, height: 100, fit: BoxFit.cover)
+                                  : Image.file(io.File(pickedImage!.path), width: 100, height: 100, fit: BoxFit.cover),
+                            ),
+                            Positioned(
+                              top: 2,
+                              right: 2,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    pickedImage = null;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  padding: const EdgeInsets.all(4),
+                                  child: const Icon(Icons.close, color: Colors.white, size: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -416,6 +514,276 @@ class _SummerCourseActiveRegistrationModalState
     }
   }
 
+  void _showCredencialDialog(BuildContext context, Map<String, dynamic> p) {
+    final String childName = (p['full_name'] ?? 'Participante').toString();
+    final String token = (p['credencial_token'] ?? '').toString();
+    final String socio = p['member_number']?.toString().isNotEmpty == true ? p['member_number'].toString() : (p['socio_id']?.toString() ?? '');
+    final String socioDisplay = socio.isNotEmpty ? socio : '-';
+    final String age = (p['age'] ?? '').toString();
+    final String titular = (p['titular_name'] ?? '').toString();
+    final String phone = (p['emergency_phone'] ?? '').toString();
+    final String phoneDisplay = phone.isNotEmpty ? phone : '-';
+    final String photoPath = p['photo_url']?.toString() ?? '';
+    final String photoUrl = photoPath.isNotEmpty ? '${ApiEndpoints.baseUrlCakePHP.replaceAll('/api/', '/')}$photoPath' : '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dismissible(
+          key: const Key('credencial_dismissible'),
+          direction: DismissDirection.down,
+          onDismissed: (_) {
+            Navigator.of(context).pop();
+          },
+          child: Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: Colors.white,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // HEADER: Logos & Badge
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Logo Centro Libanes
+                      Column(
+                        children: [
+                          Image.asset('assets/images/logo-centro-libanes.png', height: 60, fit: BoxFit.contain),
+                        ],
+                      ),
+
+                      // Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE95123),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Text('PARTICIPANTE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Inner Background Stack
+                  Stack(
+                    clipBehavior: Clip.none,
+                    alignment: Alignment.topCenter,
+                    children: [
+                      // Inner Background Container
+                      Container(
+                        width: double.infinity,
+                        margin: const EdgeInsets.only(top: 30), // Reduced from 80
+                        padding: const EdgeInsets.fromLTRB(16, 80, 16, 24), // Increased from 64 to 80 to separate from logo
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF4F8FB), // Very light blue/gray
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Column(
+                          children: [
+                            // Photo and QR
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Photo Box
+                                Container(
+                                  width: 130,
+                                  height: 130, // Perfectly square again
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                                  ),
+                                  child: Container(
+                                    foregroundDecoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(color: const Color(0xFFE95123), width: 2),
+                                    ),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    clipBehavior: Clip.antiAlias,
+                                    child: photoUrl.isNotEmpty
+                                        ? Image.network(photoUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.person, size: 64, color: Colors.grey))
+                                        : const Icon(Icons.person, size: 64, color: Colors.grey),
+                                  ),
+                                ),
+                                const SizedBox(width: 24),
+                                // QR Box
+                                Column(
+                                  children: [
+                                    Container(
+                                      width: 130,
+                                      height: 130,
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                                      ),
+                                      child: Container(
+                                        foregroundDecoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(color: const Color(0xFF0C2442), width: 2),
+                                        ),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(14),
+                                          color: Colors.white, // Ensure white background for the QR
+                                        ),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: QrImageView(
+                                          data: token,
+                                          version: QrVersions.auto,
+                                          backgroundColor: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF0C2442),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Text('RECEPCIÓN/ENTREGA', style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold)),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Fields
+                            _buildCredencialField('NOMBRE', childName, titleColor: const Color(0xFF28B5E1)),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(child: _buildCredencialField('NO. SOCIO', socioDisplay, titleColor: const Color(0xFFE95123))),
+                                const SizedBox(width: 12),
+                                Expanded(child: _buildCredencialField('EDAD', age, titleColor: const Color(0xFFB59A5A))),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            _buildCredencialField('NOMBRE DEL TITULAR', titular, titleColor: const Color(0xFF0C2442)),
+                            const SizedBox(height: 12),
+                            _buildCredencialField('TEL. EMERGENCIA', phoneDisplay, titleColor: const Color(0xFFE95123)),
+                          ],
+                        ),
+                      ),
+                      // The Logo
+                      Positioned(
+                        top: -40, // Moved up to close the gap with the header
+                        child: Image.asset(
+                          'assets/images/logocurso2026.png',
+                          width: 160,
+                          height: 160,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24), // Added space before footer line
+
+                  // Footer Line
+                  Container(height: 2, color: const Color(0xFFB59A5A)),
+                  const SizedBox(height: 16),
+                  
+                  // Footer Banner
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0B1426),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: const Text(
+                      'CENTRO LIBANÉS - CURSO DE VERANO 2026',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Wallet Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            ToastAlerts.showWarning(context, 'Requiere configuración de certificados Apple Developer en backend.');
+                          },
+                          icon: const Icon(Icons.apple, color: Colors.black),
+                          label: const Text('Apple Wallet', style: TextStyle(color: Colors.black, fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            ToastAlerts.showWarning(context, 'Requiere configuración de Google Wallet API en backend.');
+                          },
+                          icon: const Icon(Icons.wallet, color: Colors.black),
+                          label: const Text('Google Wallet', style: TextStyle(color: Colors.black, fontSize: 12)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.black),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  const SizedBox(height: 8),
+                  
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cerrar Credencial', style: TextStyle(color: Colors.grey)),
+                  )
+                ],
+              ),
+            ),
+          ),
+        ), // Close Dialog
+        ); // Close Dismissible
+      },
+    );
+  }
+
+  Widget _buildCredencialField(String title, String value, {required Color titleColor}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: TextStyle(color: titleColor, fontWeight: FontWeight.w900, fontSize: 10)),
+        const SizedBox(height: 4),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF0F4F8),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Colors.grey.withOpacity(0.2)),
+          ),
+          child: Text(value.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black)),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeRegAsync = ref.watch(activeRegistrationProvider);
@@ -453,7 +821,7 @@ class _SummerCourseActiveRegistrationModalState
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.snowboarding_rounded,
+                    Icons.manage_accounts_rounded,
                     color: AppTheme.primaryColor,
                     size: 28,
                   ),
@@ -464,7 +832,7 @@ class _SummerCourseActiveRegistrationModalState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Verano Intensivo',
+                        'Panel de Participantes',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.w900,
@@ -473,7 +841,7 @@ class _SummerCourseActiveRegistrationModalState
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Edita el tipo de curso a tomar',
+                        'Gestiona credenciales, pases y disciplinas',
                         style: TextStyle(
                           color: Theme.of(
                             context,
@@ -530,389 +898,211 @@ class _SummerCourseActiveRegistrationModalState
                     itemBuilder: (context, index) {
                       final p = participants[index];
                       final pId = p['id'] as int;
-                      final currentActivityId =
-                          p['intensive_activity_id'] as int?;
+                      final currentActivityId = p['intensive_activity_id'] as int?;
                       final pendingUpgradeId = p['pending_upgrade_id'] as int?;
                       final isPending = pendingUpgradeId != null;
                       final canEdit = currentActivityId != null && !isPending;
+                      
+                      final activePickupPass = p['active_pickup_pass'] as Map<String, dynamic>?;
+                      final hasActivePass = activePickupPass != null;
+                      final passUsedToday = (p['pass_used_today'] as bool?) ?? false;
+                      final canGeneratePass = p['can_generate_pickup_pass'] == true;
+                      final reason = p['reason_cannot_generate']?.toString() ?? 'No se puede generar.';
 
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.neutral50,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: AppTheme.neutral200,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.person_rounded,
-                                  size: 20,
-                                  color: AppTheme.neutral500,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      (p['full_name'] ?? 'Participante')
-                                          .toString()
-                                          .toUpperCase(),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 14,
-                                        letterSpacing: 0.5,
-                                      ),
-                                    ),
-                                    if (p['weeks'] != null &&
-                                        (p['weeks'] as List).isNotEmpty) ...[
-                                      const SizedBox(height: 6),
-                                      Wrap(
-                                        spacing: 6,
-                                        runSpacing: 6,
-                                        children: (p['weeks'] as List).map((weekLabel) {
-                                          return Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 4,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppTheme.primaryColor.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: AppTheme.primaryColor.withOpacity(0.3),
-                                              ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(
-                                                  Icons.calendar_today_rounded,
-                                                  size: 10,
-                                                  color: AppTheme.primaryColor,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  weekLabel.toString(),
-                                                  style: const TextStyle(
-                                                    fontSize: 10,
-                                                    color: AppTheme.primaryColor,
-                                                    fontWeight: FontWeight.w800,
-                                                    letterSpacing: 0.2,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color:
-                                  Theme.of(context).brightness ==
-                                      Brightness.dark
-                                  ? AppTheme.neutral900
-                                  : AppTheme.surfaceColor,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isPending
-                                    ? AppTheme.warningColor.withValues(
-                                        alpha: 0.5,
-                                      )
-                                    : (Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? AppTheme.neutral700
-                                          : AppTheme.neutral200),
-                              ),
-                            ),
-                            child: isPending
-                                ? Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          '${_intensiveActivities.firstWhere((act) => act['id'] == pendingUpgradeId, orElse: () => {'name': 'Actividad'})['name']} (Pendiente de pago)',
-                                          style: TextStyle(
-                                            color: AppTheme.warningColor
-                                                .withValues(alpha: 0.8),
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                      const Icon(
-                                        Icons.access_time_rounded,
-                                        color: AppTheme.warningColor,
-                                        size: 18,
-                                      ),
-                                    ],
-                                  )
-                                : DropdownButtonHideUnderline(
-                                    child: DropdownButton<int?>(
-                                      value: currentActivityId,
-                                      isExpanded: true,
-                                      isDense: true,
-                                      icon: canEdit
-                                          ? const Icon(
-                                              Icons.unfold_more_rounded,
-                                              color: AppTheme.primaryColor,
-                                            )
-                                          : const Icon(
-                                              Icons.lock_rounded,
-                                              color: AppTheme.neutral400,
-                                              size: 16,
-                                            ),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                        color: canEdit
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.onSurface
-                                            : AppTheme.neutral400,
-                                      ),
-                                      hint: const Text(
-                                        'Regular (Sin verano intensivo)',
-                                      ),
-                                      items: [
-                                        const DropdownMenuItem<int?>(
-                                          value: null,
-                                          child: Text(
-                                            'Regular (Sin verano intensivo)',
-                                          ),
-                                        ),
-                                        ..._intensiveActivities.map((act) {
-                                          return DropdownMenuItem<int?>(
-                                            value: act['id'] as int,
-                                            child: Text(
-                                              act['name'] as String,
-                                              style: TextStyle(
-                                                color: canEdit
-                                                    ? AppTheme.primaryColor
-                                                    : AppTheme.neutral500,
-                                              ),
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ],
-                                      onChanged: (!_isSaving && canEdit)
-                                          ? (newId) {
-                                              _updateActivity(pId, newId);
-                                            }
-                                          : null,
-                                    ),
-                                  ),
-                          ),
-                          if (!canEdit && !isPending) ...[
-                            const SizedBox(height: 12),
-                            SizedBox(
-                              width: double.infinity,
-                              child: TextButton.icon(
-                                onPressed: _isSaving
-                                    ? null
-                                    : () {
-                                        _showUpgradeActivitySelector(
-                                          context,
-                                          pId,
-                                        );
-                                      },
-                                icon: const Icon(
-                                  Icons.add_circle_outline_rounded,
-                                  size: 18,
-                                ),
-                                label: const Text(
-                                  'Contratar Verano Intensivo',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                style: TextButton.styleFrom(
-                                  foregroundColor: AppTheme.vibrantGold,
-                                  backgroundColor: AppTheme.primaryColor
-                                      .withOpacity(0.08),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    side: BorderSide(
-                                      color: AppTheme.vibrantGold.withOpacity(
-                                        0.3,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Builder(
-                              builder: (context) {
-                                final activePickupPass = p['active_pickup_pass'] as Map<String, dynamic>?;
-                                final hasActivePass = activePickupPass != null;
-                                final passUsedToday = (p['pass_used_today'] as bool?) ?? false;
-                                
-                                if (passUsedToday) {
-                                  return Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.successColor.withOpacity(0.12),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: AppTheme.successColor.withOpacity(0.4),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Icon(Icons.check_circle_rounded, size: 20, color: AppTheme.successColor),
-                                        SizedBox(width: 8),
-                                        Text(
-                                          'Salida Registrada Hoy',
-                                          style: TextStyle(
-                                            color: AppTheme.successColor,
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                
-                                if (hasActivePass) {
-                                  return Material(
-                                    color: Colors.transparent,
-                                    child: InkWell(
-                                      onTap: _isSaving ? null : () {
-                                        _shareExistingPass(
-                                          context,
-                                          (p['full_name'] ?? 'Participante').toString(),
-                                          activePickupPass,
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Container(
-                                        width: double.infinity,
-                                        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.warningColor.withOpacity(0.12),
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: AppTheme.warningColor.withOpacity(0.4),
-                                            width: 1.5,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            const Row(
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
-                                                Icon(Icons.visibility_rounded, size: 20, color: AppTheme.warningColor),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  'Ver Pase de Salida Activo',
-                                                  style: TextStyle(
-                                                    color: AppTheme.warningColor,
-                                                    fontWeight: FontWeight.w800,
-                                                    fontSize: 14,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 2),
-                                            Text(
-                                              'Autorizado: ${activePickupPass["authorized_name"]}',
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: AppTheme.warningColor.withOpacity(0.9),
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                                final canGenerate = p['can_generate_pickup_pass'] == true;
-                                final reason = p['reason_cannot_generate']?.toString() ?? 'No se puede generar.';
-
-                                return Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: _isSaving ? null : () {
-                                      if (!canGenerate) {
-                                        ToastAlerts.showError(context, reason);
-                                        return;
-                                      }
-                                      _showGeneratePassDialog(
-                                        context,
-                                        pId,
-                                        (p['full_name'] ?? 'Participante').toString(),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                                      decoration: BoxDecoration(
-                                        color: canGenerate 
-                                            ? AppTheme.primaryColor.withOpacity(0.08)
-                                            : AppTheme.neutral200.withOpacity(0.5),
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: canGenerate
-                                              ? AppTheme.primaryColor.withOpacity(0.3)
-                                              : AppTheme.neutral300,
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
-                                            canGenerate ? Icons.qr_code_2_rounded : Icons.lock_rounded, 
-                                            size: 20, 
-                                            color: canGenerate ? AppTheme.primaryColor : AppTheme.neutral500
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            canGenerate ? 'Generar Pase de Salida' : 'Generación No Disponible',
-                                            style: TextStyle(
-                                              color: canGenerate ? AppTheme.primaryColor : AppTheme.neutral500,
-                                              fontWeight: FontWeight.w800,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark ? AppTheme.surfaceColor : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
-                        ],
+                        ),
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Header: Avatar + Name + Weeks
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.neutral50,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppTheme.neutral200),
+                                  ),
+                                  child: const Icon(Icons.person_rounded, size: 24, color: AppTheme.neutral500),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        (p['full_name'] ?? 'Participante').toString().toUpperCase(),
+                                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.2),
+                                      ),
+                                      if (p['weeks'] != null && (p['weeks'] as List).isNotEmpty) ...[
+                                        const SizedBox(height: 8),
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 6,
+                                          children: (p['weeks'] as List).map((weekLabel) {
+                                            return Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primaryColor.withOpacity(0.08),
+                                                borderRadius: BorderRadius.circular(6),
+                                              ),
+                                              child: Text(
+                                                weekLabel.toString(),
+                                                style: const TextStyle(fontSize: 10, color: AppTheme.primaryColor, fontWeight: FontWeight.w800),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            Divider(height: 1, color: AppTheme.neutral200.withOpacity(0.5)),
+                            const SizedBox(height: 20),
+                            
+                            // Action Buttons Row (Credencial & Pase)
+                            Row(
+                              children: [
+                                if (p['credencial_token'] != null)
+                                  Expanded(
+                                    flex: 5,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () => _showCredencialDialog(context, p),
+                                      icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
+                                      label: const Text('Credencial', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                                      style: ElevatedButton.styleFrom(
+                                        foregroundColor: Colors.white,
+                                        backgroundColor: AppTheme.primaryColor,
+                                        padding: const EdgeInsets.symmetric(vertical: 12),
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        elevation: 0,
+                                      ),
+                                    ),
+                                  ),
+                                if (p['credencial_token'] != null) const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 5,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _isSaving ? null : () {
+                                      if (hasActivePass) {
+                                        _shareExistingPass(context, (p['full_name'] ?? '').toString(), activePickupPass!);
+                                      } else if (passUsedToday) {
+                                        ToastAlerts.showSuccess(context, 'Salida registrada hoy');
+                                      } else if (canGeneratePass) {
+                                        _showGeneratePassDialog(context, pId, (p['full_name'] ?? '').toString());
+                                      } else {
+                                        ToastAlerts.showError(context, reason);
+                                      }
+                                    },
+                                    icon: Icon(
+                                      passUsedToday ? Icons.check_circle_rounded : (hasActivePass ? Icons.visibility_rounded : Icons.output_rounded),
+                                      size: 18,
+                                      color: passUsedToday ? AppTheme.successColor : (hasActivePass ? AppTheme.warningColor : AppTheme.neutral700),
+                                    ),
+                                    label: Text(
+                                      passUsedToday ? 'Salida Ok' : (hasActivePass ? 'Ver Pase' : 'Pase Salida'),
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800, 
+                                        fontSize: 13,
+                                        color: passUsedToday ? AppTheme.successColor : (hasActivePass ? AppTheme.warningColor : AppTheme.neutral700),
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      side: BorderSide(
+                                        color: passUsedToday ? AppTheme.successColor.withOpacity(0.5) : (hasActivePass ? AppTheme.warningColor.withOpacity(0.5) : AppTheme.neutral300),
+                                      ),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            
+                            const SizedBox(height: 16),
+                            
+                            // Intensive Activity Config
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.neutral50,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: AppTheme.neutral200.withOpacity(0.8)),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppTheme.neutral200)),
+                                    child: const Icon(Icons.snowboarding_rounded, size: 16, color: AppTheme.neutral600),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text('Disciplina Intensiva', style: TextStyle(fontSize: 11, color: AppTheme.neutral500, fontWeight: FontWeight.w600)),
+                                        const SizedBox(height: 2),
+                                        if (isPending)
+                                          Text(
+                                            '${_intensiveActivities.firstWhere((act) => act['id'] == pendingUpgradeId, orElse: () => {'name': 'Pendiente'})['name']} (Pendiente)',
+                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.warningColor),
+                                          )
+                                        else if (canEdit)
+                                          DropdownButtonHideUnderline(
+                                            child: DropdownButton<int?>(
+                                              value: currentActivityId,
+                                              isExpanded: true,
+                                              isDense: true,
+                                              icon: const Icon(Icons.expand_more_rounded, size: 16, color: AppTheme.primaryColor),
+                                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryColor),
+                                              items: [
+                                                const DropdownMenuItem(value: null, child: Text('Regular')),
+                                                ..._intensiveActivities.map((act) => DropdownMenuItem(value: act['id'] as int, child: Text(act['name'].toString()))),
+                                              ],
+                                              onChanged: _isSaving ? null : (newId) => _updateActivity(pId, newId),
+                                            ),
+                                          )
+                                        else
+                                          const Text('Regular (Sin intensivo)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.neutral700)),
+                                      ],
+                                    ),
+                                  ),
+                                  if (!canEdit && !isPending && currentActivityId == null)
+                                    TextButton(
+                                      onPressed: _isSaving ? null : () => _showUpgradeActivitySelector(context, pId),
+                                      style: TextButton.styleFrom(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        minimumSize: Size.zero,
+                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        backgroundColor: AppTheme.vibrantGold.withOpacity(0.1),
+                                        foregroundColor: AppTheme.vibrantGold,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                      child: const Text('Contratar', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       );
                     },
                   ),

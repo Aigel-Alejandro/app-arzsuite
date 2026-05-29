@@ -7,7 +7,7 @@ class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
   static const String baseUrlCakePHP = kDebugMode 
       ? "https://ecosistema-centro.ddev.site/api/" // URL Desarrollo / Pruebas Local (DDEV)
-      : "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
+      : "https://pruebas-arzsuite.centrolibanes.org.mx/api/"; // URL Pruebas
 
   // ---------------------------------------------------------------------------
   // AUTH
