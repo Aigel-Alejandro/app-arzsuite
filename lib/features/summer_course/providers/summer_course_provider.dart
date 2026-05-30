@@ -133,7 +133,7 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
       state = state.copyWith(courseCosts: costs, courseWeeks: weeks, intensiveActivities: intensiveActivities);
       
       final updatedParticipants = state.selectedParticipants.map((p) {
-        final newCost = _calculateCost(p.type, p.selectedWeekIds.length, p.intensiveActivityId);
+        final newCost = _calculateCost(p.type, p.selectedWeeks);
         return p.copyWith(calculatedCost: newCost);
       }).toList();
       
@@ -177,8 +177,9 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     );
   }
 
-  double _calculateCost(ParticipantType type, int weeksCount, [int? intensiveActivityId]) {
+  double _calculateCost(ParticipantType type, Map<String, int?> selectedWeeks) {
     double baseCost = 0.0;
+    int weeksCount = selectedWeeks.length;
     
     if (weeksCount > 0 && state.courseCosts.isNotEmpty) {
       String typeKey = '';
@@ -204,37 +205,53 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
     }
 
     double extraCost = 0.0;
-    if (intensiveActivityId != null && state.intensiveActivities.isNotEmpty) {
-      final activity = state.intensiveActivities.firstWhere(
-        (a) => a['id'] == intensiveActivityId,
-        orElse: () => <String, dynamic>{}
-      );
-      if (activity.isNotEmpty) {
-        extraCost = double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
+    if (state.intensiveActivities.isNotEmpty) {
+      for (final intensiveActivityId in selectedWeeks.values) {
+        if (intensiveActivityId != null) {
+          final activity = state.intensiveActivities.firstWhere(
+            (a) => a['id'] == intensiveActivityId,
+            orElse: () => <String, dynamic>{}
+          );
+          if (activity.isNotEmpty) {
+            extraCost += double.tryParse(activity['extra_cost'].toString()) ?? 0.0;
+          }
+        }
       }
     }
 
     return baseCost + extraCost;
   }
 
-  void updateWeeks(String identifier, List<int> weeks) {
+  void toggleWeek(String identifier, int weekId) {
     state = state.copyWith(
       selectedParticipants: state.selectedParticipants.map((p) {
         if (p.identifier == identifier) {
-          final newCost = _calculateCost(p.type, weeks.length, p.intensiveActivityId);
-          return p.copyWith(selectedWeekIds: weeks, calculatedCost: newCost);
+          final currentWeeks = Map<String, int?>.from(p.selectedWeeks);
+          final weekStr = weekId.toString();
+          if (currentWeeks.containsKey(weekStr)) {
+            currentWeeks.remove(weekStr);
+          } else {
+            currentWeeks[weekStr] = null;
+          }
+          final newCost = _calculateCost(p.type, currentWeeks);
+          return p.copyWith(selectedWeeks: currentWeeks, calculatedCost: newCost);
         }
         return p;
       }).toList(),
     );
   }
 
-  void updateIntensiveActivity(String identifier, int? activityId) {
+  void setWeekIntensiveActivity(String identifier, int weekId, int? activityId) {
     state = state.copyWith(
       selectedParticipants: state.selectedParticipants.map((p) {
         if (p.identifier == identifier) {
-          final newCost = _calculateCost(p.type, p.selectedWeekIds.length, activityId);
-          return p.copyWith(intensiveActivityId: activityId, calculatedCost: newCost);
+          final currentWeeks = Map<String, int?>.from(p.selectedWeeks);
+          final weekStr = weekId.toString();
+          if (currentWeeks.containsKey(weekStr)) {
+            currentWeeks[weekStr] = activityId;
+          }
+          final newCost = _calculateCost(p.type, currentWeeks);
+          return p.copyWith(selectedWeeks: currentWeeks, calculatedCost: newCost);
         }
         return p;
       }).toList(),
@@ -261,8 +278,10 @@ class SummerCourseNotifier extends StateNotifier<SummerCourseState> {
             'birth_date': p.guest!.birthDate,
           } : null,
           'type': p.type.name,
-          'weeks': p.selectedWeekIds,
-          'intensive_activity_id': p.intensiveActivityId,
+          'weeks': p.selectedWeeks.entries.map((e) => {
+            'week_number': int.parse(e.key),
+            'intensive_activity_id': e.value,
+          }).toList(),
           'total_cost': p.totalCost,
         }).toList(),
         'total_amount': state.totalGeneral,

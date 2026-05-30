@@ -186,11 +186,11 @@ class SummerCourseService {
     }
   }
 
-  Future<bool> updateIntensiveActivity(int participantId, int? activityId) async {
+  Future<bool> updateWeekIntensiveActivity(int enrollmentWeekId, int? activityId) async {
     try {
       final apiClient = _ref.read(apiClientProvider);
       final response = await apiClient.dio.patch(
-        'deportivo/summer-course/update-intensive-activity/$participantId',
+        'deportivo/summer-course/update-week-intensive-activity/$enrollmentWeekId',
         data: {
           'intensive_activity_id': activityId,
         },
@@ -198,7 +198,7 @@ class SummerCourseService {
       
       return response.statusCode == 200;
     } catch (e) {
-      print('Error al actualizar actividad intensiva: $e');
+      print('Error al actualizar actividad intensiva de la semana: $e');
       return false;
     }
   }

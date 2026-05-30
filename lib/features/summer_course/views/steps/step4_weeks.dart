@@ -122,7 +122,7 @@ class Step4Weeks extends ConsumerWidget {
                               ),
                             ),
                             Text(
-                              '${participant.selectedWeekIds.length} sem.',
+                              '${participant.selectedWeeks.length} sem.',
                               style: const TextStyle(
                                 fontSize: 10,
                                 color: AppTheme.neutral400,
@@ -163,25 +163,6 @@ class Step4Weeks extends ConsumerWidget {
                           notifier,
                           state,
                         ),
-                        if (state.intensiveActivities.isNotEmpty) ...[
-                          const SizedBox(height: 24),
-                          const Text(
-                            'TIPO DE VERANO (OPCIONAL)',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              color: AppTheme.neutral400,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildIntensiveActivitySelector(
-                            context,
-                            participant,
-                            notifier,
-                            state,
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -307,23 +288,17 @@ class Step4Weeks extends ConsumerWidget {
         final id = w['id'] as int;
 
         final isAlreadyInscribed = alreadyInscribedWeeks.contains(id);
-        final isSelected = participant.selectedWeekIds.contains(id);
+        final isSelected = participant.selectedWeeks.containsKey(id.toString());
 
         return GestureDetector(
           onTap: isAlreadyInscribed
               ? null
               : () {
-                  final currentWeeks = List<int>.from(
-                    participant.selectedWeekIds,
-                  );
-                  if (isSelected) {
-                    currentWeeks.remove(id);
-                  } else {
-                    currentWeeks.add(id);
-                  }
-                  notifier.updateWeeks(participant.identifier, currentWeeks);
+                  notifier.toggleWeek(participant.identifier, id);
                 },
-          child: AnimatedContainer(
+          child: Column(
+            children: [
+              AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -437,8 +412,21 @@ class Step4Weeks extends ConsumerWidget {
               ],
             ),
           ),
-        );
-      },
+          if (isSelected && state.intensiveActivities.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: _buildIntensiveActivitySelector(
+                context,
+                participant,
+                notifier,
+                state,
+                id,
+              ),
+            ),
+        ],
+      ),
+    );
+  },
     );
   }
 
@@ -447,8 +435,10 @@ class Step4Weeks extends ConsumerWidget {
     participant,
     notifier,
     state,
+    int weekId,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentActivityId = participant.selectedWeeks[weekId.toString()];
 
     return Container(
       decoration: BoxDecoration(
@@ -461,7 +451,7 @@ class Step4Weeks extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<int?>(
-          value: participant.intensiveActivityId,
+          value: currentActivityId,
           hint: Text(
             'Selecciona un tipo de verano...',
             style: TextStyle(
@@ -476,7 +466,7 @@ class Step4Weeks extends ConsumerWidget {
           ),
           dropdownColor: isDark ? AppTheme.neutral800 : Colors.white,
           onChanged: (int? newValue) {
-            notifier.updateIntensiveActivity(participant.identifier, newValue);
+            notifier.setWeekIntensiveActivity(participant.identifier, weekId, newValue);
           },
           items: [
             DropdownMenuItem<int?>(

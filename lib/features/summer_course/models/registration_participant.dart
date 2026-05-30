@@ -1,9 +1,5 @@
-import 'package:freezed_annotation/freezed_annotation.dart';
 import 'member.dart';
 import 'guest.dart';
-
-part 'registration_participant.freezed.dart';
-part 'registration_participant.g.dart';
 
 enum ParticipantType {
   socio,
@@ -12,21 +8,56 @@ enum ParticipantType {
   invColaborador,
 }
 
-@freezed
-class RegistrationParticipant with _$RegistrationParticipant {
-  const factory RegistrationParticipant({
-    Member? member,
-    Guest? guest,
-    required ParticipantType type,
-    @Default([]) List<int> selectedWeekIds, // IDs 1 to 5
-    @Default(0.0) double calculatedCost,
-    int? intensiveActivityId, // Optional ID of the selected intensive activity
-  }) = _RegistrationParticipant;
+class RegistrationParticipant {
+  final Member? member;
+  final Guest? guest;
+  final ParticipantType type;
+  final Map<String, int?> selectedWeeks; // week_number (String) -> intensive_activity_id
+  final double calculatedCost;
 
-  factory RegistrationParticipant.fromJson(Map<String, dynamic> json) => 
-      _$RegistrationParticipantFromJson(json);
+  const RegistrationParticipant({
+    this.member,
+    this.guest,
+    required this.type,
+    this.selectedWeeks = const {},
+    this.calculatedCost = 0.0,
+  });
 
-  const RegistrationParticipant._();
+  RegistrationParticipant copyWith({
+    Object? member = const Object(),
+    Object? guest = const Object(),
+    ParticipantType? type,
+    Map<String, int?>? selectedWeeks,
+    double? calculatedCost,
+  }) {
+    return RegistrationParticipant(
+      member: member == const Object() ? this.member : member as Member?,
+      guest: guest == const Object() ? this.guest : guest as Guest?,
+      type: type ?? this.type,
+      selectedWeeks: selectedWeeks ?? this.selectedWeeks,
+      calculatedCost: calculatedCost ?? this.calculatedCost,
+    );
+  }
+
+  factory RegistrationParticipant.fromJson(Map<String, dynamic> json) {
+    return RegistrationParticipant(
+      member: json['member'] != null ? Member.fromJson(json['member']) : null,
+      guest: json['guest'] != null ? Guest.fromJson(json['guest']) : null,
+      type: ParticipantType.values.firstWhere((e) => e.toString() == 'ParticipantType.${json['type']}'),
+      selectedWeeks: Map<String, int?>.from(json['selectedWeeks'] ?? {}),
+      calculatedCost: (json['calculatedCost'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'member': member?.toJson(),
+      'guest': guest?.toJson(),
+      'type': type.name,
+      'selectedWeeks': selectedWeeks,
+      'calculatedCost': calculatedCost,
+    };
+  }
 
   String get fullName => member?.fullName ?? guest?.fullName ?? 'Unknown';
   

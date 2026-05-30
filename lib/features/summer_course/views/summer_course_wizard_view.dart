@@ -195,7 +195,7 @@ class SummerCourseWizardView extends ConsumerWidget {
     if (state.currentStep == 1) return state.selectedParticipants.isEmpty; // Al menos un participante (socio o invitado)
     if (state.currentStep == 2) {
       if (state.selectedParticipants.isEmpty) return true;
-      return state.selectedParticipants.any((p) => p.selectedWeekIds.isEmpty);
+      return state.selectedParticipants.any((p) => p.selectedWeeks.isEmpty);
     }
     if (state.currentStep == 3) {
       if (state.termsRequired && !state.termsAccepted) return true;

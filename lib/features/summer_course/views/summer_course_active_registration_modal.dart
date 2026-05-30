@@ -53,15 +53,15 @@ class _SummerCourseActiveRegistrationModalState
     }
   }
 
-  Future<void> _updateActivity(int participantId, int? newActivityId) async {
+  Future<void> _updateWeekActivity(int enrollmentWeekId, int? newActivityId) async {
     if (_isSaving) return;
 
     setState(() => _isSaving = true);
 
     try {
       final service = ref.read(summerCourseServiceProvider);
-      final success = await service.updateIntensiveActivity(
-        participantId,
+      final success = await service.updateWeekIntensiveActivity(
+        enrollmentWeekId,
         newActivityId,
       );
 
@@ -898,10 +898,9 @@ class _SummerCourseActiveRegistrationModalState
                     itemBuilder: (context, index) {
                       final p = participants[index];
                       final pId = p['id'] as int;
-                      final currentActivityId = p['intensive_activity_id'] as int?;
                       final pendingUpgradeId = p['pending_upgrade_id'] as int?;
                       final isPending = pendingUpgradeId != null;
-                      final canEdit = currentActivityId != null && !isPending;
+                      final canEdit = !isPending;
                       
                       final activePickupPass = p['active_pickup_pass'] as Map<String, dynamic>?;
                       final hasActivePass = activePickupPass != null;
@@ -949,20 +948,59 @@ class _SummerCourseActiveRegistrationModalState
                                         style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.2),
                                       ),
                                       if (p['weeks'] != null && (p['weeks'] as List).isNotEmpty) ...[
-                                        const SizedBox(height: 8),
-                                        Wrap(
-                                          spacing: 6,
-                                          runSpacing: 6,
-                                          children: (p['weeks'] as List).map((weekLabel) {
+                                        const SizedBox(height: 12),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                                          children: (p['weeks'] as List).map((weekObj) {
+                                            if (weekObj is! Map) return const SizedBox.shrink();
+                                            final wLabel = weekObj['label']?.toString() ?? '';
+                                            final wEnrollmentWeekId = weekObj['enrollment_week_id'] as int?;
+                                            final wActivityId = weekObj['intensive_activity_id'] as int?;
+                                            
                                             return Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                              margin: const EdgeInsets.only(bottom: 8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                               decoration: BoxDecoration(
-                                                color: AppTheme.primaryColor.withOpacity(0.08),
-                                                borderRadius: BorderRadius.circular(6),
+                                                color: AppTheme.primaryColor.withOpacity(0.04),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
                                               ),
-                                              child: Text(
-                                                weekLabel.toString(),
-                                                style: const TextStyle(fontSize: 10, color: AppTheme.primaryColor, fontWeight: FontWeight.w800),
+                                              child: Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      wLabel,
+                                                      style: const TextStyle(fontSize: 12, color: AppTheme.primaryColor, fontWeight: FontWeight.w800),
+                                                    ),
+                                                  ),
+                                                  if (canEdit && wEnrollmentWeekId != null)
+                                                    Container(
+                                                      height: 32,
+                                                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius: BorderRadius.circular(6),
+                                                        border: Border.all(color: AppTheme.neutral200),
+                                                      ),
+                                                      child: DropdownButtonHideUnderline(
+                                                        child: DropdownButton<int?>(
+                                                          value: wActivityId,
+                                                          icon: const Icon(Icons.expand_more_rounded, size: 16, color: AppTheme.primaryColor),
+                                                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: AppTheme.primaryColor),
+                                                          items: [
+                                                            const DropdownMenuItem(value: null, child: Text('Regular')),
+                                                            ..._intensiveActivities.map((act) => DropdownMenuItem(value: act['id'] as int, child: Text(act['name'].toString()))),
+                                                          ],
+                                                          onChanged: _isSaving ? null : (newId) => _updateWeekActivity(wEnrollmentWeekId, newId),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  else
+                                                    Text(
+                                                      weekObj['intensive_activity_name']?.toString() ?? 'Regular',
+                                                      style: const TextStyle(fontSize: 11, color: AppTheme.neutral600, fontWeight: FontWeight.w800),
+                                                    ),
+                                                ],
                                               ),
                                             );
                                           }).toList(),
@@ -1036,71 +1074,7 @@ class _SummerCourseActiveRegistrationModalState
                               ],
                             ),
                             
-                            const SizedBox(height: 16),
-                            
-                            // Intensive Activity Config
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppTheme.neutral50,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: AppTheme.neutral200.withOpacity(0.8)),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(color: Colors.white, shape: BoxShape.circle, border: Border.all(color: AppTheme.neutral200)),
-                                    child: const Icon(Icons.snowboarding_rounded, size: 16, color: AppTheme.neutral600),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('Disciplina Intensiva', style: TextStyle(fontSize: 11, color: AppTheme.neutral500, fontWeight: FontWeight.w600)),
-                                        const SizedBox(height: 2),
-                                        if (isPending)
-                                          Text(
-                                            '${_intensiveActivities.firstWhere((act) => act['id'] == pendingUpgradeId, orElse: () => {'name': 'Pendiente'})['name']} (Pendiente)',
-                                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.warningColor),
-                                          )
-                                        else if (canEdit)
-                                          DropdownButtonHideUnderline(
-                                            child: DropdownButton<int?>(
-                                              value: currentActivityId,
-                                              isExpanded: true,
-                                              isDense: true,
-                                              icon: const Icon(Icons.expand_more_rounded, size: 16, color: AppTheme.primaryColor),
-                                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryColor),
-                                              items: [
-                                                const DropdownMenuItem(value: null, child: Text('Regular')),
-                                                ..._intensiveActivities.map((act) => DropdownMenuItem(value: act['id'] as int, child: Text(act['name'].toString()))),
-                                              ],
-                                              onChanged: _isSaving ? null : (newId) => _updateActivity(pId, newId),
-                                            ),
-                                          )
-                                        else
-                                          const Text('Regular (Sin intensivo)', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.neutral700)),
-                                      ],
-                                    ),
-                                  ),
-                                  if (!canEdit && !isPending && currentActivityId == null)
-                                    TextButton(
-                                      onPressed: _isSaving ? null : () => _showUpgradeActivitySelector(context, pId),
-                                      style: TextButton.styleFrom(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                        minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        backgroundColor: AppTheme.vibrantGold.withOpacity(0.1),
-                                        foregroundColor: AppTheme.vibrantGold,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      child: const Text('Contratar', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
-                                    ),
-                                ],
-                              ),
-                            ),
+
                           ],
                         ),
                       );

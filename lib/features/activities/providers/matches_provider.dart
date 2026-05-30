@@ -7,7 +7,7 @@ import '../models/match_model.dart';
 final matchesProvider = StateNotifierProvider.autoDispose<MatchesNotifier, AsyncValue<List<MatchModel>>>((ref) {
   final apiClient = ref.watch(apiClientNotifierProvider);
   final profileState = ref.watch(profileProvider);
-  final socioId = profileState.value?.socioId;
+  final socioId = int.tryParse(profileState.value?.id ?? '');
 
   return MatchesNotifier(apiClient, socioId);
 });

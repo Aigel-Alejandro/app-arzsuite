@@ -136,17 +136,20 @@ class Step5Confirmation extends ConsumerWidget {
                          children: [
                            Text(p.fullName, style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 13)),
                            Text(
-                             '${p.isSocio ? 'Socio' : 'Invitado'}  •  ${p.selectedWeekIds.length} semanas',
+                             '${p.isSocio ? 'Socio' : 'Invitado'}  •  ${p.selectedWeeks.length} semanas',
                              style: TextStyle(
                                color: p.isSocio ? AppTheme.primaryColor : AppTheme.vibrantGold, 
                                fontSize: 11, 
                                fontWeight: FontWeight.bold
                              ),
                            ),
-                           if (p.intensiveActivityId != null && state.intensiveActivities.isNotEmpty) ...[
+                           if (p.selectedWeeks.values.any((id) => id != null) && state.intensiveActivities.isNotEmpty) ...[
                              const SizedBox(height: 4),
                              Text(
-                               'Verano intensivo: ${state.intensiveActivities.firstWhere((a) => a['id'] == p.intensiveActivityId, orElse: () => <String, dynamic>{})['name'] ?? ''}',
+                               'Verano intensivo: ${p.selectedWeeks.values.where((id) => id != null).map((id) {
+                                 final act = state.intensiveActivities.firstWhere((a) => a['id'] == id, orElse: () => <String, dynamic>{});
+                                 return act['name'] ?? '';
+                               }).toSet().join(', ')}',
                                style: const TextStyle(
                                  color: AppTheme.successColor,
                                  fontSize: 11,
