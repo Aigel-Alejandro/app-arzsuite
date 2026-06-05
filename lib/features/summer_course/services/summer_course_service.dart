@@ -264,6 +264,94 @@ class SummerCourseService {
     }
   }
 
+  // --- TERCEROS AUTORIZADOS ---
+
+  Future<List<Map<String, dynamic>>> getAuthorizedPickups(int participantId) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.get(
+        'deportivo/sc-authorized-pickups/by-participant/$participantId',
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            final dynamic dataObj = rawData['data'];
+            if (dataObj is Map && dataObj.containsKey('pickups')) {
+                List<dynamic> listData = dataObj['pickups'];
+                return listData.map((e) => e as Map<String, dynamic>).toList();
+            } else if (dataObj is List) {
+                return dataObj.map((e) => e as Map<String, dynamic>).toList();
+            }
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error al obtener terceros autorizados: $e');
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> addAuthorizedPickup(Map<String, dynamic> payload) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/sc-authorized-pickups/add',
+        data: payload,
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      throw Exception('Respuesta inválida del servidor');
+    } catch (e) {
+      if (e is DioException && e.response?.data != null && e.response?.data is Map) {
+        throw Exception(e.response?.data['message'] ?? e.message);
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> deleteAuthorizedPickup(int id) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.delete(
+        'deportivo/sc-authorized-pickups/delete/$id',
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error eliminando tercero autorizado: $e');
+      return false;
+    }
+  }
+
+  Future<Map<String, dynamic>?> generateDynamicQr(int pickupId, int participantId, int expirationMinutes) async {
+    try {
+      final apiClient = _ref.read(apiClientProvider);
+      final response = await apiClient.dio.post(
+        'deportivo/sc-authorized-pickups/generate-dynamic-qr',
+        data: {
+          'sc_authorized_pickup_id': pickupId,
+          'participant_id': participantId,
+          'expiration_minutes': expirationMinutes,
+        },
+      );
+      if (response.statusCode == 200 && response.data != null) {
+        final dynamic rawData = response.data;
+        if (rawData is Map && rawData.containsKey('data')) {
+            return rawData['data'] as Map<String, dynamic>;
+        }
+      }
+      return null;
+    } catch (e) {
+      if (e is DioException && e.response?.data != null && e.response?.data is Map) {
+        throw Exception(e.response?.data['message'] ?? e.message);
+      }
+      rethrow;
+    }
+  }
+
   Future<Map<String, dynamic>?> validatePickupPass(String token) async {
     try {
       final apiClient = _ref.read(apiClientProvider);

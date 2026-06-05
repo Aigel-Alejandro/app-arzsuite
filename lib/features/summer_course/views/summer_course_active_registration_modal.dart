@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_arzsuite/core/theme/app_theme.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
@@ -6,9 +8,10 @@ import 'package:app_arzsuite/core/providers/api_client_notifier.dart';
 import 'package:app_arzsuite/core/network/api_endpoints.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'summer_course_authorized_pickups_view.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 import 'package:image_picker/image_picker.dart';
@@ -352,6 +355,11 @@ class _SummerCourseActiveRegistrationModalState
                                 maxWidth: 600,
                               );
                               if (image != null) {
+                                final name = image.name.toLowerCase();
+                                if (!name.endsWith('.jpg') && !name.endsWith('.jpeg') && !name.endsWith('.png') && !name.endsWith('.webp')) {
+                                  ToastAlerts.showError(context, 'Solo se permiten imágenes JPG, PNG o WEBP');
+                                  return;
+                                }
                                 setState(() {
                                   pickedImage = image;
                                 });
@@ -375,6 +383,11 @@ class _SummerCourseActiveRegistrationModalState
                                 maxWidth: 600,
                               );
                               if (image != null) {
+                                final name = image.name.toLowerCase();
+                                if (!name.endsWith('.jpg') && !name.endsWith('.jpeg') && !name.endsWith('.png') && !name.endsWith('.webp')) {
+                                  ToastAlerts.showError(context, 'Solo se permiten imágenes JPG, PNG o WEBP');
+                                  return;
+                                }
                                 setState(() {
                                   pickedImage = image;
                                 });
@@ -793,108 +806,136 @@ class _SummerCourseActiveRegistrationModalState
         [];
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
+      height: MediaQuery.of(context).size.height * 0.9,
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? AppTheme.surfaceColor 
+            : const Color(0xFFF8F9FA),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       ),
       child: Column(
         children: [
-          const SizedBox(height: 16),
+          // Header Area with Gradient and Glass effect
           Container(
-            width: 48,
-            height: 5,
             decoration: BoxDecoration(
-              color: AppTheme.neutral300,
-              borderRadius: BorderRadius.circular(10),
+              gradient: LinearGradient(
+                colors: [AppTheme.primaryColor.withOpacity(0.1), Colors.transparent],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
             ),
-          ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
+            padding: const EdgeInsets.only(top: 12, bottom: 16),
+            child: Column(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.manage_accounts_rounded,
-                    color: AppTheme.primaryColor,
-                    size: 28,
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: AppTheme.neutral300,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 24),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
                     children: [
-                      const Text(
-                        'Panel de Participantes',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.5,
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppTheme.primaryColor, AppTheme.vibrantGold],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryColor.withOpacity(0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.manage_accounts_rounded,
+                          color: Colors.white,
+                          size: 26,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Gestiona credenciales, pases y disciplinas',
-                        style: TextStyle(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withOpacity(0.5),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Panel de Participantes',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Gestiona credenciales, pases y disciplinas',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed: () => ref.invalidate(activeRegistrationProvider),
+                            icon: const Icon(Icons.refresh_rounded),
+                            color: AppTheme.neutral500,
+                            tooltip: 'Actualizar',
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              shadowColor: Colors.black.withOpacity(0.05),
+                              elevation: 2,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: const Icon(Icons.close_rounded, size: 20),
+                            color: AppTheme.neutral600,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              shadowColor: Colors.black.withOpacity(0.05),
+                              elevation: 2,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    // Acción manual de recargar (útil para pruebas de actualización de Base de Datos vía SQL)
-                    ref.invalidate(activeRegistrationProvider);
-                  },
-                  icon: const Icon(
-                    Icons.refresh_rounded,
-                    color: AppTheme.neutral500,
-                  ),
-                  tooltip: 'Actualizar',
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: AppTheme.neutral100,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded, size: 20),
-                    color: AppTheme.neutral600,
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 24),
-          Divider(height: 1, color: AppTheme.neutral200.withOpacity(0.5)),
+          
           Expanded(
             child: _isLoadingActivities
                 ? const Center(child: CircularProgressIndicator())
-                : ListView.separated(
+                : ListView.builder(
                     padding: const EdgeInsets.only(
                       left: 24,
                       right: 24,
-                      top: 24,
+                      top: 12,
                       bottom: 48,
                     ),
                     itemCount: participants.length,
-                    separatorBuilder: (_, __) => Divider(
-                      height: 48,
-                      color: AppTheme.neutral200.withOpacity(0.5),
-                    ),
                     itemBuilder: (context, index) {
                       final p = participants[index];
                       final pId = p['id'] as int;
@@ -909,177 +950,214 @@ class _SummerCourseActiveRegistrationModalState
                       final reason = p['reason_cannot_generate']?.toString() ?? 'No se puede generar.';
 
                       return Container(
+                        margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark ? AppTheme.surfaceColor : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                          borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.03),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
-                        padding: const EdgeInsets.all(20),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            // Header: Avatar + Name + Weeks
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.neutral50,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppTheme.neutral200),
-                                  ),
-                                  child: const Icon(Icons.person_rounded, size: 24, color: AppTheme.neutral500),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        (p['full_name'] ?? 'Participante').toString().toUpperCase(),
-                                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, letterSpacing: 0.2),
+                            // Card Header
+                                    Container(
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        border: Border(bottom: BorderSide(color: AppTheme.neutral200.withOpacity(0.5))),
                                       ),
-                                      if (p['weeks'] != null && (p['weeks'] as List).isNotEmpty) ...[
-                                        const SizedBox(height: 12),
-                                        Column(
-                                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                                          children: (p['weeks'] as List).map((weekObj) {
-                                            if (weekObj is! Map) return const SizedBox.shrink();
-                                            final wLabel = weekObj['label']?.toString() ?? '';
-                                            final wEnrollmentWeekId = weekObj['enrollment_week_id'] as int?;
-                                            final wActivityId = weekObj['intensive_activity_id'] as int?;
-                                            
-                                            return Container(
-                                              margin: const EdgeInsets.only(bottom: 8),
-                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                              decoration: BoxDecoration(
-                                                color: AppTheme.primaryColor.withOpacity(0.04),
-                                                borderRadius: BorderRadius.circular(8),
-                                                border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      wLabel,
-                                                      style: const TextStyle(fontSize: 12, color: AppTheme.primaryColor, fontWeight: FontWeight.w800),
-                                                    ),
-                                                  ),
-                                                  if (canEdit && wEnrollmentWeekId != null)
-                                                    Container(
-                                                      height: 32,
-                                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.white,
-                                                        borderRadius: BorderRadius.circular(6),
-                                                        border: Border.all(color: AppTheme.neutral200),
-                                                      ),
-                                                      child: DropdownButtonHideUnderline(
-                                                        child: DropdownButton<int?>(
-                                                          value: wActivityId,
-                                                          icon: const Icon(Icons.expand_more_rounded, size: 16, color: AppTheme.primaryColor),
-                                                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11, color: AppTheme.primaryColor),
-                                                          items: [
-                                                            const DropdownMenuItem(value: null, child: Text('Regular')),
-                                                            ..._intensiveActivities.map((act) => DropdownMenuItem(value: act['id'] as int, child: Text(act['name'].toString()))),
-                                                          ],
-                                                          onChanged: _isSaving ? null : (newId) => _updateWeekActivity(wEnrollmentWeekId, newId),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF8F9FA),
+                                              borderRadius: BorderRadius.circular(16),
+                                              border: Border.all(color: AppTheme.neutral200.withOpacity(0.5)),
+                                            ),
+                                            child: const Icon(Icons.person_rounded, size: 24, color: AppTheme.neutral500),
+                                          ),
+                                          const SizedBox(width: 16),
+                                          Expanded(
+                                            child: Text(
+                                              (p['full_name'] ?? 'Participante').toString().toUpperCase(),
+                                              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: -0.2),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    
+                                    // Content
+                                    Padding(
+                                      padding: const EdgeInsets.all(20),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          if (p['weeks'] != null && (p['weeks'] as List).isNotEmpty) ...[
+                                            const Text('DISCIPLINAS POR SEMANA', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppTheme.neutral500, letterSpacing: 0.5)),
+                                            const SizedBox(height: 12),
+                                            Column(
+                                              children: (p['weeks'] as List).map((weekObj) {
+                                                if (weekObj is! Map) return const SizedBox.shrink();
+                                                final wLabel = weekObj['label']?.toString() ?? '';
+                                                final wEnrollmentWeekId = weekObj['enrollment_week_id'] as int?;
+                                                final wActivityId = weekObj['intensive_activity_id'] as int?;
+                                                
+                                                return Padding(
+                                                  padding: const EdgeInsets.only(bottom: 12),
+                                                  child: Row(
+                                                    children: [
+                                                      Container(
+                                                        width: 4,
+                                                        height: 40,
+                                                        decoration: BoxDecoration(
+                                                          color: wActivityId != null ? AppTheme.vibrantGold : AppTheme.neutral300,
+                                                          borderRadius: BorderRadius.circular(2),
                                                         ),
                                                       ),
-                                                    )
-                                                  else
-                                                    Text(
-                                                      weekObj['intensive_activity_name']?.toString() ?? 'Regular',
-                                                      style: const TextStyle(fontSize: 11, color: AppTheme.neutral600, fontWeight: FontWeight.w800),
+                                                      const SizedBox(width: 12),
+                                                      Expanded(
+                                                        child: Text(
+                                                          wLabel,
+                                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                                                        ),
+                                                      ),
+                                                      if (canEdit && wEnrollmentWeekId != null)
+                                                        Container(
+                                                          height: 36,
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                                          decoration: BoxDecoration(
+                                                            color: const Color(0xFFF8F9FA),
+                                                            borderRadius: BorderRadius.circular(10),
+                                                            border: Border.all(color: AppTheme.neutral200),
+                                                          ),
+                                                          child: DropdownButtonHideUnderline(
+                                                            child: DropdownButton<int?>(
+                                                              value: wActivityId,
+                                                              icon: const Icon(Icons.unfold_more_rounded, size: 16, color: AppTheme.neutral600),
+                                                              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 12, color: AppTheme.neutral800),
+                                                              items: [
+                                                                const DropdownMenuItem(value: null, child: Text('Regular')),
+                                                                ..._intensiveActivities.map((act) => DropdownMenuItem(value: act['id'] as int, child: Text(act['name'].toString()))),
+                                                              ],
+                                                              onChanged: _isSaving ? null : (newId) => _updateWeekActivity(wEnrollmentWeekId, newId),
+                                                            ),
+                                                          ),
+                                                        )
+                                                      else
+                                                        Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: AppTheme.neutral50,
+                                                            borderRadius: BorderRadius.circular(10),
+                                                          ),
+                                                          child: Text(
+                                                            weekObj['intensive_activity_name']?.toString() ?? 'Regular',
+                                                            style: const TextStyle(fontSize: 12, color: AppTheme.neutral600, fontWeight: FontWeight.w800),
+                                                          ),
+                                                        ),
+                                                    ],
+                                                  ),
+                                                );
+                                              }).toList(),
+                                            ),
+                                            const SizedBox(height: 16),
+                                          ],
+                                          
+                                          // Action Buttons
+                                          Row(
+                                            children: [
+                                              if (p['credencial_token'] != null)
+                                                Expanded(
+                                                  child: ElevatedButton.icon(
+                                                    onPressed: () => _showCredencialDialog(context, p),
+                                                    icon: const Icon(Icons.badge_rounded, size: 20),
+                                                    label: const Text('Credencial', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                                                    style: ElevatedButton.styleFrom(
+                                                      foregroundColor: Colors.white,
+                                                      backgroundColor: AppTheme.primaryColor,
+                                                      shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                                      elevation: 4,
+                                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                                                     ),
-                                                ],
+                                                  ),
+                                                ),
+                                              if (p['credencial_token'] != null) const SizedBox(width: 12),
+                                              Expanded(
+                                                child: OutlinedButton.icon(
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => SummerCourseAuthorizedPickupsView(participant: p),
+                                                      ),
+                                                    );
+                                                  },
+                                                  icon: const Icon(Icons.family_restroom_rounded, size: 20),
+                                                  label: const Text('Autorizados', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
+                                                  style: OutlinedButton.styleFrom(
+                                                    foregroundColor: AppTheme.neutral800,
+                                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                                    side: BorderSide(color: AppTheme.neutral300, width: 1.5),
+                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                                  ),
+                                                ),
                                               ),
-                                            );
-                                          }).toList(),
-                                        ),
-                                      ],
-                                    ],
-                                  ),
+                                            ],
+                                          ),
+                                          
+                                          if (p['credencial_token'] != null) ...[
+                                            const SizedBox(height: 12),
+                                            SizedBox(
+                                              width: double.infinity,
+                                              child: OutlinedButton.icon(
+                                                onPressed: _isSaving ? null : () {
+                                                  if (hasActivePass) {
+                                                    _shareExistingPass(context, (p['full_name'] ?? '').toString(), activePickupPass!);
+                                                  } else if (passUsedToday) {
+                                                    ToastAlerts.showSuccess(context, 'Salida registrada hoy');
+                                                  } else if (canGeneratePass) {
+                                                    _showGeneratePassDialog(context, pId, (p['full_name'] ?? '').toString());
+                                                  } else {
+                                                    ToastAlerts.showError(context, reason);
+                                                  }
+                                                },
+                                                icon: Icon(
+                                                  passUsedToday ? Icons.check_circle_rounded : (hasActivePass ? Icons.visibility_rounded : Icons.output_rounded),
+                                                  size: 18,
+                                                ),
+                                                label: Text(
+                                                  passUsedToday ? 'Salida Ok' : (hasActivePass ? 'Ver Pase Activo' : 'Generar Pase de Salida'),
+                                                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
+                                                ),
+                                                style: OutlinedButton.styleFrom(
+                                                  foregroundColor: passUsedToday ? AppTheme.successColor : (hasActivePass ? AppTheme.warningColor : AppTheme.neutral800),
+                                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                                  backgroundColor: passUsedToday ? AppTheme.successColor.withOpacity(0.05) : (hasActivePass ? AppTheme.warningColor.withOpacity(0.05) : const Color(0xFFF8F9FA)),
+                                                  side: BorderSide(
+                                                    color: passUsedToday ? AppTheme.successColor.withOpacity(0.5) : (hasActivePass ? AppTheme.warningColor.withOpacity(0.5) : AppTheme.neutral200),
+                                                    width: 1.5,
+                                                  ),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                                                ),
+                                              ),
+                                            ),
+                                          ]
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 20),
-                            Divider(height: 1, color: AppTheme.neutral200.withOpacity(0.5)),
-                            const SizedBox(height: 20),
-                            
-                            // Action Buttons Row (Credencial & Pase)
-                            Row(
-                              children: [
-                                if (p['credencial_token'] != null)
-                                  Expanded(
-                                    flex: 5,
-                                    child: ElevatedButton.icon(
-                                      onPressed: () => _showCredencialDialog(context, p),
-                                      icon: const Icon(Icons.qr_code_scanner_rounded, size: 18),
-                                      label: const Text('Credencial', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13)),
-                                      style: ElevatedButton.styleFrom(
-                                        foregroundColor: Colors.white,
-                                        backgroundColor: AppTheme.primaryColor,
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        elevation: 0,
-                                      ),
-                                    ),
-                                  ),
-                                if (p['credencial_token'] != null) const SizedBox(width: 12),
-                                Expanded(
-                                  flex: 5,
-                                  child: OutlinedButton.icon(
-                                    onPressed: _isSaving ? null : () {
-                                      if (hasActivePass) {
-                                        _shareExistingPass(context, (p['full_name'] ?? '').toString(), activePickupPass!);
-                                      } else if (passUsedToday) {
-                                        ToastAlerts.showSuccess(context, 'Salida registrada hoy');
-                                      } else if (canGeneratePass) {
-                                        _showGeneratePassDialog(context, pId, (p['full_name'] ?? '').toString());
-                                      } else {
-                                        ToastAlerts.showError(context, reason);
-                                      }
-                                    },
-                                    icon: Icon(
-                                      passUsedToday ? Icons.check_circle_rounded : (hasActivePass ? Icons.visibility_rounded : Icons.output_rounded),
-                                      size: 18,
-                                      color: passUsedToday ? AppTheme.successColor : (hasActivePass ? AppTheme.warningColor : AppTheme.neutral700),
-                                    ),
-                                    label: Text(
-                                      passUsedToday ? 'Salida Ok' : (hasActivePass ? 'Ver Pase' : 'Pase Salida'),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800, 
-                                        fontSize: 13,
-                                        color: passUsedToday ? AppTheme.successColor : (hasActivePass ? AppTheme.warningColor : AppTheme.neutral700),
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      padding: const EdgeInsets.symmetric(vertical: 12),
-                                      side: BorderSide(
-                                        color: passUsedToday ? AppTheme.successColor.withOpacity(0.5) : (hasActivePass ? AppTheme.warningColor.withOpacity(0.5) : AppTheme.neutral300),
-                                      ),
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-
-                          ],
+                            );
+                          },
                         ),
-                      );
-                    },
-                  ),
           ),
         ],
       ),

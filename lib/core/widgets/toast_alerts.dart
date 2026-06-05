@@ -34,7 +34,9 @@ class ToastAlerts {
     final Brightness brightness = Theme.of(context).brightness;
     final bool isDark = brightness == Brightness.dark;
 
-    final overlayEntry = OverlayEntry(
+    late OverlayEntry overlayEntry;
+    
+    overlayEntry = OverlayEntry(
       builder: (context) {
         return Positioned(
           top: MediaQuery.of(context).padding.top + 16,
@@ -49,10 +51,12 @@ class ToastAlerts {
               isDark: isDark,
               onTap: () {
                 onTap?.call();
-                if (_currentOverlay != null && _currentOverlay!.mounted) {
-                  _currentOverlay?.remove();
+                if (overlayEntry.mounted) {
+                  overlayEntry.remove();
                 }
-                _currentOverlay = null;
+                if (_currentOverlay == overlayEntry) {
+                  _currentOverlay = null;
+                }
                 _timer?.cancel();
               },
             ),
@@ -65,10 +69,12 @@ class ToastAlerts {
     overlayState.insert(overlayEntry);
 
     _timer = Timer(const Duration(seconds: 4), () {
-      if (_currentOverlay != null && _currentOverlay!.mounted) {
-        _currentOverlay?.remove();
+      if (overlayEntry.mounted) {
+        overlayEntry.remove();
       }
-      _currentOverlay = null;
+      if (_currentOverlay == overlayEntry) {
+        _currentOverlay = null;
+      }
     });
   }
 }
