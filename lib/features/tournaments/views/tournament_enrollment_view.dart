@@ -24,8 +24,17 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
   int? _selectedTeamId;
   bool _isEnrolling = false;
   bool _isCaptain = false;
+  
+  bool _isCreatingNewTeam = false;
+  final TextEditingController _newTeamNameController = TextEditingController();
 
   TermsStatus? _termsStatus;
+
+  @override
+  void dispose() {
+    _newTeamNameController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -182,21 +191,36 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
                   ...beneficiaries.map((b) {
                      int? age = b['age'];
                      bool isEnrolled = b['isEnrolled'] == true;
+                     bool isAgeInvalid = b['isAgeInvalid'] == true;
+                     bool isGenderInvalid = b['isGenderInvalid'] == true;
+                     
+                     bool isDisabled = isEnrolled || isAgeInvalid || isGenderInvalid;
+                     
+                     String subtitle = '';
+                     if (isEnrolled) {
+                       subtitle = 'Ya inscrito en este torneo';
+                     } else if (isAgeInvalid) {
+                       subtitle = 'No cumple con la edad requerida (${age ?? '?'} años)';
+                     } else if (isGenderInvalid) {
+                       subtitle = 'Género no permitido para esta categoría';
+                     } else {
+                       subtitle = age != null ? '$age años' : 'Edad sin proporcionar en perfil';
+                     }
                      
                      return InkWell(
-                       onTap: isEnrolled ? null : () {
+                       onTap: isDisabled ? null : () {
                          setState(() => _selectedBeneficiary = b['name']);
                          Navigator.pop(context);
                        },
                        child: Container(
                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                         color: isEnrolled ? AppTheme.neutral50 : Colors.transparent,
+                         color: isDisabled ? AppTheme.neutral50 : Colors.transparent,
                          child: Row(
                            children: [
                              CircleAvatar(
                                radius: 20,
-                               backgroundColor: isEnrolled ? AppTheme.neutral200 : AppTheme.primaryColor.withValues(alpha: 0.1),
-                               child: Icon(isEnrolled ? Icons.block : Icons.person, color: isEnrolled ? AppTheme.neutral500 : AppTheme.primaryColor, size: 20),
+                               backgroundColor: isDisabled ? AppTheme.neutral200 : AppTheme.primaryColor.withValues(alpha: 0.1),
+                               child: Icon(isDisabled ? Icons.block : Icons.person, color: isDisabled ? AppTheme.neutral500 : AppTheme.primaryColor, size: 20),
                              ),
                              const SizedBox(width: 16),
                              Expanded(
@@ -208,27 +232,25 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
                                      style: TextStyle(
                                        fontWeight: FontWeight.bold, 
                                        fontSize: 15, 
-                                       color: isEnrolled ? AppTheme.neutral500 : AppTheme.neutral900,
+                                       color: isDisabled ? AppTheme.neutral500 : AppTheme.neutral900,
                                        decoration: isEnrolled ? TextDecoration.lineThrough : null,
                                      )
                                    ),
                                    const SizedBox(height: 2),
                                    Text(
-                                     isEnrolled 
-                                        ? 'Ya inscrito en este torneo' 
-                                        : (age != null ? '$age años' : 'Edad sin proporcionar en perfil'), 
+                                     subtitle, 
                                      style: TextStyle(
-                                       color: isEnrolled ? Colors.red.shade700 : AppTheme.neutral600, 
+                                       color: isDisabled ? Colors.red.shade700 : AppTheme.neutral600, 
                                        fontSize: 13,
-                                       fontWeight: isEnrolled ? FontWeight.bold : FontWeight.normal
+                                       fontWeight: isDisabled ? FontWeight.bold : FontWeight.normal,
                                      )
                                    ),
                                  ],
                                ),
                              ),
-                             if (_selectedBeneficiary == b['name'] && !isEnrolled)
+                             if (_selectedBeneficiary == b['name'] && !isDisabled)
                                const Icon(Icons.check_circle, color: AppTheme.primaryColor)
-                             else if (!isEnrolled)
+                             else if (!isDisabled)
                                const Icon(Icons.chevron_right, color: AppTheme.neutral300),
                            ],
                          ),
@@ -249,24 +271,23 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(profileProvider);
     
-    List<Map<String, dynamic>> validBeneficiaries = [];
+    List<Map<String, dynamic>> allBeneficiaries = [];
     if (profileAsync.value != null) {
       final String rawTitular = profileAsync.value!.fullname ?? '';
       final String cleanTitular = rawTitular.replaceFirst(RegExp(r'^\d+\s*'), '');
-      final bool isTitularEnrolled = widget.tournament.sociosInscritos.contains(profileAsync.value!.id.toString());
       
-      validBeneficiaries.add({
+      allBeneficiaries.add({
         'id': profileAsync.value!.id,
         'name': "$cleanTitular (Titular)",
         'age': profileAsync.value!.age,
         'genero': profileAsync.value!.genero,
-        'isEnrolled': isTitularEnrolled,
+        'isEnrolled': false, // El titular siempre se muestra, incluso si ya está inscrito
       });
       for (var member in profileAsync.value!.associatedMembers) {
         if (member.fullname != null && member.fullname!.isNotEmpty) {
           final String cleanMember = member.fullname!.replaceFirst(RegExp(r'^\d+\s*'), '');
           final bool isMemberEnrolled = widget.tournament.sociosInscritos.contains(member.id.toString());
-          validBeneficiaries.add({
+          allBeneficiaries.add({
             'id': member.id,
             'name': cleanMember,
             'age': member.age,
@@ -277,24 +298,29 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
       }
     }
 
+    // No filtramos a los inscritos aquí para poder mostrarlos "tachados".
+    List<Map<String, dynamic>> validBeneficiaries = List.from(allBeneficiaries);
+
     if (_selectedTeamId != null) {
       final selectedTeam = widget.tournament.equiposDisponibles.firstWhere((e) => e.id == _selectedTeamId);
-      validBeneficiaries = validBeneficiaries.where((b) {
+      for (var i = 0; i < validBeneficiaries.length; i++) {
+        var b = validBeneficiaries[i];
         int? age = b['age'];
         String? genero = b['genero'];
         
+        b['isAgeInvalid'] = false;
+        b['isGenderInvalid'] = false;
+        
         if (age != null) {
-          if (selectedTeam.edadMinima != null && age < selectedTeam.edadMinima!) return false;
-          if (selectedTeam.edadMaxima != null && age > selectedTeam.edadMaxima!) return false;
+          if (selectedTeam.edadMinima != null && age < selectedTeam.edadMinima!) b['isAgeInvalid'] = true;
+          if (selectedTeam.edadMaxima != null && age > selectedTeam.edadMaxima!) b['isAgeInvalid'] = true;
         }
 
         if (genero != null && selectedTeam.generoPermitido != null && selectedTeam.generoPermitido != 'X') {
-          if (selectedTeam.generoPermitido == 'F' && genero != 'F') return false;
-          if (selectedTeam.generoPermitido == 'V' && genero != 'M') return false;
+          if (selectedTeam.generoPermitido == 'F' && genero != 'F') b['isGenderInvalid'] = true;
+          if (selectedTeam.generoPermitido == 'V' && genero != 'M') b['isGenderInvalid'] = true;
         }
-        
-        return true;
-      }).toList();
+      }
     }
 
     return Scaffold(
@@ -479,15 +505,89 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
                         ),
                       ),
                     );
-                  }).toList(),
+                  }).toList()
+                    ..add(
+                      Container(
+                        margin: const EdgeInsets.only(bottom: AppTheme.spacingMedium),
+                        decoration: BoxDecoration(
+                          color: _isCreatingNewTeam ? Colors.deepPurple.withValues(alpha: 0.03) : Colors.white,
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                          border: Border.all(
+                            color: _isCreatingNewTeam ? Colors.deepPurple : AppTheme.neutral300,
+                            width: _isCreatingNewTeam ? 2 : 1,
+                          ),
+                          boxShadow: _isCreatingNewTeam ? [BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.1), blurRadius: 10, offset: const Offset(0, 4))] : null,
+                        ),
+                        child: InkWell(
+                          onTap: () {
+                             setState(() {
+                               _selectedTeamId = null;
+                               _isCreatingNewTeam = true;
+                               _selectedBeneficiary = null;
+                             });
+                          },
+                          borderRadius: BorderRadius.circular(AppTheme.borderRadiusGlobal),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        '+ Crear Nuevo Equipo / Alias',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: _isCreatingNewTeam ? Colors.deepPurple : AppTheme.neutral900,
+                                        )
+                                      ),
+                                    ),
+                                    Icon(
+                                      _isCreatingNewTeam ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                                      color: _isCreatingNewTeam ? Colors.deepPurple : AppTheme.neutral400,
+                                    ),
+                                  ],
+                                ),
+                                if (_isCreatingNewTeam) ...[
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: _newTeamNameController,
+                                    decoration: InputDecoration(
+                                      hintText: 'Ej. Los invencibles',
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: AppTheme.neutral300),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: AppTheme.neutral300),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(color: Colors.deepPurple),
+                                      ),
+                                    ),
+                                    onChanged: (val) => setState((){}),
+                                  ),
+                                ]
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                    ),
                 ),
 
               const SizedBox(height: AppTheme.spacingLarge),
 
               Opacity(
-                opacity: (_selectedTeamId != null && !_isEnrolling) ? 1.0 : 0.4,
+                opacity: ((_selectedTeamId != null || _isCreatingNewTeam) && !_isEnrolling) ? 1.0 : 0.4,
                 child: IgnorePointer(
-                  ignoring: _selectedTeamId == null || _isEnrolling,
+                  ignoring: (_selectedTeamId == null && !_isCreatingNewTeam) || _isEnrolling,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -661,14 +761,21 @@ class _TournamentEnrollmentViewState extends ConsumerState<TournamentEnrollmentV
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: (_selectedBeneficiary != null && _termsAccepted && _selectedTeamId != null && !_isEnrolling)
+                  onPressed: (_selectedBeneficiary != null && _termsAccepted && (_selectedTeamId != null || (_isCreatingNewTeam && _newTeamNameController.text.trim().isNotEmpty)) && !_isEnrolling)
                       ? () async {
                           setState(() => _isEnrolling = true);
                           try {
                               final String beneficiarySocioId = validBeneficiaries.firstWhere((b) => b['name'] == _selectedBeneficiary)['id'].toString();
                               final String finalName = _selectedBeneficiary!.replaceAll(' (Titular)', '');
                               
-                              await ref.read(tournamentsProvider.notifier).inscribirTorneo(widget.tournament.id, _selectedTeamId!, finalName, beneficiarySocioId, _isCaptain);
+                              await ref.read(tournamentsProvider.notifier).inscribirTorneo(
+                                widget.tournament.id, 
+                                _isCreatingNewTeam ? null : _selectedTeamId, 
+                                _isCreatingNewTeam ? _newTeamNameController.text.trim() : null,
+                                finalName, 
+                                beneficiarySocioId, 
+                                _isCaptain
+                              );
                             
                             if (mounted) {
                               ToastAlerts.showSuccess(context, 'Inscripción al torneo confirmada.');

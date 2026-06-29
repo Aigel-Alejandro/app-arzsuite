@@ -42,11 +42,12 @@ class TournamentsNotifier extends StateNotifier<AsyncValue<List<TournamentModel>
     }
   }
 
-  Future<void> inscribirTorneo(int torneoId, int torneoEquipoId, String beneficiaryName, String beneficiarySocioId, bool isCaptain) async {
+  Future<void> inscribirTorneo(int torneoId, int? torneoEquipoId, String? aliasEquipo, String beneficiaryName, String beneficiarySocioId, bool isCaptain) async {
     try {
       final response = await _apiClient.dio.post('arzsuite/torneos/inscribir', data: {
         'torneo_id': torneoId,
-        'torneo_equipo_id': torneoEquipoId,
+        if (torneoEquipoId != null) 'torneo_equipo_id': torneoEquipoId,
+        if (aliasEquipo != null) 'alias_equipo': aliasEquipo,
         'beneficiary_name': beneficiaryName,
         'beneficiary_socio_id': beneficiarySocioId,
         'is_captain': isCaptain,
