@@ -23,6 +23,9 @@ class LoginView extends ConsumerStatefulWidget {
 }
 
 class _LoginViewState extends ConsumerState<LoginView> {
+  // TOGGLE TEMPORAL: Cambiar a false para regresar al OTP de WhatsApp
+  static const bool _useTempPasswordLogin = true;
+
   final _formKey = GlobalKey<FormState>();
   final _userController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -345,13 +348,23 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 child: const Text('Ingresar con otra cuenta'),
                               ),
                             ] else ...[
-                              if (!_codeSent)
+                              if (!_codeSent && !_useTempPasswordLogin)
                                 TextFormField(
                                   controller: _userController,
                                   keyboardType: TextInputType.number,
                                   decoration: const InputDecoration(
                                     labelText: 'Membresía',
                                     helperText: 'Número de Membresía a 7 dígitos',
+                                    prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                  ),
+                                  validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                                )
+                              else if (_useTempPasswordLogin)
+                                TextFormField(
+                                  controller: _userController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Membresía o Usuario',
                                     prefixIcon: Icon(Icons.badge_outlined, size: 20),
                                   ),
                                   validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
@@ -377,30 +390,31 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 ),
                               const SizedBox(height: AppTheme.spacingMedium),
 
-                              if (_codeSent) ...[
+                              if (_codeSent || _useTempPasswordLogin) ...[
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
                                   decoration: InputDecoration(
-                                    labelText: 'Código WhatsApp',
+                                    labelText: _useTempPasswordLogin ? 'Contraseña' : 'Código WhatsApp',
                                     prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                                     suffixIcon: IconButton(
                                       icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                     ),
                                   ),
-                                  validator: (v) => v == null || v.isEmpty ? 'Introduce el código' : null,
+                                  validator: (v) => v == null || v.isEmpty ? (_useTempPasswordLogin ? 'Introduce la contraseña' : 'Introduce el código') : null,
                                 ),
                                 const SizedBox(height: AppTheme.spacingLarge),
                                   ElevatedButton(
                                     onPressed: _isLoading ? null : _handleLogin,
-                                    child: _isLoading ? const CircularProgressIndicator() : const Text('Verificar e Iniciar Sesión'),
+                                    child: _isLoading ? const CircularProgressIndicator() : const Text('Iniciar Sesión'),
                                   ),
                                   const SizedBox(height: AppTheme.spacingMedium),
-                                  TextButton(
-                                    onPressed: _isLoading ? null : _requestWhatsAppCode,
-                                    child: const Text('¿No recibiste el código? Reenviar'),
-                                  ),
+                                  if (!_useTempPasswordLogin)
+                                    TextButton(
+                                      onPressed: _isLoading ? null : _requestWhatsAppCode,
+                                      child: const Text('¿No recibiste el código? Reenviar'),
+                                    ),
                                 ] else ...[
                                 ElevatedButton(
                                   onPressed: _isLoading ? null : _requestWhatsAppCode,
