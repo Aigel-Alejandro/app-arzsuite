@@ -1,13 +1,9 @@
-import 'package:flutter/foundation.dart';
-
 /// Archivo de Constantes Estructurales para conexiones con los sistemas de Backend de CakePHP
 /// centraliza todas las validaciones de endpoints en un solo lugar.
 
 class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
-  static const String baseUrlCakePHP = kDebugMode 
-      ? "https://ecosistema-centro.ddev.site/api/" // URL Desarrollo / Pruebas Local (DDEV)
-      : "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
+  static const String baseUrlCakePHP = "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
 
   // ---------------------------------------------------------------------------
   // AUTH

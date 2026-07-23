@@ -363,9 +363,11 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 TextFormField(
                                   controller: _userController,
                                   keyboardType: TextInputType.number,
+                                  maxLength: 7,
                                   decoration: const InputDecoration(
                                     labelText: 'Membresía o Usuario',
                                     prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                    counterText: '',
                                   ),
                                   validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
                                 )
@@ -394,6 +396,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 TextFormField(
                                   controller: _passwordController,
                                   obscureText: _obscurePassword,
+                                  maxLength: 6,
                                   decoration: InputDecoration(
                                     labelText: _useTempPasswordLogin ? 'Contraseña' : 'Código WhatsApp',
                                     prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
@@ -401,6 +404,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                       icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                                     ),
+                                    counterText: '',
                                   ),
                                   validator: (v) => v == null || v.isEmpty ? (_useTempPasswordLogin ? 'Introduce la contraseña' : 'Introduce el código') : null,
                                 ),
