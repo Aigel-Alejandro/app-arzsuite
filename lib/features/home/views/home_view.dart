@@ -115,7 +115,9 @@ class HomeView extends ConsumerWidget {
                     Consumer(
                       builder: (context, ref, _) {
                         final isStaffOrInstructor = currentMember?.memberType == 'staff' || currentMember?.memberType == 'instructor' || currentMember?.memberType == 'profesor';
-                        final hasTournaments  = currentMember?.hasPermission('tournaments.dashboard') ?? false;
+                        // TODO: Cambiar a true para volver a mostrar torneos
+                        const bool isTournamentsEnabled = false;
+                        final hasTournaments  = (currentMember?.hasPermission('tournaments.dashboard') ?? false) && isTournamentsEnabled;
                         final hasSummerEnroll = (currentMember?.hasPermission('summer_course.enroll') ?? false) || (currentMember?.hasPermission('manage_family') ?? false);
                         if (!hasTournaments && !hasSummerEnroll && !isStaffOrInstructor) return const SizedBox.shrink();
 
@@ -123,9 +125,11 @@ class HomeView extends ConsumerWidget {
 
                         return activeCourseAsync.when(
                           data: (courseData) {
+                            // TODO: Cambiar a true para volver a mostrar el curso de verano
+                            const bool isSummerCourseEnabled = false;
                             final hasActiveCourse = courseData?['has_active_course'] == true;
-                            final showSummer = hasActiveCourse && hasSummerEnroll;
-                            final showQRScanner = hasActiveCourse && isStaffOrInstructor;
+                            final showSummer = hasActiveCourse && hasSummerEnroll && isSummerCourseEnabled;
+                            final showQRScanner = hasActiveCourse && isStaffOrInstructor && isSummerCourseEnabled;
                             
                             if (!showSummer && !hasTournaments && !showQRScanner) return const SizedBox.shrink();
 
@@ -352,7 +356,8 @@ class HomeView extends ConsumerWidget {
                             _AgendaWidget(currentMember: currentMember),
                           ],
                           
-                          if (currentMember?.hasPermission('dashboard.tournaments') ?? false) ...[
+                          // TODO: Cambiar a true el flag (&& false) de esta línea para volver a mostrar Mis Torneos
+                          if ((currentMember?.hasPermission('dashboard.tournaments') ?? false) && false) ...[
                             const SizedBox(height: 32),
                             Text(
                               'MIS TORNEOS',
@@ -492,9 +497,17 @@ class _AgendaWidget extends ConsumerStatefulWidget {
   @override
   ConsumerState<_AgendaWidget> createState() => _AgendaWidgetState();
 }
-
 class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
   String _selectedSocioId = 'ME'; // 'ME', 'ALL', or a specific socioId
+  DateTime? _selectedDate;
+  final ScrollController _scrollController = ScrollController();
+  bool _hasScrolledToInitial = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   Future<void> _cancelar(BuildContext context, int id, String title) async {
     final confirmed = await showDialog<bool>(
@@ -560,6 +573,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
         }
 
         final canManageFamily = (currentMember?.isTitular ?? false) || (currentMember?.hasPermission('manage_family') ?? false);
+        final canViewFamilyAgenda = canManageFamily || (currentMember?.hasPermission('dashboard.agenda.view_all') ?? false);
         final myId = currentMember?.id ?? '';
 
         // Extract unique members
@@ -572,7 +586,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
 
         // Apply filtering
         List<FamilyAgendaItem> filteredItems = items;
-        if (!canManageFamily) {
+        if (!canViewFamilyAgenda) {
           // If not manager, force ONLY own items
           filteredItems = items.where((i) => i.socioId == myId).toList();
         } else {
@@ -584,21 +598,219 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
           }
         }
 
+        // Generate next 30 days
+        final today = DateTime.now();
+        final startOfToday = DateTime(today.year, today.month, today.day);
+        final next30Days = List.generate(30, (i) => startOfToday.add(Duration(days: i)));
+
+        // Determine active date
+        DateTime activeDate = startOfToday;
+        if (_selectedDate != null) {
+          activeDate = _selectedDate!;
+        } else if (filteredItems.isNotEmpty) {
+          bool hasEventsToday = filteredItems.any((item) {
+            final eventDate = DateTime.fromMillisecondsSinceEpoch(item.timestamp * 1000);
+            return eventDate.year == activeDate.year &&
+                   eventDate.month == activeDate.month &&
+                   eventDate.day == activeDate.day;
+          });
+          if (!hasEventsToday) {
+            final closestEventDate = DateTime.fromMillisecondsSinceEpoch(filteredItems.first.timestamp * 1000);
+            activeDate = DateTime(closestEventDate.year, closestEventDate.month, closestEventDate.day);
+          }
+        }
+
+        // Filter by active date
+        filteredItems = filteredItems.where((item) {
+          final eventDate = DateTime.fromMillisecondsSinceEpoch(item.timestamp * 1000);
+          return eventDate.year == activeDate.year &&
+                 eventDate.month == activeDate.month &&
+                 eventDate.day == activeDate.day;
+        }).toList();
+
+        if (!_hasScrolledToInitial) {
+          _hasScrolledToInitial = true;
+          final index = next30Days.indexWhere((d) => d.year == activeDate.year && d.month == activeDate.month && d.day == activeDate.day);
+          if (index > 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                // width = 60, margin right = 12 => 72
+                final double offset = index * 72.0;
+                _scrollController.animateTo(
+                  offset,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              }
+            });
+          }
+        }
+
+        final monthsEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        final monthStr = '${monthsEs[activeDate.month - 1]} ${activeDate.year}';
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Filter chips (Only for Manager and if there is more than 1 member active in agenda)
-            if (canManageFamily && membersMap.length > 1) ...[
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildPremiumChip('Mis Actividades', 'ME'),
-                  _buildPremiumChip('Todos', 'ALL'),
-                  ...membersMap.entries
-                      .where((e) => e.key != myId)
-                      .map((entry) { final n = entry.value.split(' ').first; final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase(); return _buildPremiumChip(capitalized, entry.key); }),
+                  Text(
+                    monthStr.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.neutral600,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                  if (activeDate.year != today.year || activeDate.month != today.month || activeDate.day != today.day)
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedDate = startOfToday;
+                        });
+                        _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
+                      },
+                      child: Row(
+                        children: [
+                          Icon(Icons.calendar_today_rounded, size: 14, color: AppTheme.primaryColor),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Ir a hoy (${today.day} de ${monthsEs[today.month - 1]})',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                 ],
+              ),
+            ),
+            // Horizontal Calendar
+            SizedBox(
+              height: 80,
+              child: ListView.builder(
+                controller: _scrollController,
+                scrollDirection: Axis.horizontal,
+                itemCount: next30Days.length,
+                itemBuilder: (context, index) {
+                  final dayDate = next30Days[index];
+                  final isSelected = dayDate.year == activeDate.year &&
+                                     dayDate.month == activeDate.month &&
+                                     dayDate.day == activeDate.day;
+                  final isToday = index == 0;
+                  final daysEs = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+                  final dowName = daysEs[dayDate.weekday - 1];
+                  final isFirstDayOfMonth = dayDate.day == 1;
+                  final monthsEsShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                  final topLabel = isToday ? 'Hoy' : (isFirstDayOfMonth ? monthsEsShort[dayDate.month - 1] : dowName);
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedDate = dayDate;
+                      });
+                    },
+                    child: Container(
+                      width: 60,
+                      margin: const EdgeInsets.only(right: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? AppTheme.primaryColor : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
+                        ),
+                        boxShadow: isSelected
+                            ? [
+                                BoxShadow(
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                )
+                              ]
+                            : [],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            topLabel,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: isFirstDayOfMonth ? FontWeight.w900 : FontWeight.w600,
+                              color: isSelected 
+                                  ? Colors.white 
+                                  : (isFirstDayOfMonth ? AppTheme.primaryColor : Colors.grey.shade600),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            dayDate.day.toString(),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: isSelected ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // Filter chips (Only for Manager or people with permission, and if there is more than 1 member active in agenda)
+            if (canViewFamilyAgenda && membersMap.length > 1) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral800 : AppTheme.neutral200),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedSocioId,
+                    isExpanded: true,
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primaryColor),
+                    dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    style: TextStyle(
+                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.neutral800,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: 'ME',
+                        child: Text('Mis Actividades'),
+                      ),
+                      const DropdownMenuItem(
+                        value: 'ALL',
+                        child: Text('Todos los familiares'),
+                      ),
+                      ...membersMap.entries.where((e) => e.key != myId).map((entry) {
+                        final n = entry.value.split(' ').first;
+                        final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase();
+                        return DropdownMenuItem(
+                          value: entry.key,
+                          child: Text('Actividades de $capitalized'),
+                        );
+                      }),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _selectedSocioId = val);
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
             ],
@@ -652,34 +864,6 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
     );
   }
 
-  Widget _buildPremiumChip(String label, String id) {
-    final isSelected = _selectedSocioId == id;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return ChoiceChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-          fontSize: 14,
-          color: isSelected ? Colors.white : (isDark ? AppTheme.neutral300 : AppTheme.neutral700),
-        ),
-      ),
-      selected: isSelected,
-      showCheckmark: false,
-      backgroundColor: isDark ? AppTheme.neutral900 : Colors.white,
-      selectedColor: AppTheme.primaryColor,
-      side: BorderSide(
-        color: isSelected ? AppTheme.primaryColor : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
-        width: 1.5,
-      ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-      onSelected: (bool selected) {
-        if (selected) setState(() => _selectedSocioId = id);
-      },
-    );
-  }
 
   Color _parseColor(String? hex) {
     if (hex == null || hex.isEmpty) return AppTheme.primaryColor;
@@ -732,139 +916,149 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
     VoidCallback? onCancel,
   }) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isDark ? AppTheme.neutral900 : Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: isDark ? AppTheme.neutral800 : AppTheme.neutral200),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        border: Border.all(color: isDark ? AppTheme.neutral800 : color.withValues(alpha: 0.15)),
       ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Time Sidebar
-            Container(
-              width: 80,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.05),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  bottomLeft: Radius.circular(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
                 ),
+                child: Icon(icon, color: color, size: 24),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    time,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 16,
-                      height: 1.2,
-                      color: isDark ? Colors.white : AppTheme.neutral900,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '$duration hrs',
-                    style: TextStyle(fontWeight: FontWeight.w600, fontSize: 11, color: AppTheme.neutral500),
-                  ),
-                ],
-              ),
-            ),
-            // Divider
-            Container(width: 4, color: color),
-            // Content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              const SizedBox(width: 16),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Icon(icon, size: 16, color: color),
-                        ),
-                        const SizedBox(width: 6),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Wrap(
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8,
                             children: [
                               Text(
                                 title,
                                 style: TextStyle(
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 15,
-                                  height: 1.2,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
                                   color: isDark ? Colors.white : AppTheme.neutral900,
+                                  letterSpacing: 0.2,
                                 ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
                               ),
+                              if (isMatch)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.redAccent.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Text('OFICIAL', style: TextStyle(fontSize: 9, fontWeight: FontWeight.w800, color: Colors.redAccent, letterSpacing: 0.5)),
+                                ),
                             ],
                           ),
                         ),
+                        if (onCancel != null)
+                          GestureDetector(
+                            onTap: onCancel,
+                            child: const Padding(
+                              padding: EdgeInsets.only(left: 8.0, bottom: 4.0),
+                              child: Icon(Icons.cancel_outlined, color: Colors.redAccent, size: 22),
+                            ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(fontSize: 12, color: AppTheme.neutral500),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        if (person.isNotEmpty) ...[
-                          CircleAvatar(
-                            radius: 12,
-                            backgroundColor: AppTheme.neutral100,
-                            child: const Icon(Icons.person, size: 14, color: AppTheme.neutral500),
+                        Icon(Icons.location_on_rounded, size: 14, color: AppTheme.neutral400),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            subtitle,
+                            style: TextStyle(fontSize: 13, color: AppTheme.neutral500, fontWeight: FontWeight.w500),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              person,
-                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, height: 1.2, color: isDark ? AppTheme.neutral300 : AppTheme.neutral700),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ] else
-                          const Spacer(),
-                        if (isMatch) const SizedBox(width: 8),
-                        if (isMatch)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.redAccent.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text('OFICIAL', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Colors.redAccent, letterSpacing: 0.5)),
-                          ),
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Bottom section with time and person
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppTheme.neutral800 : AppTheme.neutral50,
+              borderRadius: BorderRadius.circular(12),
             ),
-            if (onCancel != null)
-              Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.only(right: 8),
-                child: IconButton(
-                  icon: const Icon(Icons.cancel_outlined, color: Colors.redAccent),
-                  onPressed: onCancel,
-                  tooltip: 'Cancelar reserva',
+            child: Row(
+              children: [
+                // Time
+                Icon(Icons.access_time_rounded, size: 16, color: color),
+                const SizedBox(width: 6),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    time.replaceAll('\n', ' • ') + ' ($duration hrs)', 
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                      color: isDark ? Colors.white : AppTheme.neutral800,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-              ),
-          ],
-        ),
+                // Person
+                if (person.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 4,
+                    child: Text(
+                      person,
+                      style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppTheme.neutral600),
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: AppTheme.neutral200,
+                    child: const Icon(Icons.person, size: 14, color: AppTheme.neutral600),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

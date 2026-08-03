@@ -7,16 +7,16 @@ part of 'guest.dart';
 // **************************************************************************
 
 _$GuestImpl _$$GuestImplFromJson(Map<String, dynamic> json) => _$GuestImpl(
-  firstName: json['firstName'] as String,
-  lastName: json['lastName'] as String,
-  secondLastName: json['secondLastName'] as String?,
-  email: json['email'] as String,
-  phone: json['phone'] as String,
-  birthDate: json['birthDate'] as String?,
-  relationship: json['relationship'] as String,
-  titularMembershipNumber: json['titularMembershipNumber'] as String,
-  rfc: json['rfc'] as String,
-);
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String,
+      secondLastName: json['secondLastName'] as String?,
+      email: json['email'] as String,
+      phone: json['phone'] as String,
+      birthDate: json['birthDate'] as String?,
+      relationship: json['relationship'] as String,
+      titularMembershipNumber: json['titularMembershipNumber'] as String,
+      rfc: json['rfc'] as String,
+    );
 
 Map<String, dynamic> _$$GuestImplToJson(_$GuestImpl instance) =>
     <String, dynamic>{

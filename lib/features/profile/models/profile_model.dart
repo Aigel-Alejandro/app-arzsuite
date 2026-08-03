@@ -31,6 +31,7 @@ class ProfileModel with _$ProfileModel {
     @JsonKey(name: 'associated_members') @Default([]) List<SubMemberModel> associatedMembers,
     @JsonKey(name: 'legal_beneficiaries') @Default([]) List<Map<String, dynamic>> legalBeneficiaries,
     @JsonKey(name: 'vehicles') @Default([]) List<Map<String, dynamic>> vehicles,
+    @JsonKey(name: 'club_access') @Default([]) List<int> clubAccess,
   }) = _ProfileModel;
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) =>

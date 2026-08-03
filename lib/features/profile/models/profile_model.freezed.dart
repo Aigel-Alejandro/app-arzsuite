@@ -12,8 +12,7 @@ part of 'profile_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ProfileModel _$ProfileModelFromJson(Map<String, dynamic> json) {
   return _ProfileModel.fromJson(json);
@@ -57,6 +56,8 @@ mixin _$ProfileModel {
       throw _privateConstructorUsedError;
   @JsonKey(name: 'vehicles')
   List<Map<String, dynamic>> get vehicles => throw _privateConstructorUsedError;
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess => throw _privateConstructorUsedError;
 
   /// Serializes this ProfileModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -71,35 +72,35 @@ mixin _$ProfileModel {
 /// @nodoc
 abstract class $ProfileModelCopyWith<$Res> {
   factory $ProfileModelCopyWith(
-    ProfileModel value,
-    $Res Function(ProfileModel) then,
-  ) = _$ProfileModelCopyWithImpl<$Res, ProfileModel>;
+          ProfileModel value, $Res Function(ProfileModel) then) =
+      _$ProfileModelCopyWithImpl<$Res, ProfileModel>;
   @useResult
-  $Res call({
-    String id,
-    String entityid,
-    String fullname,
-    @JsonKey(name: 'first_name') String? firstName,
-    @JsonKey(name: 'last_name') String? lastName,
-    String? email,
-    String? phone,
-    String? rfc,
-    String? curp,
-    String? address,
-    @JsonKey(name: 'birth_date') String? birthDate,
-    int? age,
-    String? genero,
-    @JsonKey(name: 'profile_picture') String? profilePicture,
-    @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
-    @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
-    @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
-    @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
-    ProfileSettingsModel settings,
-    @JsonKey(name: 'associated_members') List<SubMemberModel> associatedMembers,
-    @JsonKey(name: 'legal_beneficiaries')
-    List<Map<String, dynamic>> legalBeneficiaries,
-    @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
-  });
+  $Res call(
+      {String id,
+      String entityid,
+      String fullname,
+      @JsonKey(name: 'first_name') String? firstName,
+      @JsonKey(name: 'last_name') String? lastName,
+      String? email,
+      String? phone,
+      String? rfc,
+      String? curp,
+      String? address,
+      @JsonKey(name: 'birth_date') String? birthDate,
+      int? age,
+      String? genero,
+      @JsonKey(name: 'profile_picture') String? profilePicture,
+      @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
+      @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
+      @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
+      @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
+      ProfileSettingsModel settings,
+      @JsonKey(name: 'associated_members')
+      List<SubMemberModel> associatedMembers,
+      @JsonKey(name: 'legal_beneficiaries')
+      List<Map<String, dynamic>> legalBeneficiaries,
+      @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
+      @JsonKey(name: 'club_access') List<int> clubAccess});
 
   $ProfileSettingsModelCopyWith<$Res> get settings;
 }
@@ -141,100 +142,102 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
     Object? associatedMembers = null,
     Object? legalBeneficiaries = null,
     Object? vehicles = null,
+    Object? clubAccess = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            entityid: null == entityid
-                ? _value.entityid
-                : entityid // ignore: cast_nullable_to_non_nullable
-                      as String,
-            fullname: null == fullname
-                ? _value.fullname
-                : fullname // ignore: cast_nullable_to_non_nullable
-                      as String,
-            firstName: freezed == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastName: freezed == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phone: freezed == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            rfc: freezed == rfc
-                ? _value.rfc
-                : rfc // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            curp: freezed == curp
-                ? _value.curp
-                : curp // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            address: freezed == address
-                ? _value.address
-                : address // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            birthDate: freezed == birthDate
-                ? _value.birthDate
-                : birthDate // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            age: freezed == age
-                ? _value.age
-                : age // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            genero: freezed == genero
-                ? _value.genero
-                : genero // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            profilePicture: freezed == profilePicture
-                ? _value.profilePicture
-                : profilePicture // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            patrimonialConditionId: freezed == patrimonialConditionId
-                ? _value.patrimonialConditionId
-                : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            canEditSensitiveData: null == canEditSensitiveData
-                ? _value.canEditSensitiveData
-                : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            personalAddress: freezed == personalAddress
-                ? _value.personalAddress
-                : personalAddress // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>?,
-            fiscalData: freezed == fiscalData
-                ? _value.fiscalData
-                : fiscalData // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>?,
-            settings: null == settings
-                ? _value.settings
-                : settings // ignore: cast_nullable_to_non_nullable
-                      as ProfileSettingsModel,
-            associatedMembers: null == associatedMembers
-                ? _value.associatedMembers
-                : associatedMembers // ignore: cast_nullable_to_non_nullable
-                      as List<SubMemberModel>,
-            legalBeneficiaries: null == legalBeneficiaries
-                ? _value.legalBeneficiaries
-                : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
-                      as List<Map<String, dynamic>>,
-            vehicles: null == vehicles
-                ? _value.vehicles
-                : vehicles // ignore: cast_nullable_to_non_nullable
-                      as List<Map<String, dynamic>>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      entityid: null == entityid
+          ? _value.entityid
+          : entityid // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullname: null == fullname
+          ? _value.fullname
+          : fullname // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      rfc: freezed == rfc
+          ? _value.rfc
+          : rfc // ignore: cast_nullable_to_non_nullable
+              as String?,
+      curp: freezed == curp
+          ? _value.curp
+          : curp // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      genero: freezed == genero
+          ? _value.genero
+          : genero // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePicture: freezed == profilePicture
+          ? _value.profilePicture
+          : profilePicture // ignore: cast_nullable_to_non_nullable
+              as String?,
+      patrimonialConditionId: freezed == patrimonialConditionId
+          ? _value.patrimonialConditionId
+          : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      canEditSensitiveData: null == canEditSensitiveData
+          ? _value.canEditSensitiveData
+          : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
+              as bool,
+      personalAddress: freezed == personalAddress
+          ? _value.personalAddress
+          : personalAddress // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      fiscalData: freezed == fiscalData
+          ? _value.fiscalData
+          : fiscalData // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      settings: null == settings
+          ? _value.settings
+          : settings // ignore: cast_nullable_to_non_nullable
+              as ProfileSettingsModel,
+      associatedMembers: null == associatedMembers
+          ? _value.associatedMembers
+          : associatedMembers // ignore: cast_nullable_to_non_nullable
+              as List<SubMemberModel>,
+      legalBeneficiaries: null == legalBeneficiaries
+          ? _value.legalBeneficiaries
+          : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
+      vehicles: null == vehicles
+          ? _value.vehicles
+          : vehicles // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
+      clubAccess: null == clubAccess
+          ? _value.clubAccess
+          : clubAccess // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+    ) as $Val);
   }
 
   /// Create a copy of ProfileModel
@@ -252,36 +255,36 @@ class _$ProfileModelCopyWithImpl<$Res, $Val extends ProfileModel>
 abstract class _$$ProfileModelImplCopyWith<$Res>
     implements $ProfileModelCopyWith<$Res> {
   factory _$$ProfileModelImplCopyWith(
-    _$ProfileModelImpl value,
-    $Res Function(_$ProfileModelImpl) then,
-  ) = __$$ProfileModelImplCopyWithImpl<$Res>;
+          _$ProfileModelImpl value, $Res Function(_$ProfileModelImpl) then) =
+      __$$ProfileModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    String entityid,
-    String fullname,
-    @JsonKey(name: 'first_name') String? firstName,
-    @JsonKey(name: 'last_name') String? lastName,
-    String? email,
-    String? phone,
-    String? rfc,
-    String? curp,
-    String? address,
-    @JsonKey(name: 'birth_date') String? birthDate,
-    int? age,
-    String? genero,
-    @JsonKey(name: 'profile_picture') String? profilePicture,
-    @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
-    @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
-    @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
-    @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
-    ProfileSettingsModel settings,
-    @JsonKey(name: 'associated_members') List<SubMemberModel> associatedMembers,
-    @JsonKey(name: 'legal_beneficiaries')
-    List<Map<String, dynamic>> legalBeneficiaries,
-    @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
-  });
+  $Res call(
+      {String id,
+      String entityid,
+      String fullname,
+      @JsonKey(name: 'first_name') String? firstName,
+      @JsonKey(name: 'last_name') String? lastName,
+      String? email,
+      String? phone,
+      String? rfc,
+      String? curp,
+      String? address,
+      @JsonKey(name: 'birth_date') String? birthDate,
+      int? age,
+      String? genero,
+      @JsonKey(name: 'profile_picture') String? profilePicture,
+      @JsonKey(name: 'patrimonial_condition_id') int? patrimonialConditionId,
+      @JsonKey(name: 'can_edit_sensitive_data') bool canEditSensitiveData,
+      @JsonKey(name: 'personal_address') Map<String, dynamic>? personalAddress,
+      @JsonKey(name: 'fiscal_data') Map<String, dynamic>? fiscalData,
+      ProfileSettingsModel settings,
+      @JsonKey(name: 'associated_members')
+      List<SubMemberModel> associatedMembers,
+      @JsonKey(name: 'legal_beneficiaries')
+      List<Map<String, dynamic>> legalBeneficiaries,
+      @JsonKey(name: 'vehicles') List<Map<String, dynamic>> vehicles,
+      @JsonKey(name: 'club_access') List<int> clubAccess});
 
   @override
   $ProfileSettingsModelCopyWith<$Res> get settings;
@@ -292,9 +295,8 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     extends _$ProfileModelCopyWithImpl<$Res, _$ProfileModelImpl>
     implements _$$ProfileModelImplCopyWith<$Res> {
   __$$ProfileModelImplCopyWithImpl(
-    _$ProfileModelImpl _value,
-    $Res Function(_$ProfileModelImpl) _then,
-  ) : super(_value, _then);
+      _$ProfileModelImpl _value, $Res Function(_$ProfileModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.
@@ -323,137 +325,143 @@ class __$$ProfileModelImplCopyWithImpl<$Res>
     Object? associatedMembers = null,
     Object? legalBeneficiaries = null,
     Object? vehicles = null,
+    Object? clubAccess = null,
   }) {
-    return _then(
-      _$ProfileModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        entityid: null == entityid
-            ? _value.entityid
-            : entityid // ignore: cast_nullable_to_non_nullable
-                  as String,
-        fullname: null == fullname
-            ? _value.fullname
-            : fullname // ignore: cast_nullable_to_non_nullable
-                  as String,
-        firstName: freezed == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastName: freezed == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phone: freezed == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        rfc: freezed == rfc
-            ? _value.rfc
-            : rfc // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        curp: freezed == curp
-            ? _value.curp
-            : curp // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        address: freezed == address
-            ? _value.address
-            : address // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        birthDate: freezed == birthDate
-            ? _value.birthDate
-            : birthDate // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        age: freezed == age
-            ? _value.age
-            : age // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        genero: freezed == genero
-            ? _value.genero
-            : genero // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        profilePicture: freezed == profilePicture
-            ? _value.profilePicture
-            : profilePicture // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        patrimonialConditionId: freezed == patrimonialConditionId
-            ? _value.patrimonialConditionId
-            : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        canEditSensitiveData: null == canEditSensitiveData
-            ? _value.canEditSensitiveData
-            : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        personalAddress: freezed == personalAddress
-            ? _value._personalAddress
-            : personalAddress // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>?,
-        fiscalData: freezed == fiscalData
-            ? _value._fiscalData
-            : fiscalData // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>?,
-        settings: null == settings
-            ? _value.settings
-            : settings // ignore: cast_nullable_to_non_nullable
-                  as ProfileSettingsModel,
-        associatedMembers: null == associatedMembers
-            ? _value._associatedMembers
-            : associatedMembers // ignore: cast_nullable_to_non_nullable
-                  as List<SubMemberModel>,
-        legalBeneficiaries: null == legalBeneficiaries
-            ? _value._legalBeneficiaries
-            : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
-                  as List<Map<String, dynamic>>,
-        vehicles: null == vehicles
-            ? _value._vehicles
-            : vehicles // ignore: cast_nullable_to_non_nullable
-                  as List<Map<String, dynamic>>,
-      ),
-    );
+    return _then(_$ProfileModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      entityid: null == entityid
+          ? _value.entityid
+          : entityid // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullname: null == fullname
+          ? _value.fullname
+          : fullname // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      rfc: freezed == rfc
+          ? _value.rfc
+          : rfc // ignore: cast_nullable_to_non_nullable
+              as String?,
+      curp: freezed == curp
+          ? _value.curp
+          : curp // ignore: cast_nullable_to_non_nullable
+              as String?,
+      address: freezed == address
+          ? _value.address
+          : address // ignore: cast_nullable_to_non_nullable
+              as String?,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      genero: freezed == genero
+          ? _value.genero
+          : genero // ignore: cast_nullable_to_non_nullable
+              as String?,
+      profilePicture: freezed == profilePicture
+          ? _value.profilePicture
+          : profilePicture // ignore: cast_nullable_to_non_nullable
+              as String?,
+      patrimonialConditionId: freezed == patrimonialConditionId
+          ? _value.patrimonialConditionId
+          : patrimonialConditionId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      canEditSensitiveData: null == canEditSensitiveData
+          ? _value.canEditSensitiveData
+          : canEditSensitiveData // ignore: cast_nullable_to_non_nullable
+              as bool,
+      personalAddress: freezed == personalAddress
+          ? _value._personalAddress
+          : personalAddress // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      fiscalData: freezed == fiscalData
+          ? _value._fiscalData
+          : fiscalData // ignore: cast_nullable_to_non_nullable
+              as Map<String, dynamic>?,
+      settings: null == settings
+          ? _value.settings
+          : settings // ignore: cast_nullable_to_non_nullable
+              as ProfileSettingsModel,
+      associatedMembers: null == associatedMembers
+          ? _value._associatedMembers
+          : associatedMembers // ignore: cast_nullable_to_non_nullable
+              as List<SubMemberModel>,
+      legalBeneficiaries: null == legalBeneficiaries
+          ? _value._legalBeneficiaries
+          : legalBeneficiaries // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
+      vehicles: null == vehicles
+          ? _value._vehicles
+          : vehicles // ignore: cast_nullable_to_non_nullable
+              as List<Map<String, dynamic>>,
+      clubAccess: null == clubAccess
+          ? _value._clubAccess
+          : clubAccess // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProfileModelImpl implements _ProfileModel {
-  const _$ProfileModelImpl({
-    required this.id,
-    required this.entityid,
-    required this.fullname,
-    @JsonKey(name: 'first_name') this.firstName,
-    @JsonKey(name: 'last_name') this.lastName,
-    this.email,
-    this.phone,
-    this.rfc,
-    this.curp,
-    this.address,
-    @JsonKey(name: 'birth_date') this.birthDate,
-    this.age,
-    this.genero,
-    @JsonKey(name: 'profile_picture') this.profilePicture,
-    @JsonKey(name: 'patrimonial_condition_id') this.patrimonialConditionId,
-    @JsonKey(name: 'can_edit_sensitive_data') this.canEditSensitiveData = false,
-    @JsonKey(name: 'personal_address')
-    final Map<String, dynamic>? personalAddress,
-    @JsonKey(name: 'fiscal_data') final Map<String, dynamic>? fiscalData,
-    required this.settings,
-    @JsonKey(name: 'associated_members')
-    final List<SubMemberModel> associatedMembers = const [],
-    @JsonKey(name: 'legal_beneficiaries')
-    final List<Map<String, dynamic>> legalBeneficiaries = const [],
-    @JsonKey(name: 'vehicles')
-    final List<Map<String, dynamic>> vehicles = const [],
-  }) : _personalAddress = personalAddress,
-       _fiscalData = fiscalData,
-       _associatedMembers = associatedMembers,
-       _legalBeneficiaries = legalBeneficiaries,
-       _vehicles = vehicles;
+  const _$ProfileModelImpl(
+      {required this.id,
+      required this.entityid,
+      required this.fullname,
+      @JsonKey(name: 'first_name') this.firstName,
+      @JsonKey(name: 'last_name') this.lastName,
+      this.email,
+      this.phone,
+      this.rfc,
+      this.curp,
+      this.address,
+      @JsonKey(name: 'birth_date') this.birthDate,
+      this.age,
+      this.genero,
+      @JsonKey(name: 'profile_picture') this.profilePicture,
+      @JsonKey(name: 'patrimonial_condition_id') this.patrimonialConditionId,
+      @JsonKey(name: 'can_edit_sensitive_data')
+      this.canEditSensitiveData = false,
+      @JsonKey(name: 'personal_address')
+      final Map<String, dynamic>? personalAddress,
+      @JsonKey(name: 'fiscal_data') final Map<String, dynamic>? fiscalData,
+      required this.settings,
+      @JsonKey(name: 'associated_members')
+      final List<SubMemberModel> associatedMembers = const [],
+      @JsonKey(name: 'legal_beneficiaries')
+      final List<Map<String, dynamic>> legalBeneficiaries = const [],
+      @JsonKey(name: 'vehicles')
+      final List<Map<String, dynamic>> vehicles = const [],
+      @JsonKey(name: 'club_access') final List<int> clubAccess = const []})
+      : _personalAddress = personalAddress,
+        _fiscalData = fiscalData,
+        _associatedMembers = associatedMembers,
+        _legalBeneficiaries = legalBeneficiaries,
+        _vehicles = vehicles,
+        _clubAccess = clubAccess;
 
   factory _$ProfileModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileModelImplFromJson(json);
@@ -549,9 +557,18 @@ class _$ProfileModelImpl implements _ProfileModel {
     return EqualUnmodifiableListView(_vehicles);
   }
 
+  final List<int> _clubAccess;
+  @override
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess {
+    if (_clubAccess is EqualUnmodifiableListView) return _clubAccess;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_clubAccess);
+  }
+
   @override
   String toString() {
-    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, birthDate: $birthDate, age: $age, genero: $genero, profilePicture: $profilePicture, patrimonialConditionId: $patrimonialConditionId, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers, legalBeneficiaries: $legalBeneficiaries, vehicles: $vehicles)';
+    return 'ProfileModel(id: $id, entityid: $entityid, fullname: $fullname, firstName: $firstName, lastName: $lastName, email: $email, phone: $phone, rfc: $rfc, curp: $curp, address: $address, birthDate: $birthDate, age: $age, genero: $genero, profilePicture: $profilePicture, patrimonialConditionId: $patrimonialConditionId, canEditSensitiveData: $canEditSensitiveData, personalAddress: $personalAddress, fiscalData: $fiscalData, settings: $settings, associatedMembers: $associatedMembers, legalBeneficiaries: $legalBeneficiaries, vehicles: $vehicles, clubAccess: $clubAccess)';
   }
 
   @override
@@ -583,54 +600,49 @@ class _$ProfileModelImpl implements _ProfileModel {
                 other.patrimonialConditionId == patrimonialConditionId) &&
             (identical(other.canEditSensitiveData, canEditSensitiveData) ||
                 other.canEditSensitiveData == canEditSensitiveData) &&
-            const DeepCollectionEquality().equals(
-              other._personalAddress,
-              _personalAddress,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._fiscalData,
-              _fiscalData,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._personalAddress, _personalAddress) &&
+            const DeepCollectionEquality()
+                .equals(other._fiscalData, _fiscalData) &&
             (identical(other.settings, settings) ||
                 other.settings == settings) &&
-            const DeepCollectionEquality().equals(
-              other._associatedMembers,
-              _associatedMembers,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._legalBeneficiaries,
-              _legalBeneficiaries,
-            ) &&
-            const DeepCollectionEquality().equals(other._vehicles, _vehicles));
+            const DeepCollectionEquality()
+                .equals(other._associatedMembers, _associatedMembers) &&
+            const DeepCollectionEquality()
+                .equals(other._legalBeneficiaries, _legalBeneficiaries) &&
+            const DeepCollectionEquality().equals(other._vehicles, _vehicles) &&
+            const DeepCollectionEquality()
+                .equals(other._clubAccess, _clubAccess));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
-    runtimeType,
-    id,
-    entityid,
-    fullname,
-    firstName,
-    lastName,
-    email,
-    phone,
-    rfc,
-    curp,
-    address,
-    birthDate,
-    age,
-    genero,
-    profilePicture,
-    patrimonialConditionId,
-    canEditSensitiveData,
-    const DeepCollectionEquality().hash(_personalAddress),
-    const DeepCollectionEquality().hash(_fiscalData),
-    settings,
-    const DeepCollectionEquality().hash(_associatedMembers),
-    const DeepCollectionEquality().hash(_legalBeneficiaries),
-    const DeepCollectionEquality().hash(_vehicles),
-  ]);
+        runtimeType,
+        id,
+        entityid,
+        fullname,
+        firstName,
+        lastName,
+        email,
+        phone,
+        rfc,
+        curp,
+        address,
+        birthDate,
+        age,
+        genero,
+        profilePicture,
+        patrimonialConditionId,
+        canEditSensitiveData,
+        const DeepCollectionEquality().hash(_personalAddress),
+        const DeepCollectionEquality().hash(_fiscalData),
+        settings,
+        const DeepCollectionEquality().hash(_associatedMembers),
+        const DeepCollectionEquality().hash(_legalBeneficiaries),
+        const DeepCollectionEquality().hash(_vehicles),
+        const DeepCollectionEquality().hash(_clubAccess)
+      ]);
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.
@@ -642,39 +654,42 @@ class _$ProfileModelImpl implements _ProfileModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProfileModelImplToJson(this);
+    return _$$ProfileModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProfileModel implements ProfileModel {
-  const factory _ProfileModel({
-    required final String id,
-    required final String entityid,
-    required final String fullname,
-    @JsonKey(name: 'first_name') final String? firstName,
-    @JsonKey(name: 'last_name') final String? lastName,
-    final String? email,
-    final String? phone,
-    final String? rfc,
-    final String? curp,
-    final String? address,
-    @JsonKey(name: 'birth_date') final String? birthDate,
-    final int? age,
-    final String? genero,
-    @JsonKey(name: 'profile_picture') final String? profilePicture,
-    @JsonKey(name: 'patrimonial_condition_id')
-    final int? patrimonialConditionId,
-    @JsonKey(name: 'can_edit_sensitive_data') final bool canEditSensitiveData,
-    @JsonKey(name: 'personal_address')
-    final Map<String, dynamic>? personalAddress,
-    @JsonKey(name: 'fiscal_data') final Map<String, dynamic>? fiscalData,
-    required final ProfileSettingsModel settings,
-    @JsonKey(name: 'associated_members')
-    final List<SubMemberModel> associatedMembers,
-    @JsonKey(name: 'legal_beneficiaries')
-    final List<Map<String, dynamic>> legalBeneficiaries,
-    @JsonKey(name: 'vehicles') final List<Map<String, dynamic>> vehicles,
-  }) = _$ProfileModelImpl;
+  const factory _ProfileModel(
+      {required final String id,
+      required final String entityid,
+      required final String fullname,
+      @JsonKey(name: 'first_name') final String? firstName,
+      @JsonKey(name: 'last_name') final String? lastName,
+      final String? email,
+      final String? phone,
+      final String? rfc,
+      final String? curp,
+      final String? address,
+      @JsonKey(name: 'birth_date') final String? birthDate,
+      final int? age,
+      final String? genero,
+      @JsonKey(name: 'profile_picture') final String? profilePicture,
+      @JsonKey(name: 'patrimonial_condition_id')
+      final int? patrimonialConditionId,
+      @JsonKey(name: 'can_edit_sensitive_data') final bool canEditSensitiveData,
+      @JsonKey(name: 'personal_address')
+      final Map<String, dynamic>? personalAddress,
+      @JsonKey(name: 'fiscal_data') final Map<String, dynamic>? fiscalData,
+      required final ProfileSettingsModel settings,
+      @JsonKey(name: 'associated_members')
+      final List<SubMemberModel> associatedMembers,
+      @JsonKey(name: 'legal_beneficiaries')
+      final List<Map<String, dynamic>> legalBeneficiaries,
+      @JsonKey(name: 'vehicles') final List<Map<String, dynamic>> vehicles,
+      @JsonKey(name: 'club_access')
+      final List<int> clubAccess}) = _$ProfileModelImpl;
 
   factory _ProfileModel.fromJson(Map<String, dynamic> json) =
       _$ProfileModelImpl.fromJson;
@@ -734,6 +749,9 @@ abstract class _ProfileModel implements ProfileModel {
   @override
   @JsonKey(name: 'vehicles')
   List<Map<String, dynamic>> get vehicles;
+  @override
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess;
 
   /// Create a copy of ProfileModel
   /// with the given fields replaced by the non-null parameter values.

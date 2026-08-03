@@ -24,7 +24,7 @@ class LoginView extends ConsumerStatefulWidget {
 
 class _LoginViewState extends ConsumerState<LoginView> {
   // TOGGLE TEMPORAL: Cambiar a false para regresar al OTP de WhatsApp
-  static const bool _useTempPasswordLogin = true;
+  static const bool _useTempPasswordLogin = false;
 
   final _formKey = GlobalKey<FormState>();
   final _userController = TextEditingController();
@@ -165,6 +165,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
         String? mockCode;
         if (response.data is Map && response.data['data'] != null && response.data['data']['mock_code'] != null) {
           mockCode = response.data['data']['mock_code'].toString();
+          debugPrint('WhatsApp OTP MOCK CODE: $mockCode');
           // Eliminado `codeMsg += ' (Código: $mockCode)';` para no revelarlo en el UI
         }
         
@@ -352,10 +353,12 @@ class _LoginViewState extends ConsumerState<LoginView> {
                                 TextFormField(
                                   controller: _userController,
                                   keyboardType: TextInputType.number,
+                                  maxLength: 7,
                                   decoration: const InputDecoration(
                                     labelText: 'Membresía',
                                     helperText: 'Número de Membresía a 7 dígitos',
                                     prefixIcon: Icon(Icons.badge_outlined, size: 20),
+                                    counterText: '',
                                   ),
                                   validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
                                 )

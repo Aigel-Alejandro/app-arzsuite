@@ -3,7 +3,7 @@
 
 class ApiEndpoints {
   // URLs Globales (Depende del ambiente de la app ej. Dev, Prod)
-  static const String baseUrlCakePHP = "https://arzsuite.centrolibanes.org.mx/api/"; // URL Producción
+  static const String baseUrlCakePHP = "https://ecosistema-centro.ddev.site/api/"; // URL Local DDEV
 
   // ---------------------------------------------------------------------------
   // AUTH

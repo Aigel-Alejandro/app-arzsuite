@@ -19,6 +19,7 @@ class Member with _$Member {
     String? token,
     @Default([]) List<String> permissions,
     int? age,
+    @Default(false) bool hasAcceptedTerms,
   }) = _Member;
 
   factory Member.fromJson(Map<String, dynamic> json) => _$MemberFromJson(json);

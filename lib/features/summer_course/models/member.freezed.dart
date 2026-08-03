@@ -12,8 +12,7 @@ part of 'member.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Member _$MemberFromJson(Map<String, dynamic> json) {
   return _Member.fromJson(json);
@@ -37,6 +36,7 @@ mixin _$Member {
   String? get token => throw _privateConstructorUsedError;
   List<String> get permissions => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
+  bool get hasAcceptedTerms => throw _privateConstructorUsedError;
 
   /// Serializes this Member to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,21 +52,21 @@ abstract class $MemberCopyWith<$Res> {
   factory $MemberCopyWith(Member value, $Res Function(Member) then) =
       _$MemberCopyWithImpl<$Res, Member>;
   @useResult
-  $Res call({
-    String id,
-    String membershipNumber,
-    String firstName,
-    String lastName,
-    String? secondLastName,
-    String memberType,
-    bool isTitular,
-    String? photoUrl,
-    String? email,
-    String? phone,
-    String? token,
-    List<String> permissions,
-    int? age,
-  });
+  $Res call(
+      {String id,
+      String membershipNumber,
+      String firstName,
+      String lastName,
+      String? secondLastName,
+      String memberType,
+      bool isTitular,
+      String? photoUrl,
+      String? email,
+      String? phone,
+      String? token,
+      List<String> permissions,
+      int? age,
+      bool hasAcceptedTerms});
 }
 
 /// @nodoc
@@ -97,90 +97,91 @@ class _$MemberCopyWithImpl<$Res, $Val extends Member>
     Object? token = freezed,
     Object? permissions = null,
     Object? age = freezed,
+    Object? hasAcceptedTerms = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            membershipNumber: null == membershipNumber
-                ? _value.membershipNumber
-                : membershipNumber // ignore: cast_nullable_to_non_nullable
-                      as String,
-            firstName: null == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            lastName: null == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            secondLastName: freezed == secondLastName
-                ? _value.secondLastName
-                : secondLastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            memberType: null == memberType
-                ? _value.memberType
-                : memberType // ignore: cast_nullable_to_non_nullable
-                      as String,
-            isTitular: null == isTitular
-                ? _value.isTitular
-                : isTitular // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            photoUrl: freezed == photoUrl
-                ? _value.photoUrl
-                : photoUrl // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: freezed == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            phone: freezed == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            token: freezed == token
-                ? _value.token
-                : token // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            permissions: null == permissions
-                ? _value.permissions
-                : permissions // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
-            age: freezed == age
-                ? _value.age
-                : age // ignore: cast_nullable_to_non_nullable
-                      as int?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      membershipNumber: null == membershipNumber
+          ? _value.membershipNumber
+          : membershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      secondLastName: freezed == secondLastName
+          ? _value.secondLastName
+          : secondLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      memberType: null == memberType
+          ? _value.memberType
+          : memberType // ignore: cast_nullable_to_non_nullable
+              as String,
+      isTitular: null == isTitular
+          ? _value.isTitular
+          : isTitular // ignore: cast_nullable_to_non_nullable
+              as bool,
+      photoUrl: freezed == photoUrl
+          ? _value.photoUrl
+          : photoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      token: freezed == token
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String?,
+      permissions: null == permissions
+          ? _value.permissions
+          : permissions // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      hasAcceptedTerms: null == hasAcceptedTerms
+          ? _value.hasAcceptedTerms
+          : hasAcceptedTerms // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$MemberImplCopyWith<$Res> implements $MemberCopyWith<$Res> {
   factory _$$MemberImplCopyWith(
-    _$MemberImpl value,
-    $Res Function(_$MemberImpl) then,
-  ) = __$$MemberImplCopyWithImpl<$Res>;
+          _$MemberImpl value, $Res Function(_$MemberImpl) then) =
+      __$$MemberImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    String membershipNumber,
-    String firstName,
-    String lastName,
-    String? secondLastName,
-    String memberType,
-    bool isTitular,
-    String? photoUrl,
-    String? email,
-    String? phone,
-    String? token,
-    List<String> permissions,
-    int? age,
-  });
+  $Res call(
+      {String id,
+      String membershipNumber,
+      String firstName,
+      String lastName,
+      String? secondLastName,
+      String memberType,
+      bool isTitular,
+      String? photoUrl,
+      String? email,
+      String? phone,
+      String? token,
+      List<String> permissions,
+      int? age,
+      bool hasAcceptedTerms});
 }
 
 /// @nodoc
@@ -188,9 +189,8 @@ class __$$MemberImplCopyWithImpl<$Res>
     extends _$MemberCopyWithImpl<$Res, _$MemberImpl>
     implements _$$MemberImplCopyWith<$Res> {
   __$$MemberImplCopyWithImpl(
-    _$MemberImpl _value,
-    $Res Function(_$MemberImpl) _then,
-  ) : super(_value, _then);
+      _$MemberImpl _value, $Res Function(_$MemberImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.
@@ -210,95 +210,99 @@ class __$$MemberImplCopyWithImpl<$Res>
     Object? token = freezed,
     Object? permissions = null,
     Object? age = freezed,
+    Object? hasAcceptedTerms = null,
   }) {
-    return _then(
-      _$MemberImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        membershipNumber: null == membershipNumber
-            ? _value.membershipNumber
-            : membershipNumber // ignore: cast_nullable_to_non_nullable
-                  as String,
-        firstName: null == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        lastName: null == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        secondLastName: freezed == secondLastName
-            ? _value.secondLastName
-            : secondLastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        memberType: null == memberType
-            ? _value.memberType
-            : memberType // ignore: cast_nullable_to_non_nullable
-                  as String,
-        isTitular: null == isTitular
-            ? _value.isTitular
-            : isTitular // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        photoUrl: freezed == photoUrl
-            ? _value.photoUrl
-            : photoUrl // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: freezed == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        phone: freezed == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        token: freezed == token
-            ? _value.token
-            : token // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        permissions: null == permissions
-            ? _value._permissions
-            : permissions // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
-        age: freezed == age
-            ? _value.age
-            : age // ignore: cast_nullable_to_non_nullable
-                  as int?,
-      ),
-    );
+    return _then(_$MemberImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      membershipNumber: null == membershipNumber
+          ? _value.membershipNumber
+          : membershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      secondLastName: freezed == secondLastName
+          ? _value.secondLastName
+          : secondLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      memberType: null == memberType
+          ? _value.memberType
+          : memberType // ignore: cast_nullable_to_non_nullable
+              as String,
+      isTitular: null == isTitular
+          ? _value.isTitular
+          : isTitular // ignore: cast_nullable_to_non_nullable
+              as bool,
+      photoUrl: freezed == photoUrl
+          ? _value.photoUrl
+          : photoUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: freezed == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String?,
+      phone: freezed == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String?,
+      token: freezed == token
+          ? _value.token
+          : token // ignore: cast_nullable_to_non_nullable
+              as String?,
+      permissions: null == permissions
+          ? _value._permissions
+          : permissions // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      hasAcceptedTerms: null == hasAcceptedTerms
+          ? _value.hasAcceptedTerms
+          : hasAcceptedTerms // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$MemberImpl extends _Member {
-  const _$MemberImpl({
-    required this.id,
-    required this.membershipNumber,
-    required this.firstName,
-    required this.lastName,
-    required this.secondLastName,
-    required this.memberType,
-    this.isTitular = false,
-    this.photoUrl,
-    this.email,
-    this.phone,
-    this.token,
-    final List<String> permissions = const [],
-    this.age,
-  }) : _permissions = permissions,
-       super._();
+  const _$MemberImpl(
+      {required this.id,
+      required this.membershipNumber,
+      required this.firstName,
+      required this.lastName,
+      required this.secondLastName,
+      required this.memberType,
+      this.isTitular = false,
+      this.photoUrl,
+      this.email,
+      this.phone,
+      this.token,
+      final List<String> permissions = const [],
+      this.age,
+      this.hasAcceptedTerms = false})
+      : _permissions = permissions,
+        super._();
 
   factory _$MemberImpl.fromJson(Map<String, dynamic> json) =>
       _$$MemberImplFromJson(json);
 
   @override
   final String id;
-  // NetSuite ID or local ID
+// NetSuite ID or local ID
   @override
   final String membershipNumber;
-  // e.g. 2270600
+// e.g. 2270600
   @override
   final String firstName;
   @override
@@ -307,7 +311,7 @@ class _$MemberImpl extends _Member {
   final String? secondLastName;
   @override
   final String memberType;
-  // '1' for Titular, others for Beneficiaries
+// '1' for Titular, others for Beneficiaries
   @override
   @JsonKey()
   final bool isTitular;
@@ -330,10 +334,13 @@ class _$MemberImpl extends _Member {
 
   @override
   final int? age;
+  @override
+  @JsonKey()
+  final bool hasAcceptedTerms;
 
   @override
   String toString() {
-    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone, token: $token, permissions: $permissions, age: $age)';
+    return 'Member(id: $id, membershipNumber: $membershipNumber, firstName: $firstName, lastName: $lastName, secondLastName: $secondLastName, memberType: $memberType, isTitular: $isTitular, photoUrl: $photoUrl, email: $email, phone: $phone, token: $token, permissions: $permissions, age: $age, hasAcceptedTerms: $hasAcceptedTerms)';
   }
 
   @override
@@ -359,31 +366,31 @@ class _$MemberImpl extends _Member {
             (identical(other.email, email) || other.email == email) &&
             (identical(other.phone, phone) || other.phone == phone) &&
             (identical(other.token, token) || other.token == token) &&
-            const DeepCollectionEquality().equals(
-              other._permissions,
-              _permissions,
-            ) &&
-            (identical(other.age, age) || other.age == age));
+            const DeepCollectionEquality()
+                .equals(other._permissions, _permissions) &&
+            (identical(other.age, age) || other.age == age) &&
+            (identical(other.hasAcceptedTerms, hasAcceptedTerms) ||
+                other.hasAcceptedTerms == hasAcceptedTerms));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    membershipNumber,
-    firstName,
-    lastName,
-    secondLastName,
-    memberType,
-    isTitular,
-    photoUrl,
-    email,
-    phone,
-    token,
-    const DeepCollectionEquality().hash(_permissions),
-    age,
-  );
+      runtimeType,
+      id,
+      membershipNumber,
+      firstName,
+      lastName,
+      secondLastName,
+      memberType,
+      isTitular,
+      photoUrl,
+      email,
+      phone,
+      token,
+      const DeepCollectionEquality().hash(_permissions),
+      age,
+      hasAcceptedTerms);
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.
@@ -395,26 +402,28 @@ class _$MemberImpl extends _Member {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$MemberImplToJson(this);
+    return _$$MemberImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Member extends Member {
-  const factory _Member({
-    required final String id,
-    required final String membershipNumber,
-    required final String firstName,
-    required final String lastName,
-    required final String? secondLastName,
-    required final String memberType,
-    final bool isTitular,
-    final String? photoUrl,
-    final String? email,
-    final String? phone,
-    final String? token,
-    final List<String> permissions,
-    final int? age,
-  }) = _$MemberImpl;
+  const factory _Member(
+      {required final String id,
+      required final String membershipNumber,
+      required final String firstName,
+      required final String lastName,
+      required final String? secondLastName,
+      required final String memberType,
+      final bool isTitular,
+      final String? photoUrl,
+      final String? email,
+      final String? phone,
+      final String? token,
+      final List<String> permissions,
+      final int? age,
+      final bool hasAcceptedTerms}) = _$MemberImpl;
   const _Member._() : super._();
 
   factory _Member.fromJson(Map<String, dynamic> json) = _$MemberImpl.fromJson;
@@ -445,6 +454,8 @@ abstract class _Member extends Member {
   List<String> get permissions;
   @override
   int? get age;
+  @override
+  bool get hasAcceptedTerms;
 
   /// Create a copy of Member
   /// with the given fields replaced by the non-null parameter values.

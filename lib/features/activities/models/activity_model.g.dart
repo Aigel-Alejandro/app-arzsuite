@@ -21,11 +21,9 @@ _$ActivityModelImpl _$$ActivityModelImplFromJson(Map<String, dynamic> json) =>
       tipo: json['tipo'] as String?,
       tieneCosto: json['tiene_costo'] as bool,
       monto: (json['monto'] as num?)?.toDouble(),
-      grupos:
-          (json['grupos'] as List<dynamic>?)
+      grupos: (json['grupos'] as List<dynamic>?)
               ?.map(
-                (e) => ActivityGroupModel.fromJson(e as Map<String, dynamic>),
-              )
+                  (e) => ActivityGroupModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
@@ -47,150 +45,143 @@ Map<String, dynamic> _$$ActivityModelImplToJson(_$ActivityModelImpl instance) =>
     };
 
 _$ActivityGroupModelImpl _$$ActivityGroupModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ActivityGroupModelImpl(
-  id: (json['id'] as num).toInt(),
-  nombre: json['nombre'] as String,
-  descripcion: json['descripcion'] as String?,
-  edadMin: (json['edad_min'] as num?)?.toInt(),
-  edadMax: (json['edad_max'] as num?)?.toInt(),
-  cupoDisponible: (json['cupo_disponible'] as num?)?.toInt(),
-  tieneCupo: json['tiene_cupo'] as bool,
-  requiereSeleccionLugares:
-      json['requiere_seleccion_lugares'] as bool? ?? false,
-  equipos:
-      (json['equipos'] as List<dynamic>?)
-          ?.map((e) => ActivityTeamModel.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
-
-Map<String, dynamic> _$$ActivityGroupModelImplToJson(
-  _$ActivityGroupModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'nombre': instance.nombre,
-  'descripcion': instance.descripcion,
-  'edad_min': instance.edadMin,
-  'edad_max': instance.edadMax,
-  'cupo_disponible': instance.cupoDisponible,
-  'tiene_cupo': instance.tieneCupo,
-  'requiere_seleccion_lugares': instance.requiereSeleccionLugares,
-  'equipos': instance.equipos,
-};
-
-_$ActivityTeamModelImpl _$$ActivityTeamModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ActivityTeamModelImpl(
-  id: (json['id'] as num).toInt(),
-  nombre: json['nombre'] as String,
-  color: json['color'] as String?,
-  lugaresOcupados:
-      (json['lugares_ocupados'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  horarios:
-      (json['horarios'] as List<dynamic>?)
-          ?.map(
-            (e) => ActivityScheduleModel.fromJson(e as Map<String, dynamic>),
-          )
-          .toList() ??
-      const [],
-);
-
-Map<String, dynamic> _$$ActivityTeamModelImplToJson(
-  _$ActivityTeamModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'nombre': instance.nombre,
-  'color': instance.color,
-  'lugares_ocupados': instance.lugaresOcupados,
-  'horarios': instance.horarios,
-};
-
-_$ActivityAreaPlanoPositionModelImpl
-_$$ActivityAreaPlanoPositionModelImplFromJson(Map<String, dynamic> json) =>
-    _$ActivityAreaPlanoPositionModelImpl(
-      filaIndex: (json['fila_index'] as num).toInt(),
-      columnaIndex: (json['columna_index'] as num).toInt(),
-      etiqueta: json['etiqueta'] as String,
-      tipo: json['tipo'] as String,
-      isActive: json['is_active'] as bool,
+        Map<String, dynamic> json) =>
+    _$ActivityGroupModelImpl(
+      id: (json['id'] as num).toInt(),
+      nombre: json['nombre'] as String,
+      descripcion: json['descripcion'] as String?,
+      edadMin: (json['edad_min'] as num?)?.toInt(),
+      edadMax: (json['edad_max'] as num?)?.toInt(),
+      cupoDisponible: (json['cupo_disponible'] as num?)?.toInt(),
+      tieneCupo: json['tiene_cupo'] as bool,
+      requiereSeleccionLugares:
+          json['requiere_seleccion_lugares'] as bool? ?? false,
+      equipos: (json['equipos'] as List<dynamic>?)
+              ?.map(
+                  (e) => ActivityTeamModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
+Map<String, dynamic> _$$ActivityGroupModelImplToJson(
+        _$ActivityGroupModelImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'nombre': instance.nombre,
+      'descripcion': instance.descripcion,
+      'edad_min': instance.edadMin,
+      'edad_max': instance.edadMax,
+      'cupo_disponible': instance.cupoDisponible,
+      'tiene_cupo': instance.tieneCupo,
+      'requiere_seleccion_lugares': instance.requiereSeleccionLugares,
+      'equipos': instance.equipos,
+    };
+
+_$ActivityTeamModelImpl _$$ActivityTeamModelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$ActivityTeamModelImpl(
+      id: (json['id'] as num).toInt(),
+      nombre: json['nombre'] as String,
+      color: json['color'] as String?,
+      lugaresOcupados: (json['lugares_ocupados'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      horarios: (json['horarios'] as List<dynamic>?)
+              ?.map((e) =>
+                  ActivityScheduleModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
+
+Map<String, dynamic> _$$ActivityTeamModelImplToJson(
+        _$ActivityTeamModelImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'nombre': instance.nombre,
+      'color': instance.color,
+      'lugares_ocupados': instance.lugaresOcupados,
+      'horarios': instance.horarios,
+    };
+
+_$ActivityAreaPlanoPositionModelImpl
+    _$$ActivityAreaPlanoPositionModelImplFromJson(Map<String, dynamic> json) =>
+        _$ActivityAreaPlanoPositionModelImpl(
+          filaIndex: (json['fila_index'] as num).toInt(),
+          columnaIndex: (json['columna_index'] as num).toInt(),
+          etiqueta: json['etiqueta'] as String,
+          tipo: json['tipo'] as String,
+          isActive: json['is_active'] as bool,
+        );
+
 Map<String, dynamic> _$$ActivityAreaPlanoPositionModelImplToJson(
-  _$ActivityAreaPlanoPositionModelImpl instance,
-) => <String, dynamic>{
-  'fila_index': instance.filaIndex,
-  'columna_index': instance.columnaIndex,
-  'etiqueta': instance.etiqueta,
-  'tipo': instance.tipo,
-  'is_active': instance.isActive,
-};
+        _$ActivityAreaPlanoPositionModelImpl instance) =>
+    <String, dynamic>{
+      'fila_index': instance.filaIndex,
+      'columna_index': instance.columnaIndex,
+      'etiqueta': instance.etiqueta,
+      'tipo': instance.tipo,
+      'is_active': instance.isActive,
+    };
 
 _$ActivityAreaPlanoModelImpl _$$ActivityAreaPlanoModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ActivityAreaPlanoModelImpl(
-  filas: (json['filas'] as num).toInt(),
-  columnas: (json['columnas'] as num).toInt(),
-  posiciones:
-      (json['posiciones'] as List<dynamic>?)
-          ?.map(
-            (e) => ActivityAreaPlanoPositionModel.fromJson(
-              e as Map<String, dynamic>,
-            ),
-          )
-          .toList() ??
-      const [],
-);
+        Map<String, dynamic> json) =>
+    _$ActivityAreaPlanoModelImpl(
+      filas: (json['filas'] as num).toInt(),
+      columnas: (json['columnas'] as num).toInt(),
+      posiciones: (json['posiciones'] as List<dynamic>?)
+              ?.map((e) => ActivityAreaPlanoPositionModel.fromJson(
+                  e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$ActivityAreaPlanoModelImplToJson(
-  _$ActivityAreaPlanoModelImpl instance,
-) => <String, dynamic>{
-  'filas': instance.filas,
-  'columnas': instance.columnas,
-  'posiciones': instance.posiciones,
-};
+        _$ActivityAreaPlanoModelImpl instance) =>
+    <String, dynamic>{
+      'filas': instance.filas,
+      'columnas': instance.columnas,
+      'posiciones': instance.posiciones,
+    };
 
 _$ActivityScheduleModelImpl _$$ActivityScheduleModelImplFromJson(
-  Map<String, dynamic> json,
-) => _$ActivityScheduleModelImpl(
-  id: (json['id'] as num).toInt(),
-  diaSemana: (json['dia_semana'] as num).toInt(),
-  horaInicio: json['hora_inicio'] as String,
-  horaFin: json['hora_fin'] as String,
-  lugar: json['lugar'] as String?,
-  cupoDisponible: (json['cupo_disponible'] as num?)?.toInt(),
-  tieneCupo: json['tiene_cupo'] as bool? ?? false,
-  cupoMaximo: (json['cupo_maximo'] as num?)?.toInt(),
-  lugaresOcupados:
-      (json['lugares_ocupados'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  alumnosInscritos: json['alumnos_inscritos'] == null
-      ? const []
-      : _parseIntList(json['alumnos_inscritos']),
-  areaId: (json['area_id'] as num?)?.toInt(),
-  plano: json['plano'] == null
-      ? null
-      : ActivityAreaPlanoModel.fromJson(json['plano'] as Map<String, dynamic>),
-);
+        Map<String, dynamic> json) =>
+    _$ActivityScheduleModelImpl(
+      id: (json['id'] as num).toInt(),
+      diaSemana: (json['dia_semana'] as num).toInt(),
+      horaInicio: json['hora_inicio'] as String,
+      horaFin: json['hora_fin'] as String,
+      lugar: json['lugar'] as String?,
+      cupoDisponible: (json['cupo_disponible'] as num?)?.toInt(),
+      tieneCupo: json['tiene_cupo'] as bool? ?? false,
+      cupoMaximo: (json['cupo_maximo'] as num?)?.toInt(),
+      lugaresOcupados: (json['lugares_ocupados'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      alumnosInscritos: json['alumnos_inscritos'] == null
+          ? const []
+          : _parseIntList(json['alumnos_inscritos']),
+      areaId: (json['area_id'] as num?)?.toInt(),
+      plano: json['plano'] == null
+          ? null
+          : ActivityAreaPlanoModel.fromJson(
+              json['plano'] as Map<String, dynamic>),
+    );
 
 Map<String, dynamic> _$$ActivityScheduleModelImplToJson(
-  _$ActivityScheduleModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'dia_semana': instance.diaSemana,
-  'hora_inicio': instance.horaInicio,
-  'hora_fin': instance.horaFin,
-  'lugar': instance.lugar,
-  'cupo_disponible': instance.cupoDisponible,
-  'tiene_cupo': instance.tieneCupo,
-  'cupo_maximo': instance.cupoMaximo,
-  'lugares_ocupados': instance.lugaresOcupados,
-  'alumnos_inscritos': instance.alumnosInscritos,
-  'area_id': instance.areaId,
-  'plano': instance.plano,
-};
+        _$ActivityScheduleModelImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'dia_semana': instance.diaSemana,
+      'hora_inicio': instance.horaInicio,
+      'hora_fin': instance.horaFin,
+      'lugar': instance.lugar,
+      'cupo_disponible': instance.cupoDisponible,
+      'tiene_cupo': instance.tieneCupo,
+      'cupo_maximo': instance.cupoMaximo,
+      'lugares_ocupados': instance.lugaresOcupados,
+      'alumnos_inscritos': instance.alumnosInscritos,
+      'area_id': instance.areaId,
+      'plano': instance.plano,
+    };

@@ -22,27 +22,27 @@ _$ProfileModelImpl _$$ProfileModelImplFromJson(Map<String, dynamic> json) =>
       age: (json['age'] as num?)?.toInt(),
       genero: json['genero'] as String?,
       profilePicture: json['profile_picture'] as String?,
-      patrimonialConditionId: (json['patrimonial_condition_id'] as num?)
-          ?.toInt(),
+      patrimonialConditionId:
+          (json['patrimonial_condition_id'] as num?)?.toInt(),
       canEditSensitiveData: json['can_edit_sensitive_data'] as bool? ?? false,
       personalAddress: json['personal_address'] as Map<String, dynamic>?,
       fiscalData: json['fiscal_data'] as Map<String, dynamic>?,
       settings: ProfileSettingsModel.fromJson(
-        json['settings'] as Map<String, dynamic>,
-      ),
-      associatedMembers:
-          (json['associated_members'] as List<dynamic>?)
+          json['settings'] as Map<String, dynamic>),
+      associatedMembers: (json['associated_members'] as List<dynamic>?)
               ?.map((e) => SubMemberModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      legalBeneficiaries:
-          (json['legal_beneficiaries'] as List<dynamic>?)
+      legalBeneficiaries: (json['legal_beneficiaries'] as List<dynamic>?)
               ?.map((e) => e as Map<String, dynamic>)
               .toList() ??
           const [],
-      vehicles:
-          (json['vehicles'] as List<dynamic>?)
+      vehicles: (json['vehicles'] as List<dynamic>?)
               ?.map((e) => e as Map<String, dynamic>)
+              .toList() ??
+          const [],
+      clubAccess: (json['club_access'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
     );
@@ -71,4 +71,5 @@ Map<String, dynamic> _$$ProfileModelImplToJson(_$ProfileModelImpl instance) =>
       'associated_members': instance.associatedMembers,
       'legal_beneficiaries': instance.legalBeneficiaries,
       'vehicles': instance.vehicles,
+      'club_access': instance.clubAccess,
     };

@@ -12,8 +12,7 @@ part of 'guest.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Guest _$GuestFromJson(Map<String, dynamic> json) {
   return _Guest.fromJson(json);
@@ -48,17 +47,16 @@ abstract class $GuestCopyWith<$Res> {
   factory $GuestCopyWith(Guest value, $Res Function(Guest) then) =
       _$GuestCopyWithImpl<$Res, Guest>;
   @useResult
-  $Res call({
-    String firstName,
-    String lastName,
-    String? secondLastName,
-    String email,
-    String phone,
-    String? birthDate,
-    String relationship,
-    String titularMembershipNumber,
-    String rfc,
-  });
+  $Res call(
+      {String firstName,
+      String lastName,
+      String? secondLastName,
+      String email,
+      String phone,
+      String? birthDate,
+      String relationship,
+      String titularMembershipNumber,
+      String rfc});
 }
 
 /// @nodoc
@@ -86,69 +84,64 @@ class _$GuestCopyWithImpl<$Res, $Val extends Guest>
     Object? titularMembershipNumber = null,
     Object? rfc = null,
   }) {
-    return _then(
-      _value.copyWith(
-            firstName: null == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            lastName: null == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            secondLastName: freezed == secondLastName
-                ? _value.secondLastName
-                : secondLastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            email: null == email
-                ? _value.email
-                : email // ignore: cast_nullable_to_non_nullable
-                      as String,
-            phone: null == phone
-                ? _value.phone
-                : phone // ignore: cast_nullable_to_non_nullable
-                      as String,
-            birthDate: freezed == birthDate
-                ? _value.birthDate
-                : birthDate // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            relationship: null == relationship
-                ? _value.relationship
-                : relationship // ignore: cast_nullable_to_non_nullable
-                      as String,
-            titularMembershipNumber: null == titularMembershipNumber
-                ? _value.titularMembershipNumber
-                : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
-                      as String,
-            rfc: null == rfc
-                ? _value.rfc
-                : rfc // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      secondLastName: freezed == secondLastName
+          ? _value.secondLastName
+          : secondLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      phone: null == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      relationship: null == relationship
+          ? _value.relationship
+          : relationship // ignore: cast_nullable_to_non_nullable
+              as String,
+      titularMembershipNumber: null == titularMembershipNumber
+          ? _value.titularMembershipNumber
+          : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      rfc: null == rfc
+          ? _value.rfc
+          : rfc // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$GuestImplCopyWith<$Res> implements $GuestCopyWith<$Res> {
   factory _$$GuestImplCopyWith(
-    _$GuestImpl value,
-    $Res Function(_$GuestImpl) then,
-  ) = __$$GuestImplCopyWithImpl<$Res>;
+          _$GuestImpl value, $Res Function(_$GuestImpl) then) =
+      __$$GuestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String firstName,
-    String lastName,
-    String? secondLastName,
-    String email,
-    String phone,
-    String? birthDate,
-    String relationship,
-    String titularMembershipNumber,
-    String rfc,
-  });
+  $Res call(
+      {String firstName,
+      String lastName,
+      String? secondLastName,
+      String email,
+      String phone,
+      String? birthDate,
+      String relationship,
+      String titularMembershipNumber,
+      String rfc});
 }
 
 /// @nodoc
@@ -156,9 +149,8 @@ class __$$GuestImplCopyWithImpl<$Res>
     extends _$GuestCopyWithImpl<$Res, _$GuestImpl>
     implements _$$GuestImplCopyWith<$Res> {
   __$$GuestImplCopyWithImpl(
-    _$GuestImpl _value,
-    $Res Function(_$GuestImpl) _then,
-  ) : super(_value, _then);
+      _$GuestImpl _value, $Res Function(_$GuestImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of Guest
   /// with the given fields replaced by the non-null parameter values.
@@ -175,63 +167,61 @@ class __$$GuestImplCopyWithImpl<$Res>
     Object? titularMembershipNumber = null,
     Object? rfc = null,
   }) {
-    return _then(
-      _$GuestImpl(
-        firstName: null == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        lastName: null == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        secondLastName: freezed == secondLastName
-            ? _value.secondLastName
-            : secondLastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        email: null == email
-            ? _value.email
-            : email // ignore: cast_nullable_to_non_nullable
-                  as String,
-        phone: null == phone
-            ? _value.phone
-            : phone // ignore: cast_nullable_to_non_nullable
-                  as String,
-        birthDate: freezed == birthDate
-            ? _value.birthDate
-            : birthDate // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        relationship: null == relationship
-            ? _value.relationship
-            : relationship // ignore: cast_nullable_to_non_nullable
-                  as String,
-        titularMembershipNumber: null == titularMembershipNumber
-            ? _value.titularMembershipNumber
-            : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
-                  as String,
-        rfc: null == rfc
-            ? _value.rfc
-            : rfc // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+    return _then(_$GuestImpl(
+      firstName: null == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String,
+      lastName: null == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String,
+      secondLastName: freezed == secondLastName
+          ? _value.secondLastName
+          : secondLastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      email: null == email
+          ? _value.email
+          : email // ignore: cast_nullable_to_non_nullable
+              as String,
+      phone: null == phone
+          ? _value.phone
+          : phone // ignore: cast_nullable_to_non_nullable
+              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      relationship: null == relationship
+          ? _value.relationship
+          : relationship // ignore: cast_nullable_to_non_nullable
+              as String,
+      titularMembershipNumber: null == titularMembershipNumber
+          ? _value.titularMembershipNumber
+          : titularMembershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      rfc: null == rfc
+          ? _value.rfc
+          : rfc // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$GuestImpl extends _Guest {
-  const _$GuestImpl({
-    required this.firstName,
-    required this.lastName,
-    required this.secondLastName,
-    required this.email,
-    required this.phone,
-    required this.birthDate,
-    required this.relationship,
-    required this.titularMembershipNumber,
-    required this.rfc,
-  }) : super._();
+  const _$GuestImpl(
+      {required this.firstName,
+      required this.lastName,
+      required this.secondLastName,
+      required this.email,
+      required this.phone,
+      required this.birthDate,
+      required this.relationship,
+      required this.titularMembershipNumber,
+      required this.rfc})
+      : super._();
 
   factory _$GuestImpl.fromJson(Map<String, dynamic> json) =>
       _$$GuestImplFromJson(json);
@@ -248,13 +238,13 @@ class _$GuestImpl extends _Guest {
   final String phone;
   @override
   final String? birthDate;
-  // Added for RFC generation
+// Added for RFC generation
   @override
   final String relationship;
-  // Hijo(a), Sobrino(a), etc.
+// Hijo(a), Sobrino(a), etc.
   @override
   final String titularMembershipNumber;
-  // Reference to the titular
+// Reference to the titular
   @override
   final String rfc;
 
@@ -281,9 +271,7 @@ class _$GuestImpl extends _Guest {
             (identical(other.relationship, relationship) ||
                 other.relationship == relationship) &&
             (identical(
-                  other.titularMembershipNumber,
-                  titularMembershipNumber,
-                ) ||
+                    other.titularMembershipNumber, titularMembershipNumber) ||
                 other.titularMembershipNumber == titularMembershipNumber) &&
             (identical(other.rfc, rfc) || other.rfc == rfc));
   }
@@ -291,17 +279,16 @@ class _$GuestImpl extends _Guest {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    firstName,
-    lastName,
-    secondLastName,
-    email,
-    phone,
-    birthDate,
-    relationship,
-    titularMembershipNumber,
-    rfc,
-  );
+      runtimeType,
+      firstName,
+      lastName,
+      secondLastName,
+      email,
+      phone,
+      birthDate,
+      relationship,
+      titularMembershipNumber,
+      rfc);
 
   /// Create a copy of Guest
   /// with the given fields replaced by the non-null parameter values.
@@ -313,22 +300,23 @@ class _$GuestImpl extends _Guest {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$GuestImplToJson(this);
+    return _$$GuestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Guest extends Guest {
-  const factory _Guest({
-    required final String firstName,
-    required final String lastName,
-    required final String? secondLastName,
-    required final String email,
-    required final String phone,
-    required final String? birthDate,
-    required final String relationship,
-    required final String titularMembershipNumber,
-    required final String rfc,
-  }) = _$GuestImpl;
+  const factory _Guest(
+      {required final String firstName,
+      required final String lastName,
+      required final String? secondLastName,
+      required final String email,
+      required final String phone,
+      required final String? birthDate,
+      required final String relationship,
+      required final String titularMembershipNumber,
+      required final String rfc}) = _$GuestImpl;
   const _Guest._() : super._();
 
   factory _Guest.fromJson(Map<String, dynamic> json) = _$GuestImpl.fromJson;

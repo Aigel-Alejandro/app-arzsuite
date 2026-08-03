@@ -522,7 +522,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
             },
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 100),
+              padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 150),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 Row(
@@ -557,18 +557,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 _buildProfileHero(context, profile),
-                const SizedBox(height: 24),
-                GridView.count(
+                const SizedBox(height: 16),
+                Column(
                   key: const ValueKey('profile_premium_grid'),
-                  padding: EdgeInsets.zero,
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 1.15,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     _buildPremiumMenuTile(
                       context,
@@ -621,8 +615,28 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   icon: Icons.logout_rounded,
                   title: 'Cerrar Sesión Completa',
                   isDestructive: true,
-                  isHorizontal: true,
                   onTap: () => _showLogoutConfirmation(context, ref),
+                ),
+                const SizedBox(height: 32),
+                Center(
+                  child: Column(
+                    children: [
+                      Text(
+                        'ArzSuite v1.0.0',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral400),
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () async {
+                          final url = Uri.parse('https://www.centrolibanes.org.mx/index.php/avisos-de-privacidad');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                          }
+                        },
+                        child: const Text('Términos y Condiciones'),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -718,20 +732,20 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     required String title,
     required VoidCallback onTap,
     bool isDestructive = false,
-    bool isHorizontal = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isDestructive ? AppTheme.dangerColor : AppTheme.primaryColor;
     
     return Container(
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: isDestructive ? color.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
         border: Border.all(color: isDestructive ? color.withOpacity(0.3) : AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
@@ -739,63 +753,39 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(12),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-            child: isHorizontal
-                ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: color, size: 28),
-                      ),
-                      const SizedBox(width: 16),
-                      Flexible(
-                        child: Text(
-                          title,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold, 
-                            fontSize: 15,
-                            color: isDestructive ? color : null,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  )
-                : Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: color.withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(icon, color: color, size: 28),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        title, 
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold, 
-                          fontSize: 13, 
-                          height: 1.2,
-                          color: isDestructive ? color : null,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.1),
+                    shape: BoxShape.circle,
                   ),
+                  child: Icon(icon, color: color, size: 20),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, 
+                      fontSize: 15,
+                      color: isDestructive ? color : null,
+                    ),
+                  ),
+                ),
+                if (!isDestructive)
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: AppTheme.neutral400,
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -808,12 +798,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: AppTheme.primaryColor,
         borderRadius: BorderRadius.circular(AppTheme.borderRadiusLarge),
-        border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: AppTheme.primaryColor.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -825,7 +814,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             children: [
               CircleAvatar(
                 radius: 40,
-                backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+                backgroundColor: Colors.white.withOpacity(0.2),
                 backgroundImage: profile.profilePicture != null 
                   ? MemoryImage(base64Decode(profile.profilePicture!.split(',').last)) 
                   : null,
@@ -835,7 +824,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       style: const TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.primaryColor,
+                        color: Colors.white,
                       ),
                     )
                   : null,
@@ -847,11 +836,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   onTap: _onEditPhoto,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppTheme.primaryColor,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                       shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.edit_rounded, color: Colors.white, size: 16),
+                    child: const Icon(Icons.edit_rounded, color: AppTheme.primaryColor, size: 16),
                   ),
                 ),
               ),
@@ -866,6 +862,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     cleanName,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                           height: 1.2,
                         ),
                     maxLines: 2,
@@ -875,13 +872,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppTheme.primaryColor.withOpacity(0.1),
+                      color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       'Socio: ${profile.entityid}',
                       style: const TextStyle(
-                        color: AppTheme.primaryColor,
+                        color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1400,23 +1397,6 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
 
-          const SizedBox(height: 32),
-          Center(
-            child: Column(
-              children: [
-                Text(
-                  'ArzSuite v1.0.0',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral400),
-                ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Términos y Condiciones'),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 120), // Padding for island menu
         ],
       ),
     );
@@ -1581,6 +1561,21 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'summer_course.enroll', val);
+                    } catch (e) {
+                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                    }
+                  },
+                ),
+                const Divider(height: 24),
+                _buildConfigSwitch(
+                  context,
+                  title: 'Agenda Deportiva',
+                  subtitle: 'Ver actividades de otros familiares',
+                  icon: Icons.calendar_month_outlined,
+                  value: member.permissions.contains('dashboard.agenda.view_all'),
+                  onChanged: (val) async {
+                    try {
+                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'dashboard.agenda.view_all', val);
                     } catch (e) {
                       if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
                     }

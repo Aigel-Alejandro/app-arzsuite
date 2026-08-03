@@ -26,6 +26,7 @@ class AuthNotifier extends StateNotifier<Member?> {
     final socioId = prefs.getString('saved_id') ?? '0';
     final memberType = prefs.getString('saved_member_type') ?? 'Titular';
     final permissions = prefs.getStringList('saved_permissions') ?? [];
+    final hasAcceptedTerms = prefs.getBool('saved_has_accepted_terms') ?? false;
 
     if (token != null && token.isNotEmpty && username != null) {
       return Member(
@@ -38,6 +39,7 @@ class AuthNotifier extends StateNotifier<Member?> {
         isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
         token: token,
         permissions: permissions,
+        hasAcceptedTerms: hasAcceptedTerms,
       );
     }
     return null;
@@ -51,6 +53,7 @@ class AuthNotifier extends StateNotifier<Member?> {
     _prefs.setString('saved_id', member.id);
     _prefs.setString('saved_member_type', member.memberType);
     _prefs.setStringList('saved_permissions', member.permissions);
+    _prefs.setBool('saved_has_accepted_terms', member.hasAcceptedTerms);
   }
 
   void logout() {
@@ -63,12 +66,27 @@ class AuthNotifier extends StateNotifier<Member?> {
     _prefs.remove('saved_id');
     _prefs.remove('saved_member_type');
     _prefs.remove('saved_permissions');
+    _prefs.remove('saved_has_accepted_terms');
   }
 
   void lockSession() {
     // Solo ponemos el estado en null para forzar el LoginView (y la pantalla de biometría)
     // No borramos las preferencias para que pueda reingresar con huella/FaceID.
     state = null;
+  }
+
+  void updatePermissions(List<String> newPermissions) {
+    if (state != null) {
+      final updatedMember = state!.copyWith(permissions: newPermissions);
+      setLoggedInMember(updatedMember);
+    }
+  }
+
+  void acceptTerms() {
+    if (state != null) {
+      final updatedMember = state!.copyWith(hasAcceptedTerms: true);
+      setLoggedInMember(updatedMember);
+    }
   }
 }
 

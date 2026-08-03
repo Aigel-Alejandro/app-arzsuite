@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/views/login_view.dart';
 import 'features/home/views/home_view.dart';
+import 'features/auth/views/terms_acceptance_view.dart';
 import 'core/providers/global_providers.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/theme_provider.dart';
@@ -100,7 +101,9 @@ class _ArzSuiteAppState extends ConsumerState<ArzSuiteApp> with WidgetsBindingOb
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
-      home: loggedInMember != null ? const HomeView() : const LoginView(),
+      home: loggedInMember != null 
+          ? (loggedInMember.hasAcceptedTerms ? const HomeView() : const TermsAcceptanceView())
+          : const LoginView(),
     );
   }
 }

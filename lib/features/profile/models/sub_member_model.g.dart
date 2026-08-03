@@ -16,25 +16,29 @@ _$SubMemberModelImpl _$$SubMemberModelImplFromJson(Map<String, dynamic> json) =>
       memberType: json['member_type'] as String? ?? '',
       birthDate: json['birth_date'] as String?,
       age: (json['age'] as num?)?.toInt(),
-      genero: json['genero'] as String?,
-      permissions:
-          (json['permissions'] as List<dynamic>?)
+      permissions: (json['permissions'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      clubAccess: (json['club_access'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [],
+      genero: json['genero'] as String?,
     );
 
 Map<String, dynamic> _$$SubMemberModelImplToJson(
-  _$SubMemberModelImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'fullname': instance.fullname,
-  'first_name': instance.firstName,
-  'last_name': instance.lastName,
-  'membership_number': instance.membershipNumber,
-  'member_type': instance.memberType,
-  'birth_date': instance.birthDate,
-  'age': instance.age,
-  'genero': instance.genero,
-  'permissions': instance.permissions,
-};
+        _$SubMemberModelImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'fullname': instance.fullname,
+      'first_name': instance.firstName,
+      'last_name': instance.lastName,
+      'membership_number': instance.membershipNumber,
+      'member_type': instance.memberType,
+      'birth_date': instance.birthDate,
+      'age': instance.age,
+      'permissions': instance.permissions,
+      'club_access': instance.clubAccess,
+      'genero': instance.genero,
+    };

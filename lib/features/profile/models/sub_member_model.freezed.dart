@@ -12,8 +12,7 @@ part of 'sub_member_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 SubMemberModel _$SubMemberModelFromJson(Map<String, dynamic> json) {
   return _SubMemberModel.fromJson(json);
@@ -34,9 +33,11 @@ mixin _$SubMemberModel {
   @JsonKey(name: 'birth_date')
   String? get birthDate => throw _privateConstructorUsedError;
   int? get age => throw _privateConstructorUsedError;
-  String? get genero => throw _privateConstructorUsedError;
   @JsonKey(name: 'permissions')
   List<String> get permissions => throw _privateConstructorUsedError;
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess => throw _privateConstructorUsedError;
+  String? get genero => throw _privateConstructorUsedError;
 
   /// Serializes this SubMemberModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,22 +52,21 @@ mixin _$SubMemberModel {
 /// @nodoc
 abstract class $SubMemberModelCopyWith<$Res> {
   factory $SubMemberModelCopyWith(
-    SubMemberModel value,
-    $Res Function(SubMemberModel) then,
-  ) = _$SubMemberModelCopyWithImpl<$Res, SubMemberModel>;
+          SubMemberModel value, $Res Function(SubMemberModel) then) =
+      _$SubMemberModelCopyWithImpl<$Res, SubMemberModel>;
   @useResult
-  $Res call({
-    String id,
-    String fullname,
-    @JsonKey(name: 'first_name') String? firstName,
-    @JsonKey(name: 'last_name') String? lastName,
-    @JsonKey(name: 'membership_number') String membershipNumber,
-    @JsonKey(name: 'member_type') String memberType,
-    @JsonKey(name: 'birth_date') String? birthDate,
-    int? age,
-    String? genero,
-    @JsonKey(name: 'permissions') List<String> permissions,
-  });
+  $Res call(
+      {String id,
+      String fullname,
+      @JsonKey(name: 'first_name') String? firstName,
+      @JsonKey(name: 'last_name') String? lastName,
+      @JsonKey(name: 'membership_number') String membershipNumber,
+      @JsonKey(name: 'member_type') String memberType,
+      @JsonKey(name: 'birth_date') String? birthDate,
+      int? age,
+      @JsonKey(name: 'permissions') List<String> permissions,
+      @JsonKey(name: 'club_access') List<int> clubAccess,
+      String? genero});
 }
 
 /// @nodoc
@@ -92,78 +92,79 @@ class _$SubMemberModelCopyWithImpl<$Res, $Val extends SubMemberModel>
     Object? memberType = null,
     Object? birthDate = freezed,
     Object? age = freezed,
-    Object? genero = freezed,
     Object? permissions = null,
+    Object? clubAccess = null,
+    Object? genero = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            fullname: null == fullname
-                ? _value.fullname
-                : fullname // ignore: cast_nullable_to_non_nullable
-                      as String,
-            firstName: freezed == firstName
-                ? _value.firstName
-                : firstName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lastName: freezed == lastName
-                ? _value.lastName
-                : lastName // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            membershipNumber: null == membershipNumber
-                ? _value.membershipNumber
-                : membershipNumber // ignore: cast_nullable_to_non_nullable
-                      as String,
-            memberType: null == memberType
-                ? _value.memberType
-                : memberType // ignore: cast_nullable_to_non_nullable
-                      as String,
-            birthDate: freezed == birthDate
-                ? _value.birthDate
-                : birthDate // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            age: freezed == age
-                ? _value.age
-                : age // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            genero: freezed == genero
-                ? _value.genero
-                : genero // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            permissions: null == permissions
-                ? _value.permissions
-                : permissions // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullname: null == fullname
+          ? _value.fullname
+          : fullname // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      membershipNumber: null == membershipNumber
+          ? _value.membershipNumber
+          : membershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberType: null == memberType
+          ? _value.memberType
+          : memberType // ignore: cast_nullable_to_non_nullable
+              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      permissions: null == permissions
+          ? _value.permissions
+          : permissions // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      clubAccess: null == clubAccess
+          ? _value.clubAccess
+          : clubAccess // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      genero: freezed == genero
+          ? _value.genero
+          : genero // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$SubMemberModelImplCopyWith<$Res>
     implements $SubMemberModelCopyWith<$Res> {
-  factory _$$SubMemberModelImplCopyWith(
-    _$SubMemberModelImpl value,
-    $Res Function(_$SubMemberModelImpl) then,
-  ) = __$$SubMemberModelImplCopyWithImpl<$Res>;
+  factory _$$SubMemberModelImplCopyWith(_$SubMemberModelImpl value,
+          $Res Function(_$SubMemberModelImpl) then) =
+      __$$SubMemberModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    String fullname,
-    @JsonKey(name: 'first_name') String? firstName,
-    @JsonKey(name: 'last_name') String? lastName,
-    @JsonKey(name: 'membership_number') String membershipNumber,
-    @JsonKey(name: 'member_type') String memberType,
-    @JsonKey(name: 'birth_date') String? birthDate,
-    int? age,
-    String? genero,
-    @JsonKey(name: 'permissions') List<String> permissions,
-  });
+  $Res call(
+      {String id,
+      String fullname,
+      @JsonKey(name: 'first_name') String? firstName,
+      @JsonKey(name: 'last_name') String? lastName,
+      @JsonKey(name: 'membership_number') String membershipNumber,
+      @JsonKey(name: 'member_type') String memberType,
+      @JsonKey(name: 'birth_date') String? birthDate,
+      int? age,
+      @JsonKey(name: 'permissions') List<String> permissions,
+      @JsonKey(name: 'club_access') List<int> clubAccess,
+      String? genero});
 }
 
 /// @nodoc
@@ -171,9 +172,8 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
     extends _$SubMemberModelCopyWithImpl<$Res, _$SubMemberModelImpl>
     implements _$$SubMemberModelImplCopyWith<$Res> {
   __$$SubMemberModelImplCopyWithImpl(
-    _$SubMemberModelImpl _value,
-    $Res Function(_$SubMemberModelImpl) _then,
-  ) : super(_value, _then);
+      _$SubMemberModelImpl _value, $Res Function(_$SubMemberModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of SubMemberModel
   /// with the given fields replaced by the non-null parameter values.
@@ -188,71 +188,76 @@ class __$$SubMemberModelImplCopyWithImpl<$Res>
     Object? memberType = null,
     Object? birthDate = freezed,
     Object? age = freezed,
-    Object? genero = freezed,
     Object? permissions = null,
+    Object? clubAccess = null,
+    Object? genero = freezed,
   }) {
-    return _then(
-      _$SubMemberModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        fullname: null == fullname
-            ? _value.fullname
-            : fullname // ignore: cast_nullable_to_non_nullable
-                  as String,
-        firstName: freezed == firstName
-            ? _value.firstName
-            : firstName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lastName: freezed == lastName
-            ? _value.lastName
-            : lastName // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        membershipNumber: null == membershipNumber
-            ? _value.membershipNumber
-            : membershipNumber // ignore: cast_nullable_to_non_nullable
-                  as String,
-        memberType: null == memberType
-            ? _value.memberType
-            : memberType // ignore: cast_nullable_to_non_nullable
-                  as String,
-        birthDate: freezed == birthDate
-            ? _value.birthDate
-            : birthDate // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        age: freezed == age
-            ? _value.age
-            : age // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        genero: freezed == genero
-            ? _value.genero
-            : genero // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        permissions: null == permissions
-            ? _value._permissions
-            : permissions // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
-      ),
-    );
+    return _then(_$SubMemberModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      fullname: null == fullname
+          ? _value.fullname
+          : fullname // ignore: cast_nullable_to_non_nullable
+              as String,
+      firstName: freezed == firstName
+          ? _value.firstName
+          : firstName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lastName: freezed == lastName
+          ? _value.lastName
+          : lastName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      membershipNumber: null == membershipNumber
+          ? _value.membershipNumber
+          : membershipNumber // ignore: cast_nullable_to_non_nullable
+              as String,
+      memberType: null == memberType
+          ? _value.memberType
+          : memberType // ignore: cast_nullable_to_non_nullable
+              as String,
+      birthDate: freezed == birthDate
+          ? _value.birthDate
+          : birthDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      age: freezed == age
+          ? _value.age
+          : age // ignore: cast_nullable_to_non_nullable
+              as int?,
+      permissions: null == permissions
+          ? _value._permissions
+          : permissions // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      clubAccess: null == clubAccess
+          ? _value._clubAccess
+          : clubAccess // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      genero: freezed == genero
+          ? _value.genero
+          : genero // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SubMemberModelImpl implements _SubMemberModel {
-  const _$SubMemberModelImpl({
-    required this.id,
-    this.fullname = '',
-    @JsonKey(name: 'first_name') this.firstName,
-    @JsonKey(name: 'last_name') this.lastName,
-    @JsonKey(name: 'membership_number') this.membershipNumber = '',
-    @JsonKey(name: 'member_type') this.memberType = '',
-    @JsonKey(name: 'birth_date') this.birthDate,
-    this.age,
-    this.genero,
-    @JsonKey(name: 'permissions') final List<String> permissions = const [],
-  }) : _permissions = permissions;
+  const _$SubMemberModelImpl(
+      {required this.id,
+      this.fullname = '',
+      @JsonKey(name: 'first_name') this.firstName,
+      @JsonKey(name: 'last_name') this.lastName,
+      @JsonKey(name: 'membership_number') this.membershipNumber = '',
+      @JsonKey(name: 'member_type') this.memberType = '',
+      @JsonKey(name: 'birth_date') this.birthDate,
+      this.age,
+      @JsonKey(name: 'permissions') final List<String> permissions = const [],
+      @JsonKey(name: 'club_access') final List<int> clubAccess = const [],
+      this.genero})
+      : _permissions = permissions,
+        _clubAccess = clubAccess;
 
   factory _$SubMemberModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$SubMemberModelImplFromJson(json);
@@ -279,8 +284,6 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   final String? birthDate;
   @override
   final int? age;
-  @override
-  final String? genero;
   final List<String> _permissions;
   @override
   @JsonKey(name: 'permissions')
@@ -290,9 +293,21 @@ class _$SubMemberModelImpl implements _SubMemberModel {
     return EqualUnmodifiableListView(_permissions);
   }
 
+  final List<int> _clubAccess;
+  @override
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess {
+    if (_clubAccess is EqualUnmodifiableListView) return _clubAccess;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_clubAccess);
+  }
+
+  @override
+  final String? genero;
+
   @override
   String toString() {
-    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType, birthDate: $birthDate, age: $age, genero: $genero, permissions: $permissions)';
+    return 'SubMemberModel(id: $id, fullname: $fullname, firstName: $firstName, lastName: $lastName, membershipNumber: $membershipNumber, memberType: $memberType, birthDate: $birthDate, age: $age, permissions: $permissions, clubAccess: $clubAccess, genero: $genero)';
   }
 
   @override
@@ -314,28 +329,28 @@ class _$SubMemberModelImpl implements _SubMemberModel {
             (identical(other.birthDate, birthDate) ||
                 other.birthDate == birthDate) &&
             (identical(other.age, age) || other.age == age) &&
-            (identical(other.genero, genero) || other.genero == genero) &&
-            const DeepCollectionEquality().equals(
-              other._permissions,
-              _permissions,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._permissions, _permissions) &&
+            const DeepCollectionEquality()
+                .equals(other._clubAccess, _clubAccess) &&
+            (identical(other.genero, genero) || other.genero == genero));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    fullname,
-    firstName,
-    lastName,
-    membershipNumber,
-    memberType,
-    birthDate,
-    age,
-    genero,
-    const DeepCollectionEquality().hash(_permissions),
-  );
+      runtimeType,
+      id,
+      fullname,
+      firstName,
+      lastName,
+      membershipNumber,
+      memberType,
+      birthDate,
+      age,
+      const DeepCollectionEquality().hash(_permissions),
+      const DeepCollectionEquality().hash(_clubAccess),
+      genero);
 
   /// Create a copy of SubMemberModel
   /// with the given fields replaced by the non-null parameter values.
@@ -344,29 +359,29 @@ class _$SubMemberModelImpl implements _SubMemberModel {
   @pragma('vm:prefer-inline')
   _$$SubMemberModelImplCopyWith<_$SubMemberModelImpl> get copyWith =>
       __$$SubMemberModelImplCopyWithImpl<_$SubMemberModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SubMemberModelImplToJson(this);
+    return _$$SubMemberModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _SubMemberModel implements SubMemberModel {
-  const factory _SubMemberModel({
-    required final String id,
-    final String fullname,
-    @JsonKey(name: 'first_name') final String? firstName,
-    @JsonKey(name: 'last_name') final String? lastName,
-    @JsonKey(name: 'membership_number') final String membershipNumber,
-    @JsonKey(name: 'member_type') final String memberType,
-    @JsonKey(name: 'birth_date') final String? birthDate,
-    final int? age,
-    final String? genero,
-    @JsonKey(name: 'permissions') final List<String> permissions,
-  }) = _$SubMemberModelImpl;
+  const factory _SubMemberModel(
+      {required final String id,
+      final String fullname,
+      @JsonKey(name: 'first_name') final String? firstName,
+      @JsonKey(name: 'last_name') final String? lastName,
+      @JsonKey(name: 'membership_number') final String membershipNumber,
+      @JsonKey(name: 'member_type') final String memberType,
+      @JsonKey(name: 'birth_date') final String? birthDate,
+      final int? age,
+      @JsonKey(name: 'permissions') final List<String> permissions,
+      @JsonKey(name: 'club_access') final List<int> clubAccess,
+      final String? genero}) = _$SubMemberModelImpl;
 
   factory _SubMemberModel.fromJson(Map<String, dynamic> json) =
       _$SubMemberModelImpl.fromJson;
@@ -393,10 +408,13 @@ abstract class _SubMemberModel implements SubMemberModel {
   @override
   int? get age;
   @override
-  String? get genero;
-  @override
   @JsonKey(name: 'permissions')
   List<String> get permissions;
+  @override
+  @JsonKey(name: 'club_access')
+  List<int> get clubAccess;
+  @override
+  String? get genero;
 
   /// Create a copy of SubMemberModel
   /// with the given fields replaced by the non-null parameter values.

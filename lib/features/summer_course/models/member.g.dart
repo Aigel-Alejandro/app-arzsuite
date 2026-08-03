@@ -7,24 +7,24 @@ part of 'member.dart';
 // **************************************************************************
 
 _$MemberImpl _$$MemberImplFromJson(Map<String, dynamic> json) => _$MemberImpl(
-  id: json['id'] as String,
-  membershipNumber: json['membershipNumber'] as String,
-  firstName: json['firstName'] as String,
-  lastName: json['lastName'] as String,
-  secondLastName: json['secondLastName'] as String?,
-  memberType: json['memberType'] as String,
-  isTitular: json['isTitular'] as bool? ?? false,
-  photoUrl: json['photoUrl'] as String?,
-  email: json['email'] as String?,
-  phone: json['phone'] as String?,
-  token: json['token'] as String?,
-  permissions:
-      (json['permissions'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  age: (json['age'] as num?)?.toInt(),
-);
+      id: json['id'] as String,
+      membershipNumber: json['membershipNumber'] as String,
+      firstName: json['firstName'] as String,
+      lastName: json['lastName'] as String,
+      secondLastName: json['secondLastName'] as String?,
+      memberType: json['memberType'] as String,
+      isTitular: json['isTitular'] as bool? ?? false,
+      photoUrl: json['photoUrl'] as String?,
+      email: json['email'] as String?,
+      phone: json['phone'] as String?,
+      token: json['token'] as String?,
+      permissions: (json['permissions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      age: (json['age'] as num?)?.toInt(),
+      hasAcceptedTerms: json['hasAcceptedTerms'] as bool? ?? false,
+    );
 
 Map<String, dynamic> _$$MemberImplToJson(_$MemberImpl instance) =>
     <String, dynamic>{
@@ -41,4 +41,5 @@ Map<String, dynamic> _$$MemberImplToJson(_$MemberImpl instance) =>
       'token': instance.token,
       'permissions': instance.permissions,
       'age': instance.age,
+      'hasAcceptedTerms': instance.hasAcceptedTerms,
     };

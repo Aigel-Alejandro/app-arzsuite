@@ -12,8 +12,7 @@ part of 'tournament_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 TournamentModel _$TournamentModelFromJson(Map<String, dynamic> json) {
   return _TournamentModel.fromJson(json);
@@ -62,31 +61,29 @@ mixin _$TournamentModel {
 /// @nodoc
 abstract class $TournamentModelCopyWith<$Res> {
   factory $TournamentModelCopyWith(
-    TournamentModel value,
-    $Res Function(TournamentModel) then,
-  ) = _$TournamentModelCopyWithImpl<$Res, TournamentModel>;
+          TournamentModel value, $Res Function(TournamentModel) then) =
+      _$TournamentModelCopyWithImpl<$Res, TournamentModel>;
   @useResult
-  $Res call({
-    int id,
-    @JsonKey(name: 'actividad_id') int? actividadId,
-    @JsonKey(name: 'actividad_nombre') String? actividadNombre,
-    @JsonKey(name: 'club_nombre') String? clubNombre,
-    String nombre,
-    String? descripcion,
-    String? formato,
-    String? sede,
-    @JsonKey(name: 'fecha_inicio') String? fechaInicio,
-    @JsonKey(name: 'fecha_fin') String? fechaFin,
-    @JsonKey(name: 'equipos_disponibles', defaultValue: [])
-    List<TournamentTeamModel> equiposDisponibles,
-    @JsonKey(name: 'socios_inscritos', defaultValue: [])
-    List<String> sociosInscritos,
-    @JsonKey(name: 'participantes', defaultValue: [])
-    List<TournamentParticipantModel> participantes,
-    @JsonKey(name: 'partidos', defaultValue: [])
-    List<TournamentMatchModel> partidos,
-    @JsonKey(name: 'is_user_inscribed') bool isUserInscribed,
-  });
+  $Res call(
+      {int id,
+      @JsonKey(name: 'actividad_id') int? actividadId,
+      @JsonKey(name: 'actividad_nombre') String? actividadNombre,
+      @JsonKey(name: 'club_nombre') String? clubNombre,
+      String nombre,
+      String? descripcion,
+      String? formato,
+      String? sede,
+      @JsonKey(name: 'fecha_inicio') String? fechaInicio,
+      @JsonKey(name: 'fecha_fin') String? fechaFin,
+      @JsonKey(name: 'equipos_disponibles', defaultValue: [])
+      List<TournamentTeamModel> equiposDisponibles,
+      @JsonKey(name: 'socios_inscritos', defaultValue: [])
+      List<String> sociosInscritos,
+      @JsonKey(name: 'participantes', defaultValue: [])
+      List<TournamentParticipantModel> participantes,
+      @JsonKey(name: 'partidos', defaultValue: [])
+      List<TournamentMatchModel> partidos,
+      @JsonKey(name: 'is_user_inscribed') bool isUserInscribed});
 }
 
 /// @nodoc
@@ -120,104 +117,99 @@ class _$TournamentModelCopyWithImpl<$Res, $Val extends TournamentModel>
     Object? partidos = null,
     Object? isUserInscribed = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            actividadId: freezed == actividadId
-                ? _value.actividadId
-                : actividadId // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            actividadNombre: freezed == actividadNombre
-                ? _value.actividadNombre
-                : actividadNombre // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            clubNombre: freezed == clubNombre
-                ? _value.clubNombre
-                : clubNombre // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            nombre: null == nombre
-                ? _value.nombre
-                : nombre // ignore: cast_nullable_to_non_nullable
-                      as String,
-            descripcion: freezed == descripcion
-                ? _value.descripcion
-                : descripcion // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            formato: freezed == formato
-                ? _value.formato
-                : formato // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            sede: freezed == sede
-                ? _value.sede
-                : sede // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            fechaInicio: freezed == fechaInicio
-                ? _value.fechaInicio
-                : fechaInicio // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            fechaFin: freezed == fechaFin
-                ? _value.fechaFin
-                : fechaFin // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            equiposDisponibles: null == equiposDisponibles
-                ? _value.equiposDisponibles
-                : equiposDisponibles // ignore: cast_nullable_to_non_nullable
-                      as List<TournamentTeamModel>,
-            sociosInscritos: null == sociosInscritos
-                ? _value.sociosInscritos
-                : sociosInscritos // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
-            participantes: null == participantes
-                ? _value.participantes
-                : participantes // ignore: cast_nullable_to_non_nullable
-                      as List<TournamentParticipantModel>,
-            partidos: null == partidos
-                ? _value.partidos
-                : partidos // ignore: cast_nullable_to_non_nullable
-                      as List<TournamentMatchModel>,
-            isUserInscribed: null == isUserInscribed
-                ? _value.isUserInscribed
-                : isUserInscribed // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      actividadId: freezed == actividadId
+          ? _value.actividadId
+          : actividadId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      actividadNombre: freezed == actividadNombre
+          ? _value.actividadNombre
+          : actividadNombre // ignore: cast_nullable_to_non_nullable
+              as String?,
+      clubNombre: freezed == clubNombre
+          ? _value.clubNombre
+          : clubNombre // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      descripcion: freezed == descripcion
+          ? _value.descripcion
+          : descripcion // ignore: cast_nullable_to_non_nullable
+              as String?,
+      formato: freezed == formato
+          ? _value.formato
+          : formato // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sede: freezed == sede
+          ? _value.sede
+          : sede // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fechaInicio: freezed == fechaInicio
+          ? _value.fechaInicio
+          : fechaInicio // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fechaFin: freezed == fechaFin
+          ? _value.fechaFin
+          : fechaFin // ignore: cast_nullable_to_non_nullable
+              as String?,
+      equiposDisponibles: null == equiposDisponibles
+          ? _value.equiposDisponibles
+          : equiposDisponibles // ignore: cast_nullable_to_non_nullable
+              as List<TournamentTeamModel>,
+      sociosInscritos: null == sociosInscritos
+          ? _value.sociosInscritos
+          : sociosInscritos // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      participantes: null == participantes
+          ? _value.participantes
+          : participantes // ignore: cast_nullable_to_non_nullable
+              as List<TournamentParticipantModel>,
+      partidos: null == partidos
+          ? _value.partidos
+          : partidos // ignore: cast_nullable_to_non_nullable
+              as List<TournamentMatchModel>,
+      isUserInscribed: null == isUserInscribed
+          ? _value.isUserInscribed
+          : isUserInscribed // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$TournamentModelImplCopyWith<$Res>
     implements $TournamentModelCopyWith<$Res> {
-  factory _$$TournamentModelImplCopyWith(
-    _$TournamentModelImpl value,
-    $Res Function(_$TournamentModelImpl) then,
-  ) = __$$TournamentModelImplCopyWithImpl<$Res>;
+  factory _$$TournamentModelImplCopyWith(_$TournamentModelImpl value,
+          $Res Function(_$TournamentModelImpl) then) =
+      __$$TournamentModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    @JsonKey(name: 'actividad_id') int? actividadId,
-    @JsonKey(name: 'actividad_nombre') String? actividadNombre,
-    @JsonKey(name: 'club_nombre') String? clubNombre,
-    String nombre,
-    String? descripcion,
-    String? formato,
-    String? sede,
-    @JsonKey(name: 'fecha_inicio') String? fechaInicio,
-    @JsonKey(name: 'fecha_fin') String? fechaFin,
-    @JsonKey(name: 'equipos_disponibles', defaultValue: [])
-    List<TournamentTeamModel> equiposDisponibles,
-    @JsonKey(name: 'socios_inscritos', defaultValue: [])
-    List<String> sociosInscritos,
-    @JsonKey(name: 'participantes', defaultValue: [])
-    List<TournamentParticipantModel> participantes,
-    @JsonKey(name: 'partidos', defaultValue: [])
-    List<TournamentMatchModel> partidos,
-    @JsonKey(name: 'is_user_inscribed') bool isUserInscribed,
-  });
+  $Res call(
+      {int id,
+      @JsonKey(name: 'actividad_id') int? actividadId,
+      @JsonKey(name: 'actividad_nombre') String? actividadNombre,
+      @JsonKey(name: 'club_nombre') String? clubNombre,
+      String nombre,
+      String? descripcion,
+      String? formato,
+      String? sede,
+      @JsonKey(name: 'fecha_inicio') String? fechaInicio,
+      @JsonKey(name: 'fecha_fin') String? fechaFin,
+      @JsonKey(name: 'equipos_disponibles', defaultValue: [])
+      List<TournamentTeamModel> equiposDisponibles,
+      @JsonKey(name: 'socios_inscritos', defaultValue: [])
+      List<String> sociosInscritos,
+      @JsonKey(name: 'participantes', defaultValue: [])
+      List<TournamentParticipantModel> participantes,
+      @JsonKey(name: 'partidos', defaultValue: [])
+      List<TournamentMatchModel> partidos,
+      @JsonKey(name: 'is_user_inscribed') bool isUserInscribed});
 }
 
 /// @nodoc
@@ -225,9 +217,8 @@ class __$$TournamentModelImplCopyWithImpl<$Res>
     extends _$TournamentModelCopyWithImpl<$Res, _$TournamentModelImpl>
     implements _$$TournamentModelImplCopyWith<$Res> {
   __$$TournamentModelImplCopyWithImpl(
-    _$TournamentModelImpl _value,
-    $Res Function(_$TournamentModelImpl) _then,
-  ) : super(_value, _then);
+      _$TournamentModelImpl _value, $Res Function(_$TournamentModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of TournamentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -250,100 +241,98 @@ class __$$TournamentModelImplCopyWithImpl<$Res>
     Object? partidos = null,
     Object? isUserInscribed = null,
   }) {
-    return _then(
-      _$TournamentModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        actividadId: freezed == actividadId
-            ? _value.actividadId
-            : actividadId // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        actividadNombre: freezed == actividadNombre
-            ? _value.actividadNombre
-            : actividadNombre // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        clubNombre: freezed == clubNombre
-            ? _value.clubNombre
-            : clubNombre // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        nombre: null == nombre
-            ? _value.nombre
-            : nombre // ignore: cast_nullable_to_non_nullable
-                  as String,
-        descripcion: freezed == descripcion
-            ? _value.descripcion
-            : descripcion // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        formato: freezed == formato
-            ? _value.formato
-            : formato // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        sede: freezed == sede
-            ? _value.sede
-            : sede // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        fechaInicio: freezed == fechaInicio
-            ? _value.fechaInicio
-            : fechaInicio // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        fechaFin: freezed == fechaFin
-            ? _value.fechaFin
-            : fechaFin // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        equiposDisponibles: null == equiposDisponibles
-            ? _value._equiposDisponibles
-            : equiposDisponibles // ignore: cast_nullable_to_non_nullable
-                  as List<TournamentTeamModel>,
-        sociosInscritos: null == sociosInscritos
-            ? _value._sociosInscritos
-            : sociosInscritos // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
-        participantes: null == participantes
-            ? _value._participantes
-            : participantes // ignore: cast_nullable_to_non_nullable
-                  as List<TournamentParticipantModel>,
-        partidos: null == partidos
-            ? _value._partidos
-            : partidos // ignore: cast_nullable_to_non_nullable
-                  as List<TournamentMatchModel>,
-        isUserInscribed: null == isUserInscribed
-            ? _value.isUserInscribed
-            : isUserInscribed // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$TournamentModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      actividadId: freezed == actividadId
+          ? _value.actividadId
+          : actividadId // ignore: cast_nullable_to_non_nullable
+              as int?,
+      actividadNombre: freezed == actividadNombre
+          ? _value.actividadNombre
+          : actividadNombre // ignore: cast_nullable_to_non_nullable
+              as String?,
+      clubNombre: freezed == clubNombre
+          ? _value.clubNombre
+          : clubNombre // ignore: cast_nullable_to_non_nullable
+              as String?,
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      descripcion: freezed == descripcion
+          ? _value.descripcion
+          : descripcion // ignore: cast_nullable_to_non_nullable
+              as String?,
+      formato: freezed == formato
+          ? _value.formato
+          : formato // ignore: cast_nullable_to_non_nullable
+              as String?,
+      sede: freezed == sede
+          ? _value.sede
+          : sede // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fechaInicio: freezed == fechaInicio
+          ? _value.fechaInicio
+          : fechaInicio // ignore: cast_nullable_to_non_nullable
+              as String?,
+      fechaFin: freezed == fechaFin
+          ? _value.fechaFin
+          : fechaFin // ignore: cast_nullable_to_non_nullable
+              as String?,
+      equiposDisponibles: null == equiposDisponibles
+          ? _value._equiposDisponibles
+          : equiposDisponibles // ignore: cast_nullable_to_non_nullable
+              as List<TournamentTeamModel>,
+      sociosInscritos: null == sociosInscritos
+          ? _value._sociosInscritos
+          : sociosInscritos // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      participantes: null == participantes
+          ? _value._participantes
+          : participantes // ignore: cast_nullable_to_non_nullable
+              as List<TournamentParticipantModel>,
+      partidos: null == partidos
+          ? _value._partidos
+          : partidos // ignore: cast_nullable_to_non_nullable
+              as List<TournamentMatchModel>,
+      isUserInscribed: null == isUserInscribed
+          ? _value.isUserInscribed
+          : isUserInscribed // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TournamentModelImpl implements _TournamentModel {
-  const _$TournamentModelImpl({
-    required this.id,
-    @JsonKey(name: 'actividad_id') this.actividadId,
-    @JsonKey(name: 'actividad_nombre') this.actividadNombre,
-    @JsonKey(name: 'club_nombre') this.clubNombre,
-    required this.nombre,
-    this.descripcion,
-    this.formato,
-    this.sede,
-    @JsonKey(name: 'fecha_inicio') this.fechaInicio,
-    @JsonKey(name: 'fecha_fin') this.fechaFin,
-    @JsonKey(name: 'equipos_disponibles', defaultValue: [])
-    required final List<TournamentTeamModel> equiposDisponibles,
-    @JsonKey(name: 'socios_inscritos', defaultValue: [])
-    required final List<String> sociosInscritos,
-    @JsonKey(name: 'participantes', defaultValue: [])
-    required final List<TournamentParticipantModel> participantes,
-    @JsonKey(name: 'partidos', defaultValue: [])
-    final List<TournamentMatchModel> partidos = const [],
-    @JsonKey(name: 'is_user_inscribed') this.isUserInscribed = false,
-  }) : _equiposDisponibles = equiposDisponibles,
-       _sociosInscritos = sociosInscritos,
-       _participantes = participantes,
-       _partidos = partidos;
+  const _$TournamentModelImpl(
+      {required this.id,
+      @JsonKey(name: 'actividad_id') this.actividadId,
+      @JsonKey(name: 'actividad_nombre') this.actividadNombre,
+      @JsonKey(name: 'club_nombre') this.clubNombre,
+      required this.nombre,
+      this.descripcion,
+      this.formato,
+      this.sede,
+      @JsonKey(name: 'fecha_inicio') this.fechaInicio,
+      @JsonKey(name: 'fecha_fin') this.fechaFin,
+      @JsonKey(name: 'equipos_disponibles', defaultValue: [])
+      required final List<TournamentTeamModel> equiposDisponibles,
+      @JsonKey(name: 'socios_inscritos', defaultValue: [])
+      required final List<String> sociosInscritos,
+      @JsonKey(name: 'participantes', defaultValue: [])
+      required final List<TournamentParticipantModel> participantes,
+      @JsonKey(name: 'partidos', defaultValue: [])
+      final List<TournamentMatchModel> partidos = const [],
+      @JsonKey(name: 'is_user_inscribed') this.isUserInscribed = false})
+      : _equiposDisponibles = equiposDisponibles,
+        _sociosInscritos = sociosInscritos,
+        _participantes = participantes,
+        _partidos = partidos;
 
   factory _$TournamentModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TournamentModelImplFromJson(json);
@@ -440,18 +429,12 @@ class _$TournamentModelImpl implements _TournamentModel {
                 other.fechaInicio == fechaInicio) &&
             (identical(other.fechaFin, fechaFin) ||
                 other.fechaFin == fechaFin) &&
-            const DeepCollectionEquality().equals(
-              other._equiposDisponibles,
-              _equiposDisponibles,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._sociosInscritos,
-              _sociosInscritos,
-            ) &&
-            const DeepCollectionEquality().equals(
-              other._participantes,
-              _participantes,
-            ) &&
+            const DeepCollectionEquality()
+                .equals(other._equiposDisponibles, _equiposDisponibles) &&
+            const DeepCollectionEquality()
+                .equals(other._sociosInscritos, _sociosInscritos) &&
+            const DeepCollectionEquality()
+                .equals(other._participantes, _participantes) &&
             const DeepCollectionEquality().equals(other._partidos, _partidos) &&
             (identical(other.isUserInscribed, isUserInscribed) ||
                 other.isUserInscribed == isUserInscribed));
@@ -460,23 +443,22 @@ class _$TournamentModelImpl implements _TournamentModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    actividadId,
-    actividadNombre,
-    clubNombre,
-    nombre,
-    descripcion,
-    formato,
-    sede,
-    fechaInicio,
-    fechaFin,
-    const DeepCollectionEquality().hash(_equiposDisponibles),
-    const DeepCollectionEquality().hash(_sociosInscritos),
-    const DeepCollectionEquality().hash(_participantes),
-    const DeepCollectionEquality().hash(_partidos),
-    isUserInscribed,
-  );
+      runtimeType,
+      id,
+      actividadId,
+      actividadNombre,
+      clubNombre,
+      nombre,
+      descripcion,
+      formato,
+      sede,
+      fechaInicio,
+      fechaFin,
+      const DeepCollectionEquality().hash(_equiposDisponibles),
+      const DeepCollectionEquality().hash(_sociosInscritos),
+      const DeepCollectionEquality().hash(_participantes),
+      const DeepCollectionEquality().hash(_partidos),
+      isUserInscribed);
 
   /// Create a copy of TournamentModel
   /// with the given fields replaced by the non-null parameter values.
@@ -485,38 +467,38 @@ class _$TournamentModelImpl implements _TournamentModel {
   @pragma('vm:prefer-inline')
   _$$TournamentModelImplCopyWith<_$TournamentModelImpl> get copyWith =>
       __$$TournamentModelImplCopyWithImpl<_$TournamentModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TournamentModelImplToJson(this);
+    return _$$TournamentModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TournamentModel implements TournamentModel {
-  const factory _TournamentModel({
-    required final int id,
-    @JsonKey(name: 'actividad_id') final int? actividadId,
-    @JsonKey(name: 'actividad_nombre') final String? actividadNombre,
-    @JsonKey(name: 'club_nombre') final String? clubNombre,
-    required final String nombre,
-    final String? descripcion,
-    final String? formato,
-    final String? sede,
-    @JsonKey(name: 'fecha_inicio') final String? fechaInicio,
-    @JsonKey(name: 'fecha_fin') final String? fechaFin,
-    @JsonKey(name: 'equipos_disponibles', defaultValue: [])
-    required final List<TournamentTeamModel> equiposDisponibles,
-    @JsonKey(name: 'socios_inscritos', defaultValue: [])
-    required final List<String> sociosInscritos,
-    @JsonKey(name: 'participantes', defaultValue: [])
-    required final List<TournamentParticipantModel> participantes,
-    @JsonKey(name: 'partidos', defaultValue: [])
-    final List<TournamentMatchModel> partidos,
-    @JsonKey(name: 'is_user_inscribed') final bool isUserInscribed,
-  }) = _$TournamentModelImpl;
+  const factory _TournamentModel(
+          {required final int id,
+          @JsonKey(name: 'actividad_id') final int? actividadId,
+          @JsonKey(name: 'actividad_nombre') final String? actividadNombre,
+          @JsonKey(name: 'club_nombre') final String? clubNombre,
+          required final String nombre,
+          final String? descripcion,
+          final String? formato,
+          final String? sede,
+          @JsonKey(name: 'fecha_inicio') final String? fechaInicio,
+          @JsonKey(name: 'fecha_fin') final String? fechaFin,
+          @JsonKey(name: 'equipos_disponibles', defaultValue: [])
+          required final List<TournamentTeamModel> equiposDisponibles,
+          @JsonKey(name: 'socios_inscritos', defaultValue: [])
+          required final List<String> sociosInscritos,
+          @JsonKey(name: 'participantes', defaultValue: [])
+          required final List<TournamentParticipantModel> participantes,
+          @JsonKey(name: 'partidos', defaultValue: [])
+          final List<TournamentMatchModel> partidos,
+          @JsonKey(name: 'is_user_inscribed') final bool isUserInscribed}) =
+      _$TournamentModelImpl;
 
   factory _TournamentModel.fromJson(Map<String, dynamic> json) =
       _$TournamentModelImpl.fromJson;
@@ -607,22 +589,20 @@ mixin _$TournamentTeamModel {
 /// @nodoc
 abstract class $TournamentTeamModelCopyWith<$Res> {
   factory $TournamentTeamModelCopyWith(
-    TournamentTeamModel value,
-    $Res Function(TournamentTeamModel) then,
-  ) = _$TournamentTeamModelCopyWithImpl<$Res, TournamentTeamModel>;
+          TournamentTeamModel value, $Res Function(TournamentTeamModel) then) =
+      _$TournamentTeamModelCopyWithImpl<$Res, TournamentTeamModel>;
   @useResult
-  $Res call({
-    int id,
-    String nombre,
-    String? color,
-    @JsonKey(name: 'edad_minima') int? edadMinima,
-    @JsonKey(name: 'edad_maxima') int? edadMaxima,
-    @JsonKey(name: 'genero_permitido') String? generoPermitido,
-    @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
-    @JsonKey(name: 'cupo_actual', defaultValue: 0) int cupoActual,
-    @JsonKey(name: 'capitan_actual') String? capitanActual,
-    @JsonKey(name: 'is_user_captain') bool isUserCaptain,
-  });
+  $Res call(
+      {int id,
+      String nombre,
+      String? color,
+      @JsonKey(name: 'edad_minima') int? edadMinima,
+      @JsonKey(name: 'edad_maxima') int? edadMaxima,
+      @JsonKey(name: 'genero_permitido') String? generoPermitido,
+      @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
+      @JsonKey(name: 'cupo_actual', defaultValue: 0) int cupoActual,
+      @JsonKey(name: 'capitan_actual') String? capitanActual,
+      @JsonKey(name: 'is_user_captain') bool isUserCaptain});
 }
 
 /// @nodoc
@@ -651,85 +631,79 @@ class _$TournamentTeamModelCopyWithImpl<$Res, $Val extends TournamentTeamModel>
     Object? capitanActual = freezed,
     Object? isUserCaptain = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            nombre: null == nombre
-                ? _value.nombre
-                : nombre // ignore: cast_nullable_to_non_nullable
-                      as String,
-            color: freezed == color
-                ? _value.color
-                : color // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            edadMinima: freezed == edadMinima
-                ? _value.edadMinima
-                : edadMinima // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            edadMaxima: freezed == edadMaxima
-                ? _value.edadMaxima
-                : edadMaxima // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            generoPermitido: freezed == generoPermitido
-                ? _value.generoPermitido
-                : generoPermitido // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            cupoMaximo: freezed == cupoMaximo
-                ? _value.cupoMaximo
-                : cupoMaximo // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            cupoActual: null == cupoActual
-                ? _value.cupoActual
-                : cupoActual // ignore: cast_nullable_to_non_nullable
-                      as int,
-            capitanActual: freezed == capitanActual
-                ? _value.capitanActual
-                : capitanActual // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            isUserCaptain: null == isUserCaptain
-                ? _value.isUserCaptain
-                : isUserCaptain // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      color: freezed == color
+          ? _value.color
+          : color // ignore: cast_nullable_to_non_nullable
+              as String?,
+      edadMinima: freezed == edadMinima
+          ? _value.edadMinima
+          : edadMinima // ignore: cast_nullable_to_non_nullable
+              as int?,
+      edadMaxima: freezed == edadMaxima
+          ? _value.edadMaxima
+          : edadMaxima // ignore: cast_nullable_to_non_nullable
+              as int?,
+      generoPermitido: freezed == generoPermitido
+          ? _value.generoPermitido
+          : generoPermitido // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cupoMaximo: freezed == cupoMaximo
+          ? _value.cupoMaximo
+          : cupoMaximo // ignore: cast_nullable_to_non_nullable
+              as int?,
+      cupoActual: null == cupoActual
+          ? _value.cupoActual
+          : cupoActual // ignore: cast_nullable_to_non_nullable
+              as int,
+      capitanActual: freezed == capitanActual
+          ? _value.capitanActual
+          : capitanActual // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isUserCaptain: null == isUserCaptain
+          ? _value.isUserCaptain
+          : isUserCaptain // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$TournamentTeamModelImplCopyWith<$Res>
     implements $TournamentTeamModelCopyWith<$Res> {
-  factory _$$TournamentTeamModelImplCopyWith(
-    _$TournamentTeamModelImpl value,
-    $Res Function(_$TournamentTeamModelImpl) then,
-  ) = __$$TournamentTeamModelImplCopyWithImpl<$Res>;
+  factory _$$TournamentTeamModelImplCopyWith(_$TournamentTeamModelImpl value,
+          $Res Function(_$TournamentTeamModelImpl) then) =
+      __$$TournamentTeamModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    String nombre,
-    String? color,
-    @JsonKey(name: 'edad_minima') int? edadMinima,
-    @JsonKey(name: 'edad_maxima') int? edadMaxima,
-    @JsonKey(name: 'genero_permitido') String? generoPermitido,
-    @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
-    @JsonKey(name: 'cupo_actual', defaultValue: 0) int cupoActual,
-    @JsonKey(name: 'capitan_actual') String? capitanActual,
-    @JsonKey(name: 'is_user_captain') bool isUserCaptain,
-  });
+  $Res call(
+      {int id,
+      String nombre,
+      String? color,
+      @JsonKey(name: 'edad_minima') int? edadMinima,
+      @JsonKey(name: 'edad_maxima') int? edadMaxima,
+      @JsonKey(name: 'genero_permitido') String? generoPermitido,
+      @JsonKey(name: 'cupo_maximo') int? cupoMaximo,
+      @JsonKey(name: 'cupo_actual', defaultValue: 0) int cupoActual,
+      @JsonKey(name: 'capitan_actual') String? capitanActual,
+      @JsonKey(name: 'is_user_captain') bool isUserCaptain});
 }
 
 /// @nodoc
 class __$$TournamentTeamModelImplCopyWithImpl<$Res>
     extends _$TournamentTeamModelCopyWithImpl<$Res, _$TournamentTeamModelImpl>
     implements _$$TournamentTeamModelImplCopyWith<$Res> {
-  __$$TournamentTeamModelImplCopyWithImpl(
-    _$TournamentTeamModelImpl _value,
-    $Res Function(_$TournamentTeamModelImpl) _then,
-  ) : super(_value, _then);
+  __$$TournamentTeamModelImplCopyWithImpl(_$TournamentTeamModelImpl _value,
+      $Res Function(_$TournamentTeamModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of TournamentTeamModel
   /// with the given fields replaced by the non-null parameter values.
@@ -747,68 +721,65 @@ class __$$TournamentTeamModelImplCopyWithImpl<$Res>
     Object? capitanActual = freezed,
     Object? isUserCaptain = null,
   }) {
-    return _then(
-      _$TournamentTeamModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        nombre: null == nombre
-            ? _value.nombre
-            : nombre // ignore: cast_nullable_to_non_nullable
-                  as String,
-        color: freezed == color
-            ? _value.color
-            : color // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        edadMinima: freezed == edadMinima
-            ? _value.edadMinima
-            : edadMinima // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        edadMaxima: freezed == edadMaxima
-            ? _value.edadMaxima
-            : edadMaxima // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        generoPermitido: freezed == generoPermitido
-            ? _value.generoPermitido
-            : generoPermitido // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        cupoMaximo: freezed == cupoMaximo
-            ? _value.cupoMaximo
-            : cupoMaximo // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        cupoActual: null == cupoActual
-            ? _value.cupoActual
-            : cupoActual // ignore: cast_nullable_to_non_nullable
-                  as int,
-        capitanActual: freezed == capitanActual
-            ? _value.capitanActual
-            : capitanActual // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        isUserCaptain: null == isUserCaptain
-            ? _value.isUserCaptain
-            : isUserCaptain // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$TournamentTeamModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      color: freezed == color
+          ? _value.color
+          : color // ignore: cast_nullable_to_non_nullable
+              as String?,
+      edadMinima: freezed == edadMinima
+          ? _value.edadMinima
+          : edadMinima // ignore: cast_nullable_to_non_nullable
+              as int?,
+      edadMaxima: freezed == edadMaxima
+          ? _value.edadMaxima
+          : edadMaxima // ignore: cast_nullable_to_non_nullable
+              as int?,
+      generoPermitido: freezed == generoPermitido
+          ? _value.generoPermitido
+          : generoPermitido // ignore: cast_nullable_to_non_nullable
+              as String?,
+      cupoMaximo: freezed == cupoMaximo
+          ? _value.cupoMaximo
+          : cupoMaximo // ignore: cast_nullable_to_non_nullable
+              as int?,
+      cupoActual: null == cupoActual
+          ? _value.cupoActual
+          : cupoActual // ignore: cast_nullable_to_non_nullable
+              as int,
+      capitanActual: freezed == capitanActual
+          ? _value.capitanActual
+          : capitanActual // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isUserCaptain: null == isUserCaptain
+          ? _value.isUserCaptain
+          : isUserCaptain // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TournamentTeamModelImpl implements _TournamentTeamModel {
-  const _$TournamentTeamModelImpl({
-    required this.id,
-    required this.nombre,
-    this.color,
-    @JsonKey(name: 'edad_minima') this.edadMinima,
-    @JsonKey(name: 'edad_maxima') this.edadMaxima,
-    @JsonKey(name: 'genero_permitido') this.generoPermitido,
-    @JsonKey(name: 'cupo_maximo') this.cupoMaximo,
-    @JsonKey(name: 'cupo_actual', defaultValue: 0) required this.cupoActual,
-    @JsonKey(name: 'capitan_actual') this.capitanActual,
-    @JsonKey(name: 'is_user_captain') this.isUserCaptain = false,
-  });
+  const _$TournamentTeamModelImpl(
+      {required this.id,
+      required this.nombre,
+      this.color,
+      @JsonKey(name: 'edad_minima') this.edadMinima,
+      @JsonKey(name: 'edad_maxima') this.edadMaxima,
+      @JsonKey(name: 'genero_permitido') this.generoPermitido,
+      @JsonKey(name: 'cupo_maximo') this.cupoMaximo,
+      @JsonKey(name: 'cupo_actual', defaultValue: 0) required this.cupoActual,
+      @JsonKey(name: 'capitan_actual') this.capitanActual,
+      @JsonKey(name: 'is_user_captain') this.isUserCaptain = false});
 
   factory _$TournamentTeamModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TournamentTeamModelImplFromJson(json);
@@ -873,18 +844,17 @@ class _$TournamentTeamModelImpl implements _TournamentTeamModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    nombre,
-    color,
-    edadMinima,
-    edadMaxima,
-    generoPermitido,
-    cupoMaximo,
-    cupoActual,
-    capitanActual,
-    isUserCaptain,
-  );
+      runtimeType,
+      id,
+      nombre,
+      color,
+      edadMinima,
+      edadMaxima,
+      generoPermitido,
+      cupoMaximo,
+      cupoActual,
+      capitanActual,
+      isUserCaptain);
 
   /// Create a copy of TournamentTeamModel
   /// with the given fields replaced by the non-null parameter values.
@@ -893,30 +863,30 @@ class _$TournamentTeamModelImpl implements _TournamentTeamModel {
   @pragma('vm:prefer-inline')
   _$$TournamentTeamModelImplCopyWith<_$TournamentTeamModelImpl> get copyWith =>
       __$$TournamentTeamModelImplCopyWithImpl<_$TournamentTeamModelImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TournamentTeamModelImplToJson(this);
+    return _$$TournamentTeamModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TournamentTeamModel implements TournamentTeamModel {
-  const factory _TournamentTeamModel({
-    required final int id,
-    required final String nombre,
-    final String? color,
-    @JsonKey(name: 'edad_minima') final int? edadMinima,
-    @JsonKey(name: 'edad_maxima') final int? edadMaxima,
-    @JsonKey(name: 'genero_permitido') final String? generoPermitido,
-    @JsonKey(name: 'cupo_maximo') final int? cupoMaximo,
-    @JsonKey(name: 'cupo_actual', defaultValue: 0)
-    required final int cupoActual,
-    @JsonKey(name: 'capitan_actual') final String? capitanActual,
-    @JsonKey(name: 'is_user_captain') final bool isUserCaptain,
-  }) = _$TournamentTeamModelImpl;
+  const factory _TournamentTeamModel(
+          {required final int id,
+          required final String nombre,
+          final String? color,
+          @JsonKey(name: 'edad_minima') final int? edadMinima,
+          @JsonKey(name: 'edad_maxima') final int? edadMaxima,
+          @JsonKey(name: 'genero_permitido') final String? generoPermitido,
+          @JsonKey(name: 'cupo_maximo') final int? cupoMaximo,
+          @JsonKey(name: 'cupo_actual', defaultValue: 0)
+          required final int cupoActual,
+          @JsonKey(name: 'capitan_actual') final String? capitanActual,
+          @JsonKey(name: 'is_user_captain') final bool isUserCaptain}) =
+      _$TournamentTeamModelImpl;
 
   factory _TournamentTeamModel.fromJson(Map<String, dynamic> json) =
       _$TournamentTeamModelImpl.fromJson;
@@ -958,8 +928,7 @@ abstract class _TournamentTeamModel implements TournamentTeamModel {
 }
 
 TournamentParticipantModel _$TournamentParticipantModelFromJson(
-  Map<String, dynamic> json,
-) {
+    Map<String, dynamic> json) {
   return _TournamentParticipantModel.fromJson(json);
 }
 
@@ -979,32 +948,25 @@ mixin _$TournamentParticipantModel {
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
   $TournamentParticipantModelCopyWith<TournamentParticipantModel>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 /// @nodoc
 abstract class $TournamentParticipantModelCopyWith<$Res> {
-  factory $TournamentParticipantModelCopyWith(
-    TournamentParticipantModel value,
-    $Res Function(TournamentParticipantModel) then,
-  ) =
-      _$TournamentParticipantModelCopyWithImpl<
-        $Res,
-        TournamentParticipantModel
-      >;
+  factory $TournamentParticipantModelCopyWith(TournamentParticipantModel value,
+          $Res Function(TournamentParticipantModel) then) =
+      _$TournamentParticipantModelCopyWithImpl<$Res,
+          TournamentParticipantModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'nombre') String nombre,
-    @JsonKey(name: 'equipo_id') int equipoId,
-    @JsonKey(name: 'edad') int? edad,
-  });
+  $Res call(
+      {@JsonKey(name: 'nombre') String nombre,
+      @JsonKey(name: 'equipo_id') int equipoId,
+      @JsonKey(name: 'edad') int? edad});
 }
 
 /// @nodoc
-class _$TournamentParticipantModelCopyWithImpl<
-  $Res,
-  $Val extends TournamentParticipantModel
->
+class _$TournamentParticipantModelCopyWithImpl<$Res,
+        $Val extends TournamentParticipantModel>
     implements $TournamentParticipantModelCopyWith<$Res> {
   _$TournamentParticipantModelCopyWithImpl(this._value, this._then);
 
@@ -1022,23 +984,20 @@ class _$TournamentParticipantModelCopyWithImpl<
     Object? equipoId = null,
     Object? edad = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            nombre: null == nombre
-                ? _value.nombre
-                : nombre // ignore: cast_nullable_to_non_nullable
-                      as String,
-            equipoId: null == equipoId
-                ? _value.equipoId
-                : equipoId // ignore: cast_nullable_to_non_nullable
-                      as int,
-            edad: freezed == edad
-                ? _value.edad
-                : edad // ignore: cast_nullable_to_non_nullable
-                      as int?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      equipoId: null == equipoId
+          ? _value.equipoId
+          : equipoId // ignore: cast_nullable_to_non_nullable
+              as int,
+      edad: freezed == edad
+          ? _value.edad
+          : edad // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ) as $Val);
   }
 }
 
@@ -1046,30 +1005,26 @@ class _$TournamentParticipantModelCopyWithImpl<
 abstract class _$$TournamentParticipantModelImplCopyWith<$Res>
     implements $TournamentParticipantModelCopyWith<$Res> {
   factory _$$TournamentParticipantModelImplCopyWith(
-    _$TournamentParticipantModelImpl value,
-    $Res Function(_$TournamentParticipantModelImpl) then,
-  ) = __$$TournamentParticipantModelImplCopyWithImpl<$Res>;
+          _$TournamentParticipantModelImpl value,
+          $Res Function(_$TournamentParticipantModelImpl) then) =
+      __$$TournamentParticipantModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'nombre') String nombre,
-    @JsonKey(name: 'equipo_id') int equipoId,
-    @JsonKey(name: 'edad') int? edad,
-  });
+  $Res call(
+      {@JsonKey(name: 'nombre') String nombre,
+      @JsonKey(name: 'equipo_id') int equipoId,
+      @JsonKey(name: 'edad') int? edad});
 }
 
 /// @nodoc
 class __$$TournamentParticipantModelImplCopyWithImpl<$Res>
-    extends
-        _$TournamentParticipantModelCopyWithImpl<
-          $Res,
-          _$TournamentParticipantModelImpl
-        >
+    extends _$TournamentParticipantModelCopyWithImpl<$Res,
+        _$TournamentParticipantModelImpl>
     implements _$$TournamentParticipantModelImplCopyWith<$Res> {
   __$$TournamentParticipantModelImplCopyWithImpl(
-    _$TournamentParticipantModelImpl _value,
-    $Res Function(_$TournamentParticipantModelImpl) _then,
-  ) : super(_value, _then);
+      _$TournamentParticipantModelImpl _value,
+      $Res Function(_$TournamentParticipantModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of TournamentParticipantModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1080,37 +1035,34 @@ class __$$TournamentParticipantModelImplCopyWithImpl<$Res>
     Object? equipoId = null,
     Object? edad = freezed,
   }) {
-    return _then(
-      _$TournamentParticipantModelImpl(
-        nombre: null == nombre
-            ? _value.nombre
-            : nombre // ignore: cast_nullable_to_non_nullable
-                  as String,
-        equipoId: null == equipoId
-            ? _value.equipoId
-            : equipoId // ignore: cast_nullable_to_non_nullable
-                  as int,
-        edad: freezed == edad
-            ? _value.edad
-            : edad // ignore: cast_nullable_to_non_nullable
-                  as int?,
-      ),
-    );
+    return _then(_$TournamentParticipantModelImpl(
+      nombre: null == nombre
+          ? _value.nombre
+          : nombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      equipoId: null == equipoId
+          ? _value.equipoId
+          : equipoId // ignore: cast_nullable_to_non_nullable
+              as int,
+      edad: freezed == edad
+          ? _value.edad
+          : edad // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TournamentParticipantModelImpl implements _TournamentParticipantModel {
-  const _$TournamentParticipantModelImpl({
-    @JsonKey(name: 'nombre') required this.nombre,
-    @JsonKey(name: 'equipo_id') required this.equipoId,
-    @JsonKey(name: 'edad') this.edad,
-  });
+  const _$TournamentParticipantModelImpl(
+      {@JsonKey(name: 'nombre') required this.nombre,
+      @JsonKey(name: 'equipo_id') required this.equipoId,
+      @JsonKey(name: 'edad') this.edad});
 
   factory _$TournamentParticipantModelImpl.fromJson(
-    Map<String, dynamic> json,
-  ) => _$$TournamentParticipantModelImplFromJson(json);
+          Map<String, dynamic> json) =>
+      _$$TournamentParticipantModelImplFromJson(json);
 
   @override
   @JsonKey(name: 'nombre')
@@ -1148,24 +1100,24 @@ class _$TournamentParticipantModelImpl implements _TournamentParticipantModel {
   @override
   @pragma('vm:prefer-inline')
   _$$TournamentParticipantModelImplCopyWith<_$TournamentParticipantModelImpl>
-  get copyWith =>
-      __$$TournamentParticipantModelImplCopyWithImpl<
-        _$TournamentParticipantModelImpl
-      >(this, _$identity);
+      get copyWith => __$$TournamentParticipantModelImplCopyWithImpl<
+          _$TournamentParticipantModelImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TournamentParticipantModelImplToJson(this);
+    return _$$TournamentParticipantModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TournamentParticipantModel
     implements TournamentParticipantModel {
-  const factory _TournamentParticipantModel({
-    @JsonKey(name: 'nombre') required final String nombre,
-    @JsonKey(name: 'equipo_id') required final int equipoId,
-    @JsonKey(name: 'edad') final int? edad,
-  }) = _$TournamentParticipantModelImpl;
+  const factory _TournamentParticipantModel(
+          {@JsonKey(name: 'nombre') required final String nombre,
+          @JsonKey(name: 'equipo_id') required final int equipoId,
+          @JsonKey(name: 'edad') final int? edad}) =
+      _$TournamentParticipantModelImpl;
 
   factory _TournamentParticipantModel.fromJson(Map<String, dynamic> json) =
       _$TournamentParticipantModelImpl.fromJson;
@@ -1185,7 +1137,7 @@ abstract class _TournamentParticipantModel
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TournamentParticipantModelImplCopyWith<_$TournamentParticipantModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }
 
 TournamentMatchModel _$TournamentMatchModelFromJson(Map<String, dynamic> json) {
@@ -1228,33 +1180,29 @@ mixin _$TournamentMatchModel {
 
 /// @nodoc
 abstract class $TournamentMatchModelCopyWith<$Res> {
-  factory $TournamentMatchModelCopyWith(
-    TournamentMatchModel value,
-    $Res Function(TournamentMatchModel) then,
-  ) = _$TournamentMatchModelCopyWithImpl<$Res, TournamentMatchModel>;
+  factory $TournamentMatchModelCopyWith(TournamentMatchModel value,
+          $Res Function(TournamentMatchModel) then) =
+      _$TournamentMatchModelCopyWithImpl<$Res, TournamentMatchModel>;
   @useResult
-  $Res call({
-    int id,
-    @JsonKey(name: 'torneo_id') int torneoId,
-    @JsonKey(name: 'equipo_local_id') int equipoLocalId,
-    @JsonKey(name: 'rival_nombre') String rivalNombre,
-    String? fecha,
-    String? lugar,
-    @JsonKey(name: 'es_local') bool esLocal,
-    @JsonKey(name: 'goles_local') int? golesLocal,
-    @JsonKey(name: 'goles_visitante') int? golesVisitante,
-    String? estado,
-    @JsonKey(name: 'resultado_aprobado_local') bool resultadoAprobadoLocal,
-    @JsonKey(name: 'resultado_aprobado_visitante')
-    bool resultadoAprobadoVisitante,
-  });
+  $Res call(
+      {int id,
+      @JsonKey(name: 'torneo_id') int torneoId,
+      @JsonKey(name: 'equipo_local_id') int equipoLocalId,
+      @JsonKey(name: 'rival_nombre') String rivalNombre,
+      String? fecha,
+      String? lugar,
+      @JsonKey(name: 'es_local') bool esLocal,
+      @JsonKey(name: 'goles_local') int? golesLocal,
+      @JsonKey(name: 'goles_visitante') int? golesVisitante,
+      String? estado,
+      @JsonKey(name: 'resultado_aprobado_local') bool resultadoAprobadoLocal,
+      @JsonKey(name: 'resultado_aprobado_visitante')
+      bool resultadoAprobadoVisitante});
 }
 
 /// @nodoc
-class _$TournamentMatchModelCopyWithImpl<
-  $Res,
-  $Val extends TournamentMatchModel
->
+class _$TournamentMatchModelCopyWithImpl<$Res,
+        $Val extends TournamentMatchModel>
     implements $TournamentMatchModelCopyWith<$Res> {
   _$TournamentMatchModelCopyWithImpl(this._value, this._then);
 
@@ -1281,96 +1229,90 @@ class _$TournamentMatchModelCopyWithImpl<
     Object? resultadoAprobadoLocal = null,
     Object? resultadoAprobadoVisitante = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            torneoId: null == torneoId
-                ? _value.torneoId
-                : torneoId // ignore: cast_nullable_to_non_nullable
-                      as int,
-            equipoLocalId: null == equipoLocalId
-                ? _value.equipoLocalId
-                : equipoLocalId // ignore: cast_nullable_to_non_nullable
-                      as int,
-            rivalNombre: null == rivalNombre
-                ? _value.rivalNombre
-                : rivalNombre // ignore: cast_nullable_to_non_nullable
-                      as String,
-            fecha: freezed == fecha
-                ? _value.fecha
-                : fecha // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            lugar: freezed == lugar
-                ? _value.lugar
-                : lugar // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            esLocal: null == esLocal
-                ? _value.esLocal
-                : esLocal // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            golesLocal: freezed == golesLocal
-                ? _value.golesLocal
-                : golesLocal // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            golesVisitante: freezed == golesVisitante
-                ? _value.golesVisitante
-                : golesVisitante // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            estado: freezed == estado
-                ? _value.estado
-                : estado // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            resultadoAprobadoLocal: null == resultadoAprobadoLocal
-                ? _value.resultadoAprobadoLocal
-                : resultadoAprobadoLocal // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            resultadoAprobadoVisitante: null == resultadoAprobadoVisitante
-                ? _value.resultadoAprobadoVisitante
-                : resultadoAprobadoVisitante // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      torneoId: null == torneoId
+          ? _value.torneoId
+          : torneoId // ignore: cast_nullable_to_non_nullable
+              as int,
+      equipoLocalId: null == equipoLocalId
+          ? _value.equipoLocalId
+          : equipoLocalId // ignore: cast_nullable_to_non_nullable
+              as int,
+      rivalNombre: null == rivalNombre
+          ? _value.rivalNombre
+          : rivalNombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      fecha: freezed == fecha
+          ? _value.fecha
+          : fecha // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lugar: freezed == lugar
+          ? _value.lugar
+          : lugar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      esLocal: null == esLocal
+          ? _value.esLocal
+          : esLocal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      golesLocal: freezed == golesLocal
+          ? _value.golesLocal
+          : golesLocal // ignore: cast_nullable_to_non_nullable
+              as int?,
+      golesVisitante: freezed == golesVisitante
+          ? _value.golesVisitante
+          : golesVisitante // ignore: cast_nullable_to_non_nullable
+              as int?,
+      estado: freezed == estado
+          ? _value.estado
+          : estado // ignore: cast_nullable_to_non_nullable
+              as String?,
+      resultadoAprobadoLocal: null == resultadoAprobadoLocal
+          ? _value.resultadoAprobadoLocal
+          : resultadoAprobadoLocal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      resultadoAprobadoVisitante: null == resultadoAprobadoVisitante
+          ? _value.resultadoAprobadoVisitante
+          : resultadoAprobadoVisitante // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$TournamentMatchModelImplCopyWith<$Res>
     implements $TournamentMatchModelCopyWith<$Res> {
-  factory _$$TournamentMatchModelImplCopyWith(
-    _$TournamentMatchModelImpl value,
-    $Res Function(_$TournamentMatchModelImpl) then,
-  ) = __$$TournamentMatchModelImplCopyWithImpl<$Res>;
+  factory _$$TournamentMatchModelImplCopyWith(_$TournamentMatchModelImpl value,
+          $Res Function(_$TournamentMatchModelImpl) then) =
+      __$$TournamentMatchModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    @JsonKey(name: 'torneo_id') int torneoId,
-    @JsonKey(name: 'equipo_local_id') int equipoLocalId,
-    @JsonKey(name: 'rival_nombre') String rivalNombre,
-    String? fecha,
-    String? lugar,
-    @JsonKey(name: 'es_local') bool esLocal,
-    @JsonKey(name: 'goles_local') int? golesLocal,
-    @JsonKey(name: 'goles_visitante') int? golesVisitante,
-    String? estado,
-    @JsonKey(name: 'resultado_aprobado_local') bool resultadoAprobadoLocal,
-    @JsonKey(name: 'resultado_aprobado_visitante')
-    bool resultadoAprobadoVisitante,
-  });
+  $Res call(
+      {int id,
+      @JsonKey(name: 'torneo_id') int torneoId,
+      @JsonKey(name: 'equipo_local_id') int equipoLocalId,
+      @JsonKey(name: 'rival_nombre') String rivalNombre,
+      String? fecha,
+      String? lugar,
+      @JsonKey(name: 'es_local') bool esLocal,
+      @JsonKey(name: 'goles_local') int? golesLocal,
+      @JsonKey(name: 'goles_visitante') int? golesVisitante,
+      String? estado,
+      @JsonKey(name: 'resultado_aprobado_local') bool resultadoAprobadoLocal,
+      @JsonKey(name: 'resultado_aprobado_visitante')
+      bool resultadoAprobadoVisitante});
 }
 
 /// @nodoc
 class __$$TournamentMatchModelImplCopyWithImpl<$Res>
     extends _$TournamentMatchModelCopyWithImpl<$Res, _$TournamentMatchModelImpl>
     implements _$$TournamentMatchModelImplCopyWith<$Res> {
-  __$$TournamentMatchModelImplCopyWithImpl(
-    _$TournamentMatchModelImpl _value,
-    $Res Function(_$TournamentMatchModelImpl) _then,
-  ) : super(_value, _then);
+  __$$TournamentMatchModelImplCopyWithImpl(_$TournamentMatchModelImpl _value,
+      $Res Function(_$TournamentMatchModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of TournamentMatchModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1390,80 +1332,77 @@ class __$$TournamentMatchModelImplCopyWithImpl<$Res>
     Object? resultadoAprobadoLocal = null,
     Object? resultadoAprobadoVisitante = null,
   }) {
-    return _then(
-      _$TournamentMatchModelImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        torneoId: null == torneoId
-            ? _value.torneoId
-            : torneoId // ignore: cast_nullable_to_non_nullable
-                  as int,
-        equipoLocalId: null == equipoLocalId
-            ? _value.equipoLocalId
-            : equipoLocalId // ignore: cast_nullable_to_non_nullable
-                  as int,
-        rivalNombre: null == rivalNombre
-            ? _value.rivalNombre
-            : rivalNombre // ignore: cast_nullable_to_non_nullable
-                  as String,
-        fecha: freezed == fecha
-            ? _value.fecha
-            : fecha // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        lugar: freezed == lugar
-            ? _value.lugar
-            : lugar // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        esLocal: null == esLocal
-            ? _value.esLocal
-            : esLocal // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        golesLocal: freezed == golesLocal
-            ? _value.golesLocal
-            : golesLocal // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        golesVisitante: freezed == golesVisitante
-            ? _value.golesVisitante
-            : golesVisitante // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        estado: freezed == estado
-            ? _value.estado
-            : estado // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        resultadoAprobadoLocal: null == resultadoAprobadoLocal
-            ? _value.resultadoAprobadoLocal
-            : resultadoAprobadoLocal // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        resultadoAprobadoVisitante: null == resultadoAprobadoVisitante
-            ? _value.resultadoAprobadoVisitante
-            : resultadoAprobadoVisitante // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$TournamentMatchModelImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      torneoId: null == torneoId
+          ? _value.torneoId
+          : torneoId // ignore: cast_nullable_to_non_nullable
+              as int,
+      equipoLocalId: null == equipoLocalId
+          ? _value.equipoLocalId
+          : equipoLocalId // ignore: cast_nullable_to_non_nullable
+              as int,
+      rivalNombre: null == rivalNombre
+          ? _value.rivalNombre
+          : rivalNombre // ignore: cast_nullable_to_non_nullable
+              as String,
+      fecha: freezed == fecha
+          ? _value.fecha
+          : fecha // ignore: cast_nullable_to_non_nullable
+              as String?,
+      lugar: freezed == lugar
+          ? _value.lugar
+          : lugar // ignore: cast_nullable_to_non_nullable
+              as String?,
+      esLocal: null == esLocal
+          ? _value.esLocal
+          : esLocal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      golesLocal: freezed == golesLocal
+          ? _value.golesLocal
+          : golesLocal // ignore: cast_nullable_to_non_nullable
+              as int?,
+      golesVisitante: freezed == golesVisitante
+          ? _value.golesVisitante
+          : golesVisitante // ignore: cast_nullable_to_non_nullable
+              as int?,
+      estado: freezed == estado
+          ? _value.estado
+          : estado // ignore: cast_nullable_to_non_nullable
+              as String?,
+      resultadoAprobadoLocal: null == resultadoAprobadoLocal
+          ? _value.resultadoAprobadoLocal
+          : resultadoAprobadoLocal // ignore: cast_nullable_to_non_nullable
+              as bool,
+      resultadoAprobadoVisitante: null == resultadoAprobadoVisitante
+          ? _value.resultadoAprobadoVisitante
+          : resultadoAprobadoVisitante // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TournamentMatchModelImpl implements _TournamentMatchModel {
-  const _$TournamentMatchModelImpl({
-    required this.id,
-    @JsonKey(name: 'torneo_id') required this.torneoId,
-    @JsonKey(name: 'equipo_local_id') required this.equipoLocalId,
-    @JsonKey(name: 'rival_nombre') required this.rivalNombre,
-    this.fecha,
-    this.lugar,
-    @JsonKey(name: 'es_local') this.esLocal = true,
-    @JsonKey(name: 'goles_local') this.golesLocal,
-    @JsonKey(name: 'goles_visitante') this.golesVisitante,
-    this.estado,
-    @JsonKey(name: 'resultado_aprobado_local')
-    this.resultadoAprobadoLocal = false,
-    @JsonKey(name: 'resultado_aprobado_visitante')
-    this.resultadoAprobadoVisitante = false,
-  });
+  const _$TournamentMatchModelImpl(
+      {required this.id,
+      @JsonKey(name: 'torneo_id') required this.torneoId,
+      @JsonKey(name: 'equipo_local_id') required this.equipoLocalId,
+      @JsonKey(name: 'rival_nombre') required this.rivalNombre,
+      this.fecha,
+      this.lugar,
+      @JsonKey(name: 'es_local') this.esLocal = true,
+      @JsonKey(name: 'goles_local') this.golesLocal,
+      @JsonKey(name: 'goles_visitante') this.golesVisitante,
+      this.estado,
+      @JsonKey(name: 'resultado_aprobado_local')
+      this.resultadoAprobadoLocal = false,
+      @JsonKey(name: 'resultado_aprobado_visitante')
+      this.resultadoAprobadoVisitante = false});
 
   factory _$TournamentMatchModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$TournamentMatchModelImplFromJson(json);
@@ -1494,7 +1433,7 @@ class _$TournamentMatchModelImpl implements _TournamentMatchModel {
   final int? golesVisitante;
   @override
   final String? estado;
-  // programado, en_curso, finalizado, cancelado, pospuesto
+// programado, en_curso, finalizado, cancelado, pospuesto
   @override
   @JsonKey(name: 'resultado_aprobado_local')
   final bool resultadoAprobadoLocal;
@@ -1529,10 +1468,8 @@ class _$TournamentMatchModelImpl implements _TournamentMatchModel {
             (identical(other.estado, estado) || other.estado == estado) &&
             (identical(other.resultadoAprobadoLocal, resultadoAprobadoLocal) ||
                 other.resultadoAprobadoLocal == resultadoAprobadoLocal) &&
-            (identical(
-                  other.resultadoAprobadoVisitante,
-                  resultadoAprobadoVisitante,
-                ) ||
+            (identical(other.resultadoAprobadoVisitante,
+                    resultadoAprobadoVisitante) ||
                 other.resultadoAprobadoVisitante ==
                     resultadoAprobadoVisitante));
   }
@@ -1540,20 +1477,19 @@ class _$TournamentMatchModelImpl implements _TournamentMatchModel {
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    torneoId,
-    equipoLocalId,
-    rivalNombre,
-    fecha,
-    lugar,
-    esLocal,
-    golesLocal,
-    golesVisitante,
-    estado,
-    resultadoAprobadoLocal,
-    resultadoAprobadoVisitante,
-  );
+      runtimeType,
+      id,
+      torneoId,
+      equipoLocalId,
+      rivalNombre,
+      fecha,
+      lugar,
+      esLocal,
+      golesLocal,
+      golesVisitante,
+      estado,
+      resultadoAprobadoLocal,
+      resultadoAprobadoVisitante);
 
   /// Create a copy of TournamentMatchModel
   /// with the given fields replaced by the non-null parameter values.
@@ -1561,35 +1497,34 @@ class _$TournamentMatchModelImpl implements _TournamentMatchModel {
   @override
   @pragma('vm:prefer-inline')
   _$$TournamentMatchModelImplCopyWith<_$TournamentMatchModelImpl>
-  get copyWith =>
-      __$$TournamentMatchModelImplCopyWithImpl<_$TournamentMatchModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith =>
+          __$$TournamentMatchModelImplCopyWithImpl<_$TournamentMatchModelImpl>(
+              this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TournamentMatchModelImplToJson(this);
+    return _$$TournamentMatchModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TournamentMatchModel implements TournamentMatchModel {
-  const factory _TournamentMatchModel({
-    required final int id,
-    @JsonKey(name: 'torneo_id') required final int torneoId,
-    @JsonKey(name: 'equipo_local_id') required final int equipoLocalId,
-    @JsonKey(name: 'rival_nombre') required final String rivalNombre,
-    final String? fecha,
-    final String? lugar,
-    @JsonKey(name: 'es_local') final bool esLocal,
-    @JsonKey(name: 'goles_local') final int? golesLocal,
-    @JsonKey(name: 'goles_visitante') final int? golesVisitante,
-    final String? estado,
-    @JsonKey(name: 'resultado_aprobado_local')
-    final bool resultadoAprobadoLocal,
-    @JsonKey(name: 'resultado_aprobado_visitante')
-    final bool resultadoAprobadoVisitante,
-  }) = _$TournamentMatchModelImpl;
+  const factory _TournamentMatchModel(
+      {required final int id,
+      @JsonKey(name: 'torneo_id') required final int torneoId,
+      @JsonKey(name: 'equipo_local_id') required final int equipoLocalId,
+      @JsonKey(name: 'rival_nombre') required final String rivalNombre,
+      final String? fecha,
+      final String? lugar,
+      @JsonKey(name: 'es_local') final bool esLocal,
+      @JsonKey(name: 'goles_local') final int? golesLocal,
+      @JsonKey(name: 'goles_visitante') final int? golesVisitante,
+      final String? estado,
+      @JsonKey(name: 'resultado_aprobado_local')
+      final bool resultadoAprobadoLocal,
+      @JsonKey(name: 'resultado_aprobado_visitante')
+      final bool resultadoAprobadoVisitante}) = _$TournamentMatchModelImpl;
 
   factory _TournamentMatchModel.fromJson(Map<String, dynamic> json) =
       _$TournamentMatchModelImpl.fromJson;
@@ -1632,5 +1567,5 @@ abstract class _TournamentMatchModel implements TournamentMatchModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TournamentMatchModelImplCopyWith<_$TournamentMatchModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

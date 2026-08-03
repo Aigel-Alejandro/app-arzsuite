@@ -14,8 +14,9 @@ class SubMemberModel with _$SubMemberModel {
     @JsonKey(name: 'member_type') @Default('') String memberType,
     @JsonKey(name: 'birth_date') String? birthDate,
     int? age,
-    String? genero,
     @JsonKey(name: 'permissions') @Default([]) List<String> permissions,
+    @JsonKey(name: 'club_access') @Default([]) List<int> clubAccess,
+    String? genero,
   }) = _SubMemberModel;
 
   factory SubMemberModel.fromJson(Map<String, dynamic> json) =>

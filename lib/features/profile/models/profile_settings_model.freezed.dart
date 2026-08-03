@@ -12,8 +12,7 @@ part of 'profile_settings_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ProfileSettingsModel _$ProfileSettingsModelFromJson(Map<String, dynamic> json) {
   return _ProfileSettingsModel.fromJson(json);
@@ -38,24 +37,20 @@ mixin _$ProfileSettingsModel {
 
 /// @nodoc
 abstract class $ProfileSettingsModelCopyWith<$Res> {
-  factory $ProfileSettingsModelCopyWith(
-    ProfileSettingsModel value,
-    $Res Function(ProfileSettingsModel) then,
-  ) = _$ProfileSettingsModelCopyWithImpl<$Res, ProfileSettingsModel>;
+  factory $ProfileSettingsModelCopyWith(ProfileSettingsModel value,
+          $Res Function(ProfileSettingsModel) then) =
+      _$ProfileSettingsModelCopyWithImpl<$Res, ProfileSettingsModel>;
   @useResult
-  $Res call({
-    String theme,
-    bool emailNotifications,
-    bool pushNotifications,
-    bool classReminders,
-  });
+  $Res call(
+      {String theme,
+      bool emailNotifications,
+      bool pushNotifications,
+      bool classReminders});
 }
 
 /// @nodoc
-class _$ProfileSettingsModelCopyWithImpl<
-  $Res,
-  $Val extends ProfileSettingsModel
->
+class _$ProfileSettingsModelCopyWithImpl<$Res,
+        $Val extends ProfileSettingsModel>
     implements $ProfileSettingsModelCopyWith<$Res> {
   _$ProfileSettingsModelCopyWithImpl(this._value, this._then);
 
@@ -74,55 +69,49 @@ class _$ProfileSettingsModelCopyWithImpl<
     Object? pushNotifications = null,
     Object? classReminders = null,
   }) {
-    return _then(
-      _value.copyWith(
-            theme: null == theme
-                ? _value.theme
-                : theme // ignore: cast_nullable_to_non_nullable
-                      as String,
-            emailNotifications: null == emailNotifications
-                ? _value.emailNotifications
-                : emailNotifications // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            pushNotifications: null == pushNotifications
-                ? _value.pushNotifications
-                : pushNotifications // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            classReminders: null == classReminders
-                ? _value.classReminders
-                : classReminders // ignore: cast_nullable_to_non_nullable
-                      as bool,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      theme: null == theme
+          ? _value.theme
+          : theme // ignore: cast_nullable_to_non_nullable
+              as String,
+      emailNotifications: null == emailNotifications
+          ? _value.emailNotifications
+          : emailNotifications // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pushNotifications: null == pushNotifications
+          ? _value.pushNotifications
+          : pushNotifications // ignore: cast_nullable_to_non_nullable
+              as bool,
+      classReminders: null == classReminders
+          ? _value.classReminders
+          : classReminders // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ProfileSettingsModelImplCopyWith<$Res>
     implements $ProfileSettingsModelCopyWith<$Res> {
-  factory _$$ProfileSettingsModelImplCopyWith(
-    _$ProfileSettingsModelImpl value,
-    $Res Function(_$ProfileSettingsModelImpl) then,
-  ) = __$$ProfileSettingsModelImplCopyWithImpl<$Res>;
+  factory _$$ProfileSettingsModelImplCopyWith(_$ProfileSettingsModelImpl value,
+          $Res Function(_$ProfileSettingsModelImpl) then) =
+      __$$ProfileSettingsModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String theme,
-    bool emailNotifications,
-    bool pushNotifications,
-    bool classReminders,
-  });
+  $Res call(
+      {String theme,
+      bool emailNotifications,
+      bool pushNotifications,
+      bool classReminders});
 }
 
 /// @nodoc
 class __$$ProfileSettingsModelImplCopyWithImpl<$Res>
     extends _$ProfileSettingsModelCopyWithImpl<$Res, _$ProfileSettingsModelImpl>
     implements _$$ProfileSettingsModelImplCopyWith<$Res> {
-  __$$ProfileSettingsModelImplCopyWithImpl(
-    _$ProfileSettingsModelImpl _value,
-    $Res Function(_$ProfileSettingsModelImpl) _then,
-  ) : super(_value, _then);
+  __$$ProfileSettingsModelImplCopyWithImpl(_$ProfileSettingsModelImpl _value,
+      $Res Function(_$ProfileSettingsModelImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of ProfileSettingsModel
   /// with the given fields replaced by the non-null parameter values.
@@ -134,38 +123,35 @@ class __$$ProfileSettingsModelImplCopyWithImpl<$Res>
     Object? pushNotifications = null,
     Object? classReminders = null,
   }) {
-    return _then(
-      _$ProfileSettingsModelImpl(
-        theme: null == theme
-            ? _value.theme
-            : theme // ignore: cast_nullable_to_non_nullable
-                  as String,
-        emailNotifications: null == emailNotifications
-            ? _value.emailNotifications
-            : emailNotifications // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        pushNotifications: null == pushNotifications
-            ? _value.pushNotifications
-            : pushNotifications // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        classReminders: null == classReminders
-            ? _value.classReminders
-            : classReminders // ignore: cast_nullable_to_non_nullable
-                  as bool,
-      ),
-    );
+    return _then(_$ProfileSettingsModelImpl(
+      theme: null == theme
+          ? _value.theme
+          : theme // ignore: cast_nullable_to_non_nullable
+              as String,
+      emailNotifications: null == emailNotifications
+          ? _value.emailNotifications
+          : emailNotifications // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pushNotifications: null == pushNotifications
+          ? _value.pushNotifications
+          : pushNotifications // ignore: cast_nullable_to_non_nullable
+              as bool,
+      classReminders: null == classReminders
+          ? _value.classReminders
+          : classReminders // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ProfileSettingsModelImpl implements _ProfileSettingsModel {
-  const _$ProfileSettingsModelImpl({
-    this.theme = 'system',
-    this.emailNotifications = true,
-    this.pushNotifications = true,
-    this.classReminders = true,
-  });
+  const _$ProfileSettingsModelImpl(
+      {this.theme = 'system',
+      this.emailNotifications = true,
+      this.pushNotifications = true,
+      this.classReminders = true});
 
   factory _$ProfileSettingsModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ProfileSettingsModelImplFromJson(json);
@@ -204,13 +190,8 @@ class _$ProfileSettingsModelImpl implements _ProfileSettingsModel {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    theme,
-    emailNotifications,
-    pushNotifications,
-    classReminders,
-  );
+  int get hashCode => Object.hash(runtimeType, theme, emailNotifications,
+      pushNotifications, classReminders);
 
   /// Create a copy of ProfileSettingsModel
   /// with the given fields replaced by the non-null parameter values.
@@ -218,25 +199,24 @@ class _$ProfileSettingsModelImpl implements _ProfileSettingsModel {
   @override
   @pragma('vm:prefer-inline')
   _$$ProfileSettingsModelImplCopyWith<_$ProfileSettingsModelImpl>
-  get copyWith =>
-      __$$ProfileSettingsModelImplCopyWithImpl<_$ProfileSettingsModelImpl>(
-        this,
-        _$identity,
-      );
+      get copyWith =>
+          __$$ProfileSettingsModelImplCopyWithImpl<_$ProfileSettingsModelImpl>(
+              this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ProfileSettingsModelImplToJson(this);
+    return _$$ProfileSettingsModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ProfileSettingsModel implements ProfileSettingsModel {
-  const factory _ProfileSettingsModel({
-    final String theme,
-    final bool emailNotifications,
-    final bool pushNotifications,
-    final bool classReminders,
-  }) = _$ProfileSettingsModelImpl;
+  const factory _ProfileSettingsModel(
+      {final String theme,
+      final bool emailNotifications,
+      final bool pushNotifications,
+      final bool classReminders}) = _$ProfileSettingsModelImpl;
 
   factory _ProfileSettingsModel.fromJson(Map<String, dynamic> json) =
       _$ProfileSettingsModelImpl.fromJson;
@@ -255,5 +235,5 @@ abstract class _ProfileSettingsModel implements ProfileSettingsModel {
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ProfileSettingsModelImplCopyWith<_$ProfileSettingsModelImpl>
-  get copyWith => throw _privateConstructorUsedError;
+      get copyWith => throw _privateConstructorUsedError;
 }

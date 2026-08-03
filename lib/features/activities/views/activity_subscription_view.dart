@@ -216,9 +216,11 @@ class _ActivitySubscriptionViewState
                       })
                       .map((b) {
                         int? age = b['age'];
+                        List<int> clubAccess = b['clubAccess'] ?? [];
+                        bool hasClubAccess = clubAccess.isEmpty || clubAccess.contains(widget.activity.clubId);
 
                         return InkWell(
-                          onTap: () {
+                          onTap: hasClubAccess ? () {
                             setState(() {
                               if (_selectedBeneficiaries.contains(b['name'])) {
                                 _selectedBeneficiaries.remove(b['name']);
@@ -227,6 +229,10 @@ class _ActivitySubscriptionViewState
                               }
                             });
                             setSheetState(() {});
+                          } : () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Este familiar no tiene acceso a este club.')),
+                            );
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
@@ -238,11 +244,10 @@ class _ActivitySubscriptionViewState
                               children: [
                                 CircleAvatar(
                                   radius: 20,
-                                  backgroundColor: AppTheme.primaryColor
-                                      .withValues(alpha: 0.1),
-                                  child: const Icon(
+                                  backgroundColor: hasClubAccess ? AppTheme.primaryColor.withValues(alpha: 0.1) : Theme.of(context).disabledColor.withValues(alpha: 0.1),
+                                  child: Icon(
                                     Icons.person,
-                                    color: AppTheme.primaryColor,
+                                    color: hasClubAccess ? AppTheme.primaryColor : Theme.of(context).disabledColor,
                                     size: 20,
                                   ),
                                 ),
@@ -257,7 +262,7 @@ class _ActivitySubscriptionViewState
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
-                                          color: Theme.of(context).textTheme.titleLarge?.color,
+                                          color: hasClubAccess ? Theme.of(context).textTheme.titleLarge?.color : Theme.of(context).disabledColor,
                                         ),
                                       ),
                                       const SizedBox(height: 2),
@@ -266,22 +271,36 @@ class _ActivitySubscriptionViewState
                                             ? '$age años'
                                             : 'Edad sin proporcionar en perfil',
                                         style: TextStyle(
-                                          color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                                          color: hasClubAccess ? Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.7) : Theme.of(context).disabledColor,
                                           fontSize: 13,
                                         ),
                                       ),
+                                      if (!hasClubAccess)
+                                        Padding(
+                                          padding: const EdgeInsets.only(top: 2),
+                                          child: Text(
+                                            'Sin acceso al club',
+                                            style: TextStyle(color: AppTheme.dangerColor, fontSize: 12, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
                                     ],
                                   ),
                                 ),
-                                if (_selectedBeneficiaries.contains(b['name']))
-                                  const Icon(
-                                    Icons.check_circle,
-                                    color: AppTheme.primaryColor,
-                                  )
+                                if (hasClubAccess)
+                                  if (_selectedBeneficiaries.contains(b['name']))
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: AppTheme.primaryColor,
+                                    )
+                                  else
+                                    Icon(
+                                      Icons.radio_button_unchecked,
+                                      color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3) ?? AppTheme.neutral300,
+                                    )
                                 else
                                   Icon(
-                                    Icons.radio_button_unchecked,
-                                    color: Theme.of(context).iconTheme.color?.withValues(alpha: 0.3) ?? AppTheme.neutral300,
+                                    Icons.block,
+                                    color: Theme.of(context).disabledColor,
                                   ),
                               ],
                             ),
@@ -397,6 +416,7 @@ class _ActivitySubscriptionViewState
         'entityid': int.tryParse(profileAsync.value!.entityid.toString()) ?? 0,
         'name': cleanTitular,
         'age': profileAsync.value!.age,
+        'clubAccess': profileAsync.value!.clubAccess,
       });
       for (var member in profileAsync.value!.associatedMembers) {
         if (member.fullname != null && member.fullname!.isNotEmpty) {
@@ -409,6 +429,7 @@ class _ActivitySubscriptionViewState
             'entityid': int.tryParse(member.membershipNumber.toString()) ?? 0,
             'name': cleanMember,
             'age': member.age,
+            'clubAccess': member.clubAccess,
           });
         }
       }
