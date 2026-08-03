@@ -21,6 +21,7 @@ import '../../../core/widgets/custom_premium_app_bar.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import '../../../core/services/resend_service.dart';
 import 'package:intl/intl.dart';
+import '../../../core/network/api_endpoints.dart';
 
 final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
@@ -81,6 +82,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     super.initState();
     _cpCtrl.addListener(() => _onCpChanged(false));
     _fiscalCpCtrl.addListener(() => _onCpChanged(true));
+  }
+
+  ImageProvider? _getProfileImage(String? pictureData) {
+    if (pictureData == null || pictureData.isEmpty) return null;
+    
+    if (pictureData.startsWith('http')) {
+      final uri = Uri.parse(pictureData);
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      final newUri = uri.replace(queryParameters: {...uri.queryParameters, 't': timestamp});
+      return NetworkImage(newUri.toString());
+    } else if (pictureData.startsWith('/') && pictureData.length < 1000) {
+      final domain = ApiEndpoints.baseUrlCakePHP.replaceAll('/api/', '');
+      final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+      return NetworkImage('$domain$pictureData?t=$timestamp');
+    }
+    
+    try {
+      String base64String = pictureData.contains(',') ? pictureData.split(',').last : pictureData;
+      base64String = base64String.replaceAll(RegExp(r'\s+'), '');
+      if (base64String.length % 4 > 0) {
+        base64String += '=' * (4 - base64String.length % 4);
+      }
+      return MemoryImage(base64Decode(base64String));
+    } catch (e) {
+      debugPrint('Error decoding base64 profile picture: $e');
+      return null;
+    }
   }
 
   void _onCpChanged(bool isFiscal) {
@@ -389,7 +417,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes);
-      final dataUri = 'data:image/${image.name.split('.').last};base64,$base64Image';
+      
+      String mimeType = image.mimeType ?? 'image/jpeg';
+      if (!mimeType.startsWith('image/')) {
+        mimeType = 'image/jpeg';
+      }
+      final dataUri = 'data:$mimeType;base64,$base64Image';
 
       if (!mounted) return;
       
@@ -810,30 +843,28 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       ),
       child: Row(
         children: [
-          Stack(
-            children: [
-              CircleAvatar(
-                radius: 40,
-                backgroundColor: Colors.white.withOpacity(0.2),
-                backgroundImage: profile.profilePicture != null 
-                  ? MemoryImage(base64Decode(profile.profilePicture!.split(',').last)) 
-                  : null,
-                child: profile.profilePicture == null 
-                  ? Text(
-                      profile.firstName?.isNotEmpty == true ? profile.firstName!.substring(0, 1).toUpperCase() : 'U',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    )
-                  : null,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: _onEditPhoto,
+          GestureDetector(
+            onTap: _onEditPhoto,
+            child: Stack(
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundImage: _getProfileImage(profile.profilePicture),
+                  child: profile.profilePicture == null 
+                    ? Text(
+                        profile.firstName?.isNotEmpty == true ? profile.firstName!.substring(0, 1).toUpperCase() : 'U',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                    : null,
+                ),
+                Positioned(
+                  bottom: 0,
+                  right: 0,
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -850,8 +881,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     child: const Icon(Icons.edit_rounded, color: AppTheme.primaryColor, size: 16),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1043,6 +1074,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   Widget _buildAccountTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
     final bool canEdit = profile.canEditSensitiveData;
     final currentMember = ref.watch(authProvider);
+    final canViewAssociatedMembers = (currentMember?.isTitular ?? false) || 
+        (currentMember?.hasPermission('profile.associated_members') ?? false) || 
+        (currentMember?.hasPermission('manage_family') ?? false);
+    final canManageFamily = (currentMember?.isTitular ?? false) || 
+        (currentMember?.hasPermission('manage_family') ?? false);
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1123,13 +1159,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               ],
             ),
           ),
-          if (profile.associatedMembers.isNotEmpty) ...[
+          if (profile.associatedMembers.isNotEmpty && canViewAssociatedMembers) ...[
             const SizedBox(height: 32),
             _buildSectionHeader(context, 'Miembros Asociados', Icons.people_outline_rounded),
             const SizedBox(height: 16),
             ...profile.associatedMembers.map((member) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: (currentMember?.isTitular ?? false)
+                  child: canManageFamily
                       ? _buildFamilyMemberPermissions(context, ref, member)
                       : _buildAssociatedCard(context, member),
                 )),
@@ -1448,6 +1484,42 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       VoidCallback? onTap,
     }
   ) {
+    if (!canEdit) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              if (icon != null) ...[
+                Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Padding(
+            padding: EdgeInsets.only(left: icon != null ? 24.0 : 0.0),
+            child: Text(
+              controller.text.isEmpty ? 'No registrado' : controller.text,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return TextFormField(
       controller: controller,
       readOnly: !canEdit || onTap != null,
@@ -1470,34 +1542,70 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
+  Widget _buildPermissionChip(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required bool isGranted,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return FilterChip(
+      label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      avatar: Icon(icon, size: 16, color: isGranted ? Colors.white : AppTheme.primaryColor),
+      selected: isGranted,
+      onSelected: onChanged,
+      selectedColor: AppTheme.primaryColor,
+      checkmarkColor: Colors.transparent,
+      showCheckmark: false,
+      labelStyle: TextStyle(color: isGranted ? Colors.white : AppTheme.neutral700),
+      backgroundColor: AppTheme.primaryColor.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: isGranted ? Colors.transparent : AppTheme.primaryColor.withOpacity(0.2)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+    );
+  }
+
   Widget _buildFamilyMemberPermissions(BuildContext context, WidgetRef ref, SubMemberModel member) {
     final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
     return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        leading: CircleAvatar(
-          backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-          child: const Icon(Icons.person_outline_rounded, color: AppTheme.primaryColor),
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        listTileTheme: const ListTileThemeData(
+          dense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+          minVerticalPadding: 8,
+          horizontalTitleGap: 12,
         ),
-        title: Text(cleanName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text('${member.memberType} • ID: ${member.membershipNumber}', style: const TextStyle(fontSize: 12, color: AppTheme.neutral500)),
-        childrenPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      ),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+        leading: CircleAvatar(
+          radius: 18,
+          backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
+          child: const Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.primaryColor),
+        ),
+        title: Text(cleanName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        subtitle: Text('${member.memberType} • ID: ${member.membershipNumber}', style: const TextStyle(fontSize: 11, color: AppTheme.neutral500, height: 1.2)),
+        childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
         children: [
           Container(
+            width: double.infinity,
             decoration: BoxDecoration(
-              color: AppTheme.primaryColor.withOpacity(0.02),
+              color: AppTheme.primaryColor.withOpacity(0.03),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
             ),
             padding: const EdgeInsets.all(12),
-            child: Column(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Saldos y Finanzas',
-                  subtitle: 'Consultar saldos y pagos',
+                  label: 'Saldos',
                   icon: Icons.account_balance_wallet_outlined,
-                  value: member.permissions.contains('financial.view'),
+                  isGranted: member.permissions.contains('financial.view'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'financial.view', val);
@@ -1506,13 +1614,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Información de Salud',
-                  subtitle: 'Acceso a expediente médico',
+                  label: 'Salud',
                   icon: Icons.monitor_heart_outlined,
-                  value: member.permissions.contains('health.medical_data'),
+                  isGranted: member.permissions.contains('health.medical_data'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'health.medical_data', val);
@@ -1521,13 +1627,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Mis Vehículos',
-                  subtitle: 'Registro de automóvil',
+                  label: 'Vehículos',
                   icon: Icons.directions_car_outlined,
-                  value: member.permissions.contains('profile.vehicles'),
+                  isGranted: member.permissions.contains('profile.vehicles'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'profile.vehicles', val);
@@ -1536,13 +1640,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Inscripción a Actividades',
-                  subtitle: 'Inscripción a actividades deportivas y culturales',
+                  label: 'Inscripciones',
                   icon: Icons.sports_tennis_rounded,
-                  value: member.permissions.contains('activities.enroll'),
+                  isGranted: member.permissions.contains('activities.enroll'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'activities.enroll', val);
@@ -1551,13 +1653,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Curso de Verano',
-                  subtitle: 'Inscripción al curso de verano',
+                  label: 'Verano',
                   icon: Icons.wb_sunny_outlined,
-                  value: member.permissions.contains('summer_course.enroll'),
+                  isGranted: member.permissions.contains('summer_course.enroll'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'summer_course.enroll', val);
@@ -1566,13 +1666,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
+                _buildPermissionChip(
                   context,
-                  title: 'Agenda Deportiva',
-                  subtitle: 'Ver actividades de otros familiares',
+                  label: 'Agenda',
                   icon: Icons.calendar_month_outlined,
-                  value: member.permissions.contains('dashboard.agenda.view_all'),
+                  isGranted: member.permissions.contains('dashboard.agenda.view_all'),
                   onChanged: (val) async {
                     try {
                       await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'dashboard.agenda.view_all', val);
@@ -1581,21 +1679,20 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     }
                   },
                 ),
-                const Divider(height: 24),
-                _buildConfigSwitch(
-                  context,
-                  title: 'Administrador Familiar',
-                  subtitle: 'Gestionar a otros familiares',
-                  icon: Icons.family_restroom_rounded,
-                  value: member.permissions.contains('manage_family'),
-                  onChanged: (val) async {
-                    try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'manage_family', val);
-                    } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
-                    }
-                  },
-                ),
+                if (ref.read(authProvider)?.isTitular ?? false)
+                  _buildPermissionChip(
+                    context,
+                    label: 'Admin',
+                    icon: Icons.family_restroom_rounded,
+                    isGranted: member.permissions.contains('manage_family'),
+                    onChanged: (val) async {
+                      try {
+                        await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'manage_family', val);
+                      } catch (e) {
+                        if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      }
+                    },
+                  ),
               ],
             ),
           ),
