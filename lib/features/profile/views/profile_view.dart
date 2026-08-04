@@ -1819,7 +1819,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               children: [
                 _buildPermissionChip(
                   context,
-                  label: 'Saldos',
+                  label: 'Finanzas',
                   icon: Icons.account_balance_wallet_outlined,
                   isGranted: member.permissions.contains('financial.view'),
                   onChanged: (val) async {
@@ -1837,7 +1837,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ),
                 _buildPermissionChip(
                   context,
-                  label: 'Salud',
+                  label: 'Ficha Médica',
                   icon: Icons.monitor_heart_outlined,
                   isGranted: member.permissions.contains('health.medical_data'),
                   onChanged: (val) async {
@@ -1893,7 +1893,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ),
                 _buildPermissionChip(
                   context,
-                  label: 'Verano',
+                  label: 'C. Verano',
                   icon: Icons.wb_sunny_outlined,
                   isGranted:
                       member.permissions.contains('summer_course.enroll'),
@@ -1932,7 +1932,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 if (ref.read(authProvider)?.isTitular ?? false)
                   _buildPermissionChip(
                     context,
-                    label: 'Admin',
+                    label: 'Admin. Familiar',
                     icon: Icons.family_restroom_rounded,
                     isGranted: member.permissions.contains('manage_family'),
                     onChanged: (val) async {
