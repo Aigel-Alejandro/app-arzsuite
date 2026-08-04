@@ -23,7 +23,8 @@ import '../../../core/services/resend_service.dart';
 import 'package:intl/intl.dart';
 import '../../../core/network/api_endpoints.dart';
 
-final userPaymentsProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
+final userPaymentsProvider =
+    FutureProvider.autoDispose<Map<String, dynamic>>((ref) async {
   final apiClient = ref.watch(apiClientNotifierProvider);
   if (apiClient.token == null || apiClient.token!.isEmpty) {
     return <String, dynamic>{};
@@ -86,20 +87,22 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   ImageProvider? _getProfileImage(String? pictureData) {
     if (pictureData == null || pictureData.isEmpty) return null;
-    
+
     if (pictureData.startsWith('http')) {
       final uri = Uri.parse(pictureData);
       final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-      final newUri = uri.replace(queryParameters: {...uri.queryParameters, 't': timestamp});
+      final newUri = uri
+          .replace(queryParameters: {...uri.queryParameters, 't': timestamp});
       return NetworkImage(newUri.toString());
     } else if (pictureData.startsWith('/') && pictureData.length < 1000) {
       final domain = ApiEndpoints.baseUrlCakePHP.replaceAll('/api/', '');
       final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
       return NetworkImage('$domain$pictureData?t=$timestamp');
     }
-    
+
     try {
-      String base64String = pictureData.contains(',') ? pictureData.split(',').last : pictureData;
+      String base64String =
+          pictureData.contains(',') ? pictureData.split(',').last : pictureData;
       base64String = base64String.replaceAll(RegExp(r'\s+'), '');
       if (base64String.length % 4 > 0) {
         base64String += '=' * (4 - base64String.length % 4);
@@ -140,14 +143,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           'language': 'es',
         },
       );
-      
+
       if (response.statusCode == 200 && response.data != null) {
         final data = response.data as Map<String, dynamic>;
-        
+
         if (data['status'] == 'OK' && (data['results'] as List).isNotEmpty) {
           final result = data['results'][0] as Map<String, dynamic>;
-          final components = result['address_components'] as List<dynamic>? ?? [];
-          
+          final components =
+              result['address_components'] as List<dynamic>? ?? [];
+
           String estado = '';
           String ciudad = '';
           String coloniaSola = '';
@@ -158,14 +162,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               estado = comp['long_name'];
             }
             // Locality means City, administrative_area_level_2 means Municipality
-            if (types.contains('locality') || types.contains('administrative_area_level_2')) {
+            if (types.contains('locality') ||
+                types.contains('administrative_area_level_2')) {
               ciudad = comp['long_name'];
             }
-            if (types.contains('sublocality') || types.contains('neighborhood') || types.contains('sublocality_level_1')) {
+            if (types.contains('sublocality') ||
+                types.contains('neighborhood') ||
+                types.contains('sublocality_level_1')) {
               coloniaSola = comp['long_name'];
             }
           }
-          
+
           if (!mounted) return;
           setState(() {
             if (isFiscal) {
@@ -179,19 +186,19 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
           // Google sometimes provides an array of localities inside the postal code area
           final localities = result['postcode_localities'] as List<dynamic>?;
-          
+
           if (localities != null && localities.isNotEmpty) {
             final colonias = localities.map((e) => e.toString()).toList();
             if (colonias.length == 1) {
-               setState(() {
-                 if (isFiscal) {
-                   _fiscalColoniaCtrl.text = colonias[0];
-                 } else {
-                   _coloniaCtrl.text = colonias[0];
-                 }
-               });
+              setState(() {
+                if (isFiscal) {
+                  _fiscalColoniaCtrl.text = colonias[0];
+                } else {
+                  _coloniaCtrl.text = colonias[0];
+                }
+              });
             } else {
-               _showColoniaSelector(colonias, isFiscal);
+              _showColoniaSelector(colonias, isFiscal);
             }
           } else if (coloniaSola.isNotEmpty) {
             setState(() {
@@ -209,7 +216,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     } catch (e) {
       debugPrint('Error fetching CP with Google Maps: $e');
       if (!mounted) return;
-      ToastAlerts.showWarning(context, 'No se encontró información extra para este código postal.');
+      ToastAlerts.showWarning(
+          context, 'No se encontró información extra para este código postal.');
     } finally {
       if (mounted) {
         setState(() => _isSearchingCp = false);
@@ -248,9 +256,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   itemBuilder: (context, index) {
                     final colonia = colonias[index];
                     return ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 24),
                       title: Text(colonia),
-                      leading: const Icon(Icons.location_city_rounded, color: AppTheme.primaryColor),
+                      leading: const Icon(Icons.location_city_rounded,
+                          color: AppTheme.primaryColor),
                       onTap: () {
                         setState(() {
                           if (isFiscal) {
@@ -272,7 +282,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _showGenericSelector(String title, List<String> options, TextEditingController controller, IconData icon) {
+  void _showGenericSelector(String title, List<String> options,
+      TextEditingController controller, IconData icon) {
     String searchQuery = '';
     showModalBottomSheet(
       context: context,
@@ -289,83 +300,89 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           expand: false,
           builder: (context, scrollController) {
             return StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-                final filteredOptions = options.where((o) => 
-                  o.toLowerCase().contains(searchQuery.toLowerCase())
-                ).toList();
+                builder: (BuildContext context, StateSetter setModalState) {
+              final filteredOptions = options
+                  .where((o) =>
+                      o.toLowerCase().contains(searchQuery.toLowerCase()))
+                  .toList();
 
-                return Container(
-                  padding: const EdgeInsets.only(top: 24, bottom: 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Text(
-                          title,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+              return Container(
+                padding: const EdgeInsets.only(top: 24, bottom: 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: TextField(
-                          autofocus: false,
-                          decoration: InputDecoration(
-                            hintText: 'Escribe para buscar...',
-                            prefixIcon: const Icon(Icons.search_rounded),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    ),
+                    const SizedBox(height: 16),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: TextField(
+                        autofocus: false,
+                        decoration: InputDecoration(
+                          hintText: 'Escribe para buscar...',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
-                          onChanged: (value) {
-                            setModalState(() {
-                              searchQuery = value;
-                            });
-                          },
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 0),
                         ),
+                        onChanged: (value) {
+                          setModalState(() {
+                            searchQuery = value;
+                          });
+                        },
                       ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: ListView.builder(
-                          controller: scrollController,
-                          itemCount: filteredOptions.length,
-                          itemBuilder: (context, index) {
-                            final option = filteredOptions[index];
-                            final isSelected = controller.text == option;
-                            return ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
-                              title: Text(
-                                option, 
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: filteredOptions.length,
+                        itemBuilder: (context, index) {
+                          final option = filteredOptions[index];
+                          final isSelected = controller.text == option;
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 24, vertical: 4),
+                            title: Text(option,
                                 style: TextStyle(
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                  color: isSelected ? AppTheme.primaryColor : null,
-                                )
-                              ),
-                              leading: Icon(
-                                icon, 
-                                color: isSelected ? AppTheme.primaryColor : AppTheme.neutral400
-                              ),
-                              trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: AppTheme.primaryColor) : null,
-                              onTap: () {
-                                setState(() {
-                                  controller.text = option;
-                                });
-                                Navigator.pop(context);
-                              },
-                            );
-                          },
-                        ),
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color:
+                                      isSelected ? AppTheme.primaryColor : null,
+                                )),
+                            leading: Icon(icon,
+                                color: isSelected
+                                    ? AppTheme.primaryColor
+                                    : AppTheme.neutral400),
+                            trailing: isSelected
+                                ? const Icon(Icons.check_circle_rounded,
+                                    color: AppTheme.primaryColor)
+                                : null,
+                            onTap: () {
+                              setState(() {
+                                controller.text = option;
+                              });
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
                       ),
-                    ],
-                  ),
-                );
-              }
-            );
+                    ),
+                  ],
+                ),
+              );
+            });
           },
         );
       },
@@ -385,7 +402,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _razonSocialCtrl.dispose();
     _regimenCtrl.dispose();
     _usoCfdiCtrl.dispose();
-    
+
     _fiscalStreetCtrl.dispose();
     _fiscalExtNumCtrl.dispose();
     _fiscalIntNumCtrl.dispose();
@@ -412,12 +429,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         imageQuality: 70,
         maxWidth: 1024,
       );
-      
+
       if (image == null) return;
 
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes);
-      
+
       String mimeType = image.mimeType ?? 'image/jpeg';
       if (!mimeType.startsWith('image/')) {
         mimeType = 'image/jpeg';
@@ -425,13 +442,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       final dataUri = 'data:$mimeType;base64,$base64Image';
 
       if (!mounted) return;
-      
+
       // Mostrar feedback de carga
       ToastAlerts.showWarning(context, 'Subiendo foto de perfil...');
 
       await ref.read(profileProvider.notifier).updateProfile(
-        profilePictureBase64: dataUri,
-      );
+            profilePictureBase64: dataUri,
+          );
 
       if (!mounted) return;
       ToastAlerts.showSuccess(context, 'Foto de perfil actualizada');
@@ -443,7 +460,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   void _initControllers(ProfileModel profile) {
     if (_isInit) return;
-    
+
     final personalAddress = profile.personalAddress ?? {};
     _streetCtrl.text = personalAddress['street'] ?? '';
     _extNumCtrl.text = personalAddress['ext_number'] ?? '';
@@ -460,7 +477,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _razonSocialCtrl.text = fiscalData['business_name'] ?? '';
     _regimenCtrl.text = fiscalData['tax_regime'] ?? '';
     _usoCfdiCtrl.text = fiscalData['cfdi_use'] ?? '';
-    
+
     _isSameAddress = fiscalData['is_same_address'] ?? true;
     _fiscalStreetCtrl.text = fiscalData['street'] ?? '';
     _fiscalExtNumCtrl.text = fiscalData['ext_number'] ?? '';
@@ -476,7 +493,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Future<void> _saveAddress(ProfileModel profile) async {
-    final updatedAddress = Map<String, dynamic>.from(profile.personalAddress ?? {});
+    final updatedAddress =
+        Map<String, dynamic>.from(profile.personalAddress ?? {});
     updatedAddress['street'] = _streetCtrl.text.trim();
     updatedAddress['ext_number'] = _extNumCtrl.text.trim();
     updatedAddress['int_number'] = _intNumCtrl.text.trim();
@@ -484,9 +502,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     updatedAddress['city'] = _ciudadCtrl.text.trim();
     updatedAddress['state'] = _estadoCtrl.text.trim();
     updatedAddress['zip_code'] = _cpCtrl.text.trim();
-    
+
     try {
-      await ref.read(profileProvider.notifier).updateProfile(personalAddress: updatedAddress);
+      await ref
+          .read(profileProvider.notifier)
+          .updateProfile(personalAddress: updatedAddress);
       if (!mounted) return;
       ToastAlerts.showSuccess(context, 'Dirección actualizada');
     } catch (e) {
@@ -501,7 +521,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     updatedFiscal['business_name'] = _razonSocialCtrl.text.trim();
     updatedFiscal['tax_regime'] = _regimenCtrl.text.trim();
     updatedFiscal['cfdi_use'] = _usoCfdiCtrl.text.trim();
-    
+
     updatedFiscal['is_same_address'] = _isSameAddress;
     if (!_isSameAddress) {
       updatedFiscal['street'] = _fiscalStreetCtrl.text.trim();
@@ -520,9 +540,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       updatedFiscal['state'] = _estadoCtrl.text.trim();
       updatedFiscal['zip_code'] = _cpCtrl.text.trim();
     }
-    
+
     try {
-      await ref.read(profileProvider.notifier).updateProfile(fiscalData: updatedFiscal);
+      await ref
+          .read(profileProvider.notifier)
+          .updateProfile(fiscalData: updatedFiscal);
       if (!mounted) return;
       ToastAlerts.showSuccess(context, 'Datos fiscales actualizados');
     } catch (e) {
@@ -544,7 +566,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           if (profile == null) {
             return const Center(child: Text('Perfil no encontrado'));
           }
-          
+
           if (!_isInit) _initControllers(profile);
 
           return RefreshIndicator(
@@ -552,10 +574,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             color: AppTheme.primaryColor,
             onRefresh: () async {
               _isInit = false;
-              await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
+              await ref
+                  .read(profileProvider.notifier)
+                  .fetchProfile(isBackgroundRefresh: true);
             },
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 150),
+              padding: const EdgeInsets.fromLTRB(
+                  AppTheme.spacingLarge, 32, AppTheme.spacingLarge, 150),
               physics: const AlwaysScrollableScrollPhysics(),
               children: [
                 Row(
@@ -563,16 +588,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   children: [
                     Text(
                       'Mi Perfil',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                     ),
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white.withOpacity(0.1) 
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white.withOpacity(0.1)
                             : Colors.white,
                       ),
                       child: IconButton(
@@ -581,9 +607,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         tooltip: 'Actualizar perfil',
                         onPressed: () async {
                           _isInit = false;
-                          await ref.read(profileProvider.notifier).fetchProfile(isBackgroundRefresh: true);
+                          await ref
+                              .read(profileProvider.notifier)
+                              .fetchProfile(isBackgroundRefresh: true);
                           if (context.mounted) {
-                            ToastAlerts.showSuccess(context, 'Verificando permisos de edición...');
+                            ToastAlerts.showSuccess(
+                                context, 'Verificando permisos de edición...');
                           }
                         },
                       ),
@@ -601,44 +630,80 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       context,
                       icon: Icons.person_rounded,
                       title: 'Membresía',
-                      onTap: () => _navigateToSection(context, 'Membresía', 'Información de tu cuenta', Icons.person_outline_rounded, (ctx, r, p) => _buildAccountTab(ctx, r, p)),
+                      onTap: () => _navigateToSection(
+                          context,
+                          'Membresía',
+                          'Información de tu cuenta',
+                          Icons.person_outline_rounded,
+                          (ctx, r, p) => _buildAccountTab(ctx, r, p)),
                     ),
                     _buildPremiumMenuTile(
                       context,
                       icon: Icons.settings_rounded,
                       title: 'Ajustes de la App',
-                      onTap: () => _navigateToSection(context, 'Ajustes', 'Preferencias de la aplicación', Icons.settings_outlined, (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
+                      onTap: () => _navigateToSection(
+                          context,
+                          'Ajustes',
+                          'Preferencias de la aplicación',
+                          Icons.settings_outlined,
+                          (ctx, r, p) => _buildSettingsTab(ctx, r, p)),
                     ),
-                    if (currentMember?.hasPermission('profile.associated_members') ?? false)
+                    /* TODO: Oculto solo por esta ocasión (Beneficiarios Legales)
+                    if (currentMember
+                            ?.hasPermission('profile.associated_members') ??
+                        false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.family_restroom_rounded,
                         title: 'Beneficiarios Legales',
-                        onTap: () => _navigateToSection(context, 'Beneficiarios', 'Gestión de dependientes', Icons.family_restroom_rounded, (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
+                        onTap: () => _navigateToSection(
+                            context,
+                            'Beneficiarios',
+                            'Gestión de dependientes',
+                            Icons.family_restroom_rounded,
+                            (ctx, r, p) => _buildBeneficiariesTab(ctx, p)),
                       ),
-                    if (currentMember?.hasPermission('profile.vehicles') ?? false)
+                    */
+                    /* TODO: Fase 2 - Módulo de Registro de Vehículos
+                    if (currentMember?.hasPermission('profile.vehicles') ??
+                        false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.directions_car_rounded,
                         title: 'Registro de Vehículos',
-                        onTap: () => _navigateToSection(context, 'Mis Vehículos', 'Solo 1 auto permitido por acceso', Icons.directions_car_outlined, (ctx, r, p) => _buildVehiclesTab(ctx, p)),
+                        onTap: () => _navigateToSection(
+                            context,
+                            'Mis Vehículos',
+                            'Solo 1 auto permitido por acceso',
+                            Icons.directions_car_outlined,
+                            (ctx, r, p) => _buildVehiclesTab(ctx, p)),
                       ),
-                    if (currentMember?.hasPermission('health.medical_data') ?? false)
+                    */
+                    if (currentMember?.hasPermission('health.medical_data') ??
+                        false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.monitor_heart_rounded,
                         title: 'Información de Salud',
-                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MainLayout(
-                          activeIndex: 2,
-                          child: HealthView(),
-                        ))),
+                        onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MainLayout(
+                                      activeIndex: 2,
+                                      child: HealthView(),
+                                    ))),
                       ),
                     if (currentMember?.hasPermission('financial.view') ?? false)
                       _buildPremiumMenuTile(
                         context,
                         icon: Icons.account_balance_wallet_rounded,
                         title: 'Saldos y Finanzas',
-                        onTap: () => _navigateToSection(context, 'Finanzas', 'Consulta de saldos y cargos', Icons.account_balance_wallet_outlined, (ctx, r, p) => _buildFinancesTab(ctx, r, p)),
+                        onTap: () => _navigateToSection(
+                            context,
+                            'Finanzas',
+                            'Consulta de saldos y cargos',
+                            Icons.account_balance_wallet_outlined,
+                            (ctx, r, p) => _buildFinancesTab(ctx, r, p)),
                       ),
                   ],
                 ),
@@ -656,14 +721,19 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     children: [
                       Text(
                         'ArzSuite v1.0.0',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral400),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: AppTheme.neutral400),
                       ),
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () async {
-                          final url = Uri.parse('https://www.centrolibanes.org.mx/index.php/avisos-de-privacidad');
+                          final url = Uri.parse(
+                              'https://www.centrolibanes.org.mx/index.php/avisos-de-privacidad');
                           if (await canLaunchUrl(url)) {
-                            await launchUrl(url, mode: LaunchMode.externalApplication);
+                            await launchUrl(url,
+                                mode: LaunchMode.externalApplication);
                           }
                         },
                         child: const Text('Términos y Condiciones'),
@@ -675,7 +745,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (error, _) => Center(child: Text('Error: $error')),
       ),
     );
@@ -686,8 +757,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Cerrar Sesión', style: TextStyle(fontWeight: FontWeight.bold)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text('Cerrar Sesión',
+              style: TextStyle(fontWeight: FontWeight.bold)),
           content: const Text(
             '¿Estás seguro de que deseas cerrar tu sesión completamente?\n\n'
             'Esto removerá tu cuenta del dispositivo y deberás iniciar sesión nuevamente '
@@ -696,7 +769,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('Cancelar', style: TextStyle(color: AppTheme.neutral500)),
+              child: const Text('Cancelar',
+                  style: TextStyle(color: AppTheme.neutral500)),
             ),
             ElevatedButton(
               onPressed: () {
@@ -724,7 +798,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _navigateToSection(BuildContext context, String title, String subtitle, IconData icon, Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
+  void _navigateToSection(
+      BuildContext context,
+      String title,
+      String subtitle,
+      IconData icon,
+      Widget Function(BuildContext, WidgetRef, ProfileModel) builder) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -733,7 +812,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             final profileAsync = ref.watch(profileProvider);
             return profileAsync.when(
               data: (profile) {
-                if (profile == null) return const Scaffold(body: Center(child: Text('Perfil no encontrado')));
+                if (profile == null)
+                  return const Scaffold(
+                      body: Center(child: Text('Perfil no encontrado')));
                 return MainLayout(
                   activeIndex: 2,
                   child: Scaffold(
@@ -750,8 +831,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   ),
                 );
               },
-              loading: () => const Scaffold(body: Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))),
-              error: (err, _) => Scaffold(body: Center(child: Text('Error: $err'))),
+              loading: () => const Scaffold(
+                  body: Center(
+                      child: CircularProgressIndicator(
+                          color: AppTheme.primaryColor))),
+              error: (err, _) =>
+                  Scaffold(body: Center(child: Text('Error: $err'))),
             );
           },
         ),
@@ -768,11 +853,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isDestructive ? AppTheme.dangerColor : AppTheme.primaryColor;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: isDestructive ? color.withOpacity(0.05) : Theme.of(context).colorScheme.surface,
+        color: isDestructive
+            ? color.withOpacity(0.05)
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -781,7 +868,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             offset: const Offset(0, 2),
           ),
         ],
-        border: Border.all(color: isDestructive ? color.withOpacity(0.3) : AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
+        border: Border.all(
+            color: isDestructive
+                ? color.withOpacity(0.3)
+                : AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.4)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -805,7 +895,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   child: Text(
                     title,
                     style: TextStyle(
-                      fontWeight: FontWeight.bold, 
+                      fontWeight: FontWeight.bold,
                       fontSize: 15,
                       color: isDestructive ? color : null,
                     ),
@@ -826,7 +916,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Widget _buildProfileHero(BuildContext context, ProfileModel profile) {
-    final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    final String cleanName =
+        profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
@@ -851,16 +942,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   radius: 40,
                   backgroundColor: Colors.white.withOpacity(0.2),
                   backgroundImage: _getProfileImage(profile.profilePicture),
-                  child: profile.profilePicture == null 
-                    ? Text(
-                        profile.firstName?.isNotEmpty == true ? profile.firstName!.substring(0, 1).toUpperCase() : 'U',
-                        style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      )
-                    : null,
+                  child: profile.profilePicture == null
+                      ? Text(
+                          profile.firstName?.isNotEmpty == true
+                              ? profile.firstName!.substring(0, 1).toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
                 ),
                 Positioned(
                   bottom: 0,
@@ -878,7 +971,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.edit_rounded, color: AppTheme.primaryColor, size: 16),
+                    child: const Icon(Icons.edit_rounded,
+                        color: AppTheme.primaryColor, size: 16),
                   ),
                 ),
               ],
@@ -889,35 +983,36 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                  Text(
-                    cleanName,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          height: 1.2,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Socio: ${profile.entityid}',
-                      style: const TextStyle(
+                Text(
+                  cleanName,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
                         color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        height: 1.2,
                       ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Socio: ${profile.entityid}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
           const SizedBox(width: 8),
           _buildSmallQr(context, profile),
         ],
@@ -927,7 +1022,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildSmallQr(BuildContext context, ProfileModel profile) {
     final qrData = 'MEMBER:${profile.entityid}:${profile.id}';
-    final String cleanName = profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    final String cleanName =
+        profile.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
 
     return GestureDetector(
       onTap: () {
@@ -935,14 +1031,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           context: context,
           builder: (context) => Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            insetPadding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Stack(
               clipBehavior: Clip.none,
               alignment: Alignment.center,
               children: [
                 Hero(
                   tag: 'qr-code-hero',
-                  flightShuttleBuilder: (flightContext, animation, flightDirection, fromHeroContext, toHeroContext) {
+                  flightShuttleBuilder: (flightContext, animation,
+                      flightDirection, fromHeroContext, toHeroContext) {
                     return DefaultTextStyle(
                       style: DefaultTextStyle.of(toHeroContext).style,
                       child: toHeroContext.widget,
@@ -982,20 +1080,24 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           const SizedBox(height: 24),
                           Text(
                             'CARNET DIGITAL',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 2,
-                              color: AppTheme.neutral500,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 2,
+                                      color: AppTheme.neutral500,
+                                    ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             cleanName.toUpperCase(),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                           ),
                           const SizedBox(height: 16),
                           const Text(
@@ -1025,7 +1127,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           color: AppTheme.primaryColor.withOpacity(0.9),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                        child: const Icon(Icons.close_rounded,
+                            color: Colors.white, size: 24),
                       ),
                     ),
                   ),
@@ -1071,13 +1174,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildAccountTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
+  Widget _buildAccountTab(
+      BuildContext context, WidgetRef ref, ProfileModel profile) {
     final bool canEdit = profile.canEditSensitiveData;
     final currentMember = ref.watch(authProvider);
-    final canViewAssociatedMembers = (currentMember?.isTitular ?? false) || 
-        (currentMember?.hasPermission('profile.associated_members') ?? false) || 
+    final canViewAssociatedMembers = (currentMember?.isTitular ?? false) ||
+        (currentMember?.hasPermission('profile.associated_members') ?? false) ||
         (currentMember?.hasPermission('manage_family') ?? false);
-    final canManageFamily = (currentMember?.isTitular ?? false) || 
+    final canManageFamily = (currentMember?.isTitular ?? false) ||
         (currentMember?.hasPermission('manage_family') ?? false);
 
     return SingleChildScrollView(
@@ -1102,7 +1206,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     color: AppTheme.primaryColor.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 20),
+                  child: const Icon(Icons.info_outline_rounded,
+                      color: AppTheme.primaryColor, size: 20),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -1122,21 +1227,24 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         'Si necesitas actualizar tus datos personales o fiscales, envíanos una solicitud y nos comunicaremos contigo para ayudarte.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Theme.of(context).brightness == Brightness.dark 
-                              ? Colors.white70 
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white70
                               : AppTheme.neutral700,
                           height: 1.5,
                         ),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
-                        icon: const Icon(Icons.mark_email_read_outlined, size: 18),
+                        icon: const Icon(Icons.mark_email_read_outlined,
+                            size: 18),
                         label: const Text('Solicitar Actualización de Datos'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
                           foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                         ),
                         onPressed: () => _showUpdateDataModal(context, profile),
                       ),
@@ -1147,21 +1255,32 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const SizedBox(height: 24),
-          _buildSectionHeader(context, 'Datos Personales', Icons.person_outline_rounded),
+          _buildSectionHeader(
+              context, 'Datos Personales', Icons.person_outline_rounded),
           const SizedBox(height: 16),
           _buildCard(
             context,
             child: Column(
               children: [
-                _buildInfoRow(context, 'Correo electrónico', profile.email ?? 'No registrado', Icons.alternate_email_rounded),
+                _buildInfoRow(
+                    context,
+                    'Correo electrónico',
+                    profile.email ?? 'No registrado',
+                    Icons.alternate_email_rounded),
                 const Divider(height: 32),
-                _buildInfoRow(context, 'Teléfono', profile.phone ?? 'No registrado', Icons.phone_android_rounded),
+                _buildInfoRow(
+                    context,
+                    'Teléfono',
+                    profile.phone ?? 'No registrado',
+                    Icons.phone_android_rounded),
               ],
             ),
           ),
-          if (profile.associatedMembers.isNotEmpty && canViewAssociatedMembers) ...[
+          if (profile.associatedMembers.isNotEmpty &&
+              canViewAssociatedMembers) ...[
             const SizedBox(height: 32),
-            _buildSectionHeader(context, 'Miembros Asociados', Icons.people_outline_rounded),
+            _buildSectionHeader(
+                context, 'Miembros Asociados', Icons.people_outline_rounded),
             const SizedBox(height: 16),
             ...profile.associatedMembers.map((member) => Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -1171,44 +1290,62 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 )),
           ],
           const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Dirección Personal', Icons.location_on_outlined),
+          _buildSectionHeader(
+              context, 'Dirección Personal', Icons.location_on_outlined),
           const SizedBox(height: 16),
           _buildCard(
             context,
             child: Column(
               children: [
                 _buildSensitiveField(
-                  context, 
-                  'C.P.', 
-                  canEdit, 
-                  controller: _cpCtrl, 
+                  context,
+                  'C.P.',
+                  canEdit,
+                  controller: _cpCtrl,
                   icon: Icons.markunread_mailbox_outlined,
                   helperText: 'Ingresa tu C.P. para autocompletar tu dirección',
-                  suffixIcon: _isSearchingCp 
+                  suffixIcon: _isSearchingCp
                       ? const Padding(
-                          padding: EdgeInsets.all(12), 
+                          padding: EdgeInsets.all(12),
                           child: SizedBox(
-                            width: 20, 
-                            height: 20, 
-                            child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.primaryColor)
-                          )
-                        ) 
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppTheme.primaryColor)))
                       : null,
                 ),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Estado', canEdit, controller: _estadoCtrl, icon: Icons.map_rounded, helperText: 'Autocompletado al ingresar el C.P.'),
+                _buildSensitiveField(context, 'Estado', canEdit,
+                    controller: _estadoCtrl,
+                    icon: Icons.map_rounded,
+                    helperText: 'Autocompletado al ingresar el C.P.'),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Ciudad o Municipio', canEdit, controller: _ciudadCtrl, icon: Icons.location_city_outlined, helperText: 'Autocompletado al ingresar el C.P.'),
+                _buildSensitiveField(context, 'Ciudad o Municipio', canEdit,
+                    controller: _ciudadCtrl,
+                    icon: Icons.location_city_outlined,
+                    helperText: 'Autocompletado al ingresar el C.P.'),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Colonia', canEdit, controller: _coloniaCtrl, icon: Icons.holiday_village_outlined, helperText: 'Autocompletado al ingresar el C.P.'),
+                _buildSensitiveField(context, 'Colonia', canEdit,
+                    controller: _coloniaCtrl,
+                    icon: Icons.holiday_village_outlined,
+                    helperText: 'Autocompletado al ingresar el C.P.'),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Calle', canEdit, controller: _streetCtrl, icon: Icons.map_outlined),
+                _buildSensitiveField(context, 'Calle', canEdit,
+                    controller: _streetCtrl, icon: Icons.map_outlined),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    Expanded(child: _buildSensitiveField(context, 'No. Exterior', canEdit, controller: _extNumCtrl, icon: Icons.numbers_rounded)),
+                    Expanded(
+                        child: _buildSensitiveField(
+                            context, 'No. Exterior', canEdit,
+                            controller: _extNumCtrl,
+                            icon: Icons.numbers_rounded)),
                     const SizedBox(width: 16),
-                    Expanded(child: _buildSensitiveField(context, 'No. Interior', canEdit, controller: _intNumCtrl)),
+                    Expanded(
+                        child: _buildSensitiveField(
+                            context, 'No. Interior', canEdit,
+                            controller: _intNumCtrl)),
                   ],
                 ),
                 if (canEdit) ...[
@@ -1221,9 +1358,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Guardar Dirección', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Guardar Dirección',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -1231,64 +1370,78 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Datos Fiscales', Icons.receipt_long_outlined),
+          _buildSectionHeader(
+              context, 'Datos Fiscales', Icons.receipt_long_outlined),
           const SizedBox(height: 16),
           _buildCard(
             context,
             child: Column(
               children: [
-                _buildSensitiveField(context, 'RFC', canEdit, controller: _rfcCtrl, icon: Icons.badge_outlined),
+                _buildSensitiveField(context, 'RFC', canEdit,
+                    controller: _rfcCtrl, icon: Icons.badge_outlined),
                 const SizedBox(height: 16),
-                _buildSensitiveField(context, 'Razón Social', canEdit, controller: _razonSocialCtrl, icon: Icons.business_rounded),
+                _buildSensitiveField(context, 'Razón Social', canEdit,
+                    controller: _razonSocialCtrl, icon: Icons.business_rounded),
                 const SizedBox(height: 16),
                 _buildSensitiveField(
-                  context, 
-                  'Régimen Fiscal', 
-                  canEdit, 
-                  controller: _regimenCtrl, 
+                  context,
+                  'Régimen Fiscal',
+                  canEdit,
+                  controller: _regimenCtrl,
                   icon: Icons.account_balance_outlined,
                   onTap: () {
                     final catalogs = ref.read(satCatalogsProvider).value;
                     if (catalogs != null) {
-                      final options = catalogs.regimenesFiscales.map((e) => e.displayString).toList();
-                      _showGenericSelector('Selecciona tu Régimen Fiscal', options, _regimenCtrl, Icons.account_balance_rounded);
+                      final options = catalogs.regimenesFiscales
+                          .map((e) => e.displayString)
+                          .toList();
+                      _showGenericSelector('Selecciona tu Régimen Fiscal',
+                          options, _regimenCtrl, Icons.account_balance_rounded);
                     } else {
-                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
+                      ToastAlerts.showWarning(
+                          context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
                 const SizedBox(height: 16),
                 _buildSensitiveField(
-                  context, 
-                  'Uso CFDI', 
-                  canEdit, 
-                  controller: _usoCfdiCtrl, 
+                  context,
+                  'Uso CFDI',
+                  canEdit,
+                  controller: _usoCfdiCtrl,
                   icon: Icons.receipt_long_outlined,
                   onTap: () {
                     final catalogs = ref.read(satCatalogsProvider).value;
                     if (catalogs != null) {
-                      final options = catalogs.usosCfdi.map((e) => e.displayString).toList();
-                      _showGenericSelector('Selecciona el Uso de CFDI', options, _usoCfdiCtrl, Icons.receipt_long_rounded);
+                      final options = catalogs.usosCfdi
+                          .map((e) => e.displayString)
+                          .toList();
+                      _showGenericSelector('Selecciona el Uso de CFDI', options,
+                          _usoCfdiCtrl, Icons.receipt_long_rounded);
                     } else {
-                      ToastAlerts.showWarning(context, 'Cargando catálogos del SAT...');
+                      ToastAlerts.showWarning(
+                          context, 'Cargando catálogos del SAT...');
                     }
                   },
                 ),
                 const SizedBox(height: 24),
                 Theme(
-                  data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                  data: Theme.of(context)
+                      .copyWith(dividerColor: Colors.transparent),
                   child: ExpansionTile(
                     tilePadding: const EdgeInsets.symmetric(horizontal: 16),
                     collapsedShape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: AppTheme.neutral200.withOpacity(0.5)),
+                      side: BorderSide(
+                          color: AppTheme.neutral200.withOpacity(0.5)),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                       side: const BorderSide(color: AppTheme.primaryColor),
                     ),
                     backgroundColor: Theme.of(context).colorScheme.surface,
-                    collapsedBackgroundColor: Theme.of(context).colorScheme.surface,
+                    collapsedBackgroundColor:
+                        Theme.of(context).colorScheme.surface,
                     iconColor: AppTheme.primaryColor,
                     textColor: AppTheme.primaryColor,
                     title: const Text(
@@ -1296,7 +1449,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     initiallyExpanded: !_isSameAddress,
-                    onExpansionChanged: canEdit 
+                    onExpansionChanged: canEdit
                         ? (expanded) {
                             setState(() => _isSameAddress = !expanded);
                           }
@@ -1307,27 +1460,46 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         child: Column(
                           children: [
                             _buildSensitiveField(
-                              context, 
-                              'C.P. Fiscal', 
-                              canEdit, 
-                              controller: _fiscalCpCtrl, 
+                              context,
+                              'C.P. Fiscal',
+                              canEdit,
+                              controller: _fiscalCpCtrl,
                               icon: Icons.markunread_mailbox_outlined,
                               helperText: 'Ingresa tu C.P. para autocompletar',
                             ),
                             const SizedBox(height: 16),
-                            _buildSensitiveField(context, 'Estado Fiscal', canEdit, controller: _fiscalEstadoCtrl, icon: Icons.map_rounded),
+                            _buildSensitiveField(
+                                context, 'Estado Fiscal', canEdit,
+                                controller: _fiscalEstadoCtrl,
+                                icon: Icons.map_rounded),
                             const SizedBox(height: 16),
-                            _buildSensitiveField(context, 'Ciudad / Mpio. Fiscal', canEdit, controller: _fiscalCiudadCtrl, icon: Icons.location_city_outlined),
+                            _buildSensitiveField(
+                                context, 'Ciudad / Mpio. Fiscal', canEdit,
+                                controller: _fiscalCiudadCtrl,
+                                icon: Icons.location_city_outlined),
                             const SizedBox(height: 16),
-                            _buildSensitiveField(context, 'Colonia Fiscal', canEdit, controller: _fiscalColoniaCtrl, icon: Icons.holiday_village_outlined),
+                            _buildSensitiveField(
+                                context, 'Colonia Fiscal', canEdit,
+                                controller: _fiscalColoniaCtrl,
+                                icon: Icons.holiday_village_outlined),
                             const SizedBox(height: 16),
-                            _buildSensitiveField(context, 'Calle Fiscal', canEdit, controller: _fiscalStreetCtrl, icon: Icons.map_outlined),
+                            _buildSensitiveField(
+                                context, 'Calle Fiscal', canEdit,
+                                controller: _fiscalStreetCtrl,
+                                icon: Icons.map_outlined),
                             const SizedBox(height: 16),
                             Row(
                               children: [
-                                Expanded(child: _buildSensitiveField(context, 'No. Exterior', canEdit, controller: _fiscalExtNumCtrl, icon: Icons.numbers_rounded)),
+                                Expanded(
+                                    child: _buildSensitiveField(
+                                        context, 'No. Exterior', canEdit,
+                                        controller: _fiscalExtNumCtrl,
+                                        icon: Icons.numbers_rounded)),
                                 const SizedBox(width: 16),
-                                Expanded(child: _buildSensitiveField(context, 'No. Interior', canEdit, controller: _fiscalIntNumCtrl)),
+                                Expanded(
+                                    child: _buildSensitiveField(
+                                        context, 'No. Interior', canEdit,
+                                        controller: _fiscalIntNumCtrl)),
                               ],
                             ),
                           ],
@@ -1346,9 +1518,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: const Text('Guardar Datos Fiscales', style: TextStyle(fontWeight: FontWeight.bold)),
+                      child: const Text('Guardar Datos Fiscales',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   ),
                 ],
@@ -1361,7 +1535,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildSettingsTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
+  Widget _buildSettingsTab(
+      BuildContext context, WidgetRef ref, ProfileModel profile) {
     final settings = profile.settings;
     final themeMode = ref.watch(themeProvider);
     final currentMember = ref.watch(authProvider);
@@ -1372,7 +1547,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Preferencias de la App', Icons.tune_rounded),
+          _buildSectionHeader(
+              context, 'Preferencias de la App', Icons.tune_rounded),
           const SizedBox(height: 16),
           _buildCard(
             context,
@@ -1391,7 +1567,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
           ),
           const SizedBox(height: 32),
-          _buildSectionHeader(context, 'Notificaciones', Icons.notifications_none_rounded),
+          _buildSectionHeader(
+              context, 'Notificaciones', Icons.notifications_none_rounded),
           const SizedBox(height: 16),
           _buildCard(
             context,
@@ -1404,7 +1581,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   icon: Icons.email_outlined,
                   value: settings.emailNotifications,
                   onChanged: (val) {
-                    ref.read(profileProvider.notifier).updateSettings(settings.copyWith(emailNotifications: val));
+                    ref.read(profileProvider.notifier).updateSettings(
+                        settings.copyWith(emailNotifications: val));
                   },
                 ),
                 const Divider(height: 32),
@@ -1415,7 +1593,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   icon: Icons.notifications_active_outlined,
                   value: settings.pushNotifications,
                   onChanged: (val) {
-                    ref.read(profileProvider.notifier).updateSettings(settings.copyWith(pushNotifications: val));
+                    ref.read(profileProvider.notifier).updateSettings(
+                        settings.copyWith(pushNotifications: val));
                   },
                 ),
                 const Divider(height: 32),
@@ -1426,21 +1605,23 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   icon: Icons.calendar_today_rounded,
                   value: settings.classReminders,
                   onChanged: (val) {
-                    ref.read(profileProvider.notifier).updateSettings(settings.copyWith(classReminders: val));
+                    ref
+                        .read(profileProvider.notifier)
+                        .updateSettings(settings.copyWith(classReminders: val));
                   },
                 ),
               ],
             ),
           ),
-
         ],
       ),
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, IconData icon, {bool requiresApproval = false}) {
+  Widget _buildSectionHeader(BuildContext context, String title, IconData icon,
+      {bool requiresApproval = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Row(
       children: [
         Icon(icon, size: 20, color: AppTheme.primaryColor),
@@ -1464,7 +1645,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             ),
             child: const Text(
               'Requiere aprobación',
-              style: TextStyle(color: AppTheme.warningColor, fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: AppTheme.warningColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold),
             ),
           ),
         ],
@@ -1473,17 +1657,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Widget _buildSensitiveField(
-    BuildContext context, 
-    String label, 
-    bool canEdit, 
-    {
-      required TextEditingController controller, 
-      IconData? icon, 
-      Widget? suffixIcon, 
-      String? helperText,
-      VoidCallback? onTap,
-    }
-  ) {
+    BuildContext context,
+    String label,
+    bool canEdit, {
+    required TextEditingController controller,
+    IconData? icon,
+    Widget? suffixIcon,
+    String? helperText,
+    VoidCallback? onTap,
+  }) {
     if (!canEdit) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1491,14 +1673,22 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           Row(
             children: [
               if (icon != null) ...[
-                Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5)),
+                Icon(icon,
+                    size: 16,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5)),
                 const SizedBox(width: 8),
               ],
               Expanded(
                 child: Text(
                   label,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.6),
                         fontWeight: FontWeight.w600,
                       ),
                 ),
@@ -1526,18 +1716,32 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       onTap: canEdit ? onTap : null,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            color: canEdit ? null : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+            color: canEdit
+                ? null
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
           ),
       decoration: InputDecoration(
         labelText: label,
         helperText: helperText,
-        helperStyle: helperText != null && helperText.contains('Autocompletado') 
-            ? const TextStyle(color: AppTheme.primaryColor, fontStyle: FontStyle.italic) 
+        helperStyle: helperText != null && helperText.contains('Autocompletado')
+            ? const TextStyle(
+                color: AppTheme.primaryColor, fontStyle: FontStyle.italic)
             : null,
-        prefixIcon: icon != null 
-            ? Icon(icon, size: 20, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5))
+        prefixIcon: icon != null
+            ? Icon(icon,
+                size: 20,
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.5))
             : null,
-        suffixIcon: suffixIcon ?? (onTap != null && canEdit ? const Icon(Icons.arrow_drop_down_rounded) : null),
+        suffixIcon: suffixIcon ??
+            (onTap != null && canEdit
+                ? const Icon(Icons.arrow_drop_down_rounded)
+                : null),
       ),
     );
   }
@@ -1550,25 +1754,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     required ValueChanged<bool> onChanged,
   }) {
     return FilterChip(
-      label: Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-      avatar: Icon(icon, size: 16, color: isGranted ? Colors.white : AppTheme.primaryColor),
+      label: Text(label,
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      avatar: Icon(icon,
+          size: 16, color: isGranted ? Colors.white : AppTheme.primaryColor),
       selected: isGranted,
       onSelected: onChanged,
       selectedColor: AppTheme.primaryColor,
       checkmarkColor: Colors.transparent,
       showCheckmark: false,
-      labelStyle: TextStyle(color: isGranted ? Colors.white : AppTheme.neutral700),
+      labelStyle:
+          TextStyle(color: isGranted ? Colors.white : AppTheme.neutral700),
       backgroundColor: AppTheme.primaryColor.withOpacity(0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: isGranted ? Colors.transparent : AppTheme.primaryColor.withOpacity(0.2)),
+        side: BorderSide(
+            color: isGranted
+                ? Colors.transparent
+                : AppTheme.primaryColor.withOpacity(0.2)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
     );
   }
 
-  Widget _buildFamilyMemberPermissions(BuildContext context, WidgetRef ref, SubMemberModel member) {
-    final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+  Widget _buildFamilyMemberPermissions(
+      BuildContext context, WidgetRef ref, SubMemberModel member) {
+    final String cleanName =
+        member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
     return Theme(
       data: Theme.of(context).copyWith(
         dividerColor: Colors.transparent,
@@ -1584,10 +1796,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         leading: CircleAvatar(
           radius: 18,
           backgroundColor: AppTheme.primaryColor.withOpacity(0.1),
-          child: const Icon(Icons.person_outline_rounded, size: 20, color: AppTheme.primaryColor),
+          child: const Icon(Icons.person_outline_rounded,
+              size: 20, color: AppTheme.primaryColor),
         ),
-        title: Text(cleanName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-        subtitle: Text('${member.memberType} • ID: ${member.membershipNumber}', style: const TextStyle(fontSize: 11, color: AppTheme.neutral500, height: 1.2)),
+        title: Text(cleanName,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        subtitle: Text('${member.memberType} • ID: ${member.membershipNumber}',
+            style: const TextStyle(
+                fontSize: 11, color: AppTheme.neutral500, height: 1.2)),
         childrenPadding: const EdgeInsets.only(left: 12, right: 12, bottom: 12),
         children: [
           Container(
@@ -1608,9 +1824,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   isGranted: member.permissions.contains('financial.view'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'financial.view', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'financial.view', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
@@ -1621,12 +1842,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   isGranted: member.permissions.contains('health.medical_data'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'health.medical_data', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'health.medical_data', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
+                /* TODO: Fase 2 - Permisos de Vehículos
                 _buildPermissionChip(
                   context,
                   label: 'Vehículos',
@@ -1634,12 +1861,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   isGranted: member.permissions.contains('profile.vehicles'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'profile.vehicles', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'profile.vehicles', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
+                */
                 _buildPermissionChip(
                   context,
                   label: 'Inscripciones',
@@ -1647,9 +1880,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   isGranted: member.permissions.contains('activities.enroll'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'activities.enroll', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'activities.enroll', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
@@ -1657,12 +1895,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   context,
                   label: 'Verano',
                   icon: Icons.wb_sunny_outlined,
-                  isGranted: member.permissions.contains('summer_course.enroll'),
+                  isGranted:
+                      member.permissions.contains('summer_course.enroll'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'summer_course.enroll', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'summer_course.enroll', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
@@ -1670,12 +1914,18 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   context,
                   label: 'Agenda',
                   icon: Icons.calendar_month_outlined,
-                  isGranted: member.permissions.contains('dashboard.agenda.view_all'),
+                  isGranted:
+                      member.permissions.contains('dashboard.agenda.view_all'),
                   onChanged: (val) async {
                     try {
-                      await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'dashboard.agenda.view_all', val);
+                      await ref
+                          .read(profileProvider.notifier)
+                          .updateFamilyMemberPermission(
+                              member.id, 'dashboard.agenda.view_all', val);
                     } catch (e) {
-                      if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                      if (context.mounted)
+                        ToastAlerts.showError(
+                            context, 'Error al actualizar permiso');
                     }
                   },
                 ),
@@ -1687,9 +1937,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                     isGranted: member.permissions.contains('manage_family'),
                     onChanged: (val) async {
                       try {
-                        await ref.read(profileProvider.notifier).updateFamilyMemberPermission(member.id, 'manage_family', val);
+                        await ref
+                            .read(profileProvider.notifier)
+                            .updateFamilyMemberPermission(
+                                member.id, 'manage_family', val);
                       } catch (e) {
-                        if (context.mounted) ToastAlerts.showError(context, 'Error al actualizar permiso');
+                        if (context.mounted)
+                          ToastAlerts.showError(
+                              context, 'Error al actualizar permiso');
                       }
                     },
                   ),
@@ -1702,43 +1957,51 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Widget _buildAssociatedCard(BuildContext context, SubMemberModel member) {
-    final String cleanName = member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
+    final String cleanName =
+        member.fullname.replaceFirst(RegExp(r'^\d+\s*'), '');
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMedium),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
-          border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              backgroundColor: AppTheme.neutral100,
-              radius: 20,
-              child: const Icon(Icons.person_rounded, color: AppTheme.neutral500, size: 20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppTheme.borderRadiusMedium),
+        border: Border.all(color: AppTheme.neutral200.withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            backgroundColor: AppTheme.neutral100,
+            radius: 20,
+            child: const Icon(Icons.person_rounded,
+                color: AppTheme.neutral500, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  cleanName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  '${member.memberType} • ID: ${member.membershipNumber}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppTheme.neutral500),
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    cleanName,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    '${member.memberType} • ID: ${member.membershipNumber}',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildCard(BuildContext context, {required Widget child, EdgeInsetsGeometry padding = const EdgeInsets.all(AppTheme.spacingMedium)}) {
+  Widget _buildCard(BuildContext context,
+      {required Widget child,
+      EdgeInsetsGeometry padding =
+          const EdgeInsets.all(AppTheme.spacingMedium)}) {
     return Container(
       width: double.infinity,
       padding: padding,
@@ -1758,7 +2021,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildInfoRow(BuildContext context, String label, String value, IconData icon) {
+  Widget _buildInfoRow(
+      BuildContext context, String label, String value, IconData icon) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1778,16 +2042,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               Text(
                 label,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: AppTheme.neutral500,
-                  fontWeight: FontWeight.w500,
-                ),
+                      color: AppTheme.neutral500,
+                      fontWeight: FontWeight.w500,
+                    ),
               ),
               const SizedBox(height: 2),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.4,
-                ),
+                      height: 1.4,
+                    ),
               ),
             ],
           ),
@@ -1813,7 +2077,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500)),
+              Text(subtitle,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodySmall
+                      ?.copyWith(color: AppTheme.neutral500)),
             ],
           ),
         ),
@@ -1837,18 +2105,25 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         Row(
           children: [
             Icon(
-              currentMode == ThemeMode.dark ? Icons.dark_mode_outlined : 
-              currentMode == ThemeMode.light ? Icons.light_mode_outlined : 
-              Icons.brightness_auto_outlined, 
-              color: AppTheme.neutral500, size: 22
-            ),
+                currentMode == ThemeMode.dark
+                    ? Icons.dark_mode_outlined
+                    : currentMode == ThemeMode.light
+                        ? Icons.light_mode_outlined
+                        : Icons.brightness_auto_outlined,
+                color: AppTheme.neutral500,
+                size: 22),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Tema de la Aplicación', style: TextStyle(fontWeight: FontWeight.bold)),
-                  Text('Selecciona la apariencia', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppTheme.neutral500)),
+                  const Text('Tema de la Aplicación',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Selecciona la apariencia',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: AppTheme.neutral500)),
                 ],
               ),
             ),
@@ -1860,7 +2135,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           height: 48,
           padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
-            color: AppTheme.neutral100.withOpacity(Theme.of(context).brightness == Brightness.dark ? 0.1 : 1),
+            color: AppTheme.neutral100.withOpacity(
+                Theme.of(context).brightness == Brightness.dark ? 0.1 : 1),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Row(
@@ -1922,9 +2198,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 Icon(
                   icon,
                   size: 18,
-                  color: isSelected 
-                    ? Colors.white 
-                    : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.neutral600),
+                  color: isSelected
+                      ? Colors.white
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white70
+                          : AppTheme.neutral600),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -1932,9 +2210,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                    color: isSelected 
-                      ? Colors.white 
-                      : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : AppTheme.neutral600),
+                    color: isSelected
+                        ? Colors.white
+                        : (Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white70
+                            : AppTheme.neutral600),
                   ),
                 ),
               ],
@@ -1944,9 +2224,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       ),
     );
   }
+
   Widget _buildBeneficiariesTab(BuildContext context, ProfileModel profile) {
     final beneficiaries = profile.legalBeneficiaries;
-    final family = profile.associatedMembers.where((m) => m.id != profile.id).toList();
+    final family =
+        profile.associatedMembers.where((m) => m.id != profile.id).toList();
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -1954,9 +2236,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Beneficiarios Legales', Icons.family_restroom_rounded),
+          _buildSectionHeader(
+              context, 'Beneficiarios Legales', Icons.family_restroom_rounded),
           const SizedBox(height: 16),
-          const Text('Próximamente podrás registrar tus beneficiarios legales a través de esta aplicación.'),
+          const Text(
+              'Próximamente podrás registrar tus beneficiarios legales a través de esta aplicación.'),
           const SizedBox(height: 16),
           /*
           _buildCard(
@@ -2024,130 +2308,160 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (BuildContext sheetContext) {
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-                left: 24, right: 24, top: 24,
-              ),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Actualización de Datos',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  const Text('Selecciona el tipo de actualización que necesitas:'),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: selectedRequest,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        return StatefulBuilder(builder: (context, setModalState) {
+          return Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              left: 24,
+              right: 24,
+              top: 24,
+            ),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Actualización de Datos',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
+                          ),
                     ),
-                    items: const [
-                      DropdownMenuItem(value: 'Cambio de dirección', child: Text('Cambio de dirección')),
-                      DropdownMenuItem(value: 'Actualización de RFC / Datos Fiscales', child: Text('Actualización de RFC / Datos Fiscales')),
-                      DropdownMenuItem(value: 'Cambio de correo electrónico', child: Text('Cambio de correo electrónico')),
-                      DropdownMenuItem(value: 'Cambio de número de teléfono', child: Text('Cambio de número de teléfono')),
-                      DropdownMenuItem(value: 'Otro', child: Text('Otro')),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setModalState(() => selectedRequest = val);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: detailsController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      labelText: 'Detalles de la solicitud',
-                      alignLabelWithHint: true,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      hintText: 'Describe brevemente qué datos necesitas cambiar...',
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(context),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                    'Selecciona el tipo de actualización que necesitas:'),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedRequest,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: isSending ? null : () async {
-                        if (detailsController.text.trim().isEmpty) {
-                          ToastAlerts.showWarning(context, 'Por favor ingresa los detalles de tu solicitud.');
-                          return;
-                        }
-                        
-                        setModalState(() => isSending = true);
-                        
-                        final success = await ResendService.sendUpdateRequest(
-                          memberName: profile.fullname,
-                          memberPhone: profile.phone ?? 'No registrado',
-                          membershipNumber: profile.entityid,
-                          requestType: selectedRequest,
-                          details: detailsController.text.trim(),
-                          memberEmail: profile.email ?? 'No registrado',
-                          dio: ref.read(apiClientNotifierProvider).dio,
-                        );
-                        
-                        setModalState(() => isSending = false);
-                        
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                          if (success) {
-                            ToastAlerts.showSuccess(context, 'Solicitud enviada correctamente. Nos comunicaremos contigo pronto.');
-                          } else {
-                            ToastAlerts.showError(context, 'Ocurrió un error al enviar la solicitud. Intenta más tarde.');
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      child: isSending 
-                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Text('Enviar Solicitud', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  items: const [
+                    DropdownMenuItem(
+                        value: 'Cambio de dirección',
+                        child: Text('Cambio de dirección')),
+                    DropdownMenuItem(
+                        value: 'Actualización de RFC / Datos Fiscales',
+                        child: Text('Actualización de RFC / Datos Fiscales')),
+                    DropdownMenuItem(
+                        value: 'Cambio de correo electrónico',
+                        child: Text('Cambio de correo electrónico')),
+                    DropdownMenuItem(
+                        value: 'Cambio de número de teléfono',
+                        child: Text('Cambio de número de teléfono')),
+                    DropdownMenuItem(value: 'Otro', child: Text('Otro')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setModalState(() => selectedRequest = val);
+                    }
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: detailsController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: 'Detalles de la solicitud',
+                    alignLabelWithHint: true,
+                    border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    hintText:
+                        'Describe brevemente qué datos necesitas cambiar...',
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: ElevatedButton(
+                    onPressed: isSending
+                        ? null
+                        : () async {
+                            if (detailsController.text.trim().isEmpty) {
+                              ToastAlerts.showWarning(context,
+                                  'Por favor ingresa los detalles de tu solicitud.');
+                              return;
+                            }
+
+                            setModalState(() => isSending = true);
+
+                            final success =
+                                await ResendService.sendUpdateRequest(
+                              memberName: profile.fullname,
+                              memberPhone: profile.phone ?? 'No registrado',
+                              membershipNumber: profile.entityid,
+                              requestType: selectedRequest,
+                              details: detailsController.text.trim(),
+                              memberEmail: profile.email ?? 'No registrado',
+                              dio: ref.read(apiClientNotifierProvider).dio,
+                            );
+
+                            setModalState(() => isSending = false);
+
+                            if (context.mounted) {
+                              Navigator.pop(context);
+                              if (success) {
+                                ToastAlerts.showSuccess(context,
+                                    'Solicitud enviada correctamente. Nos comunicaremos contigo pronto.');
+                              } else {
+                                ToastAlerts.showError(context,
+                                    'Ocurrió un error al enviar la solicitud. Intenta más tarde.');
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
+                    child: isSending
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2))
+                        : const Text('Enviar Solicitud',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16)),
                   ),
-                ],
-              ),
-            );
-          }
-        );
+                ),
+              ],
+            ),
+          );
+        });
       },
     );
   }
 
-  void _showAddBeneficiaryDialog(BuildContext context, List<SubMemberModel> family, List<dynamic> currentBeneficiaries) {
+  void _showAddBeneficiaryDialog(BuildContext context,
+      List<SubMemberModel> family, List<dynamic> currentBeneficiaries) {
     final availableFamily = family.where((f) {
-      return !currentBeneficiaries.any((b) => b['beneficiary_socio_id'].toString() == f.id);
+      return !currentBeneficiaries
+          .any((b) => b['beneficiary_socio_id'].toString() == f.id);
     }).toList();
 
     if (availableFamily.isEmpty) {
-      ToastAlerts.showWarning(context, 'No hay más miembros de familia disponibles para asignar.');
+      ToastAlerts.showWarning(
+          context, 'No hay más miembros de familia disponibles para asignar.');
       return;
     }
 
@@ -2200,7 +2514,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Future<void> _removeBeneficiary(dynamic id) async {
     try {
-      await ref.read(profileProvider.notifier).removeBeneficiary(int.parse(id.toString()));
+      await ref
+          .read(profileProvider.notifier)
+          .removeBeneficiary(int.parse(id.toString()));
       if (mounted) {
         ToastAlerts.showSuccess(context, 'Beneficiario removido');
       }
@@ -2212,26 +2528,33 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   }
 
   Widget _buildVehiclesTab(BuildContext context, ProfileModel profile) {
-    final bool isSpecial = [1, 2, 3, 6, 10].contains(profile.patrimonialConditionId);
+    final bool isSpecial =
+        [1, 2, 3, 6, 10].contains(profile.patrimonialConditionId);
     final vehicles = profile.vehicles;
 
     if (isSpecial) {
-      final access1Vehicles = vehicles.where((v) => v['access_number'] == 1).toList();
-      final access2Vehicles = vehicles.where((v) => v['access_number'] == 2).toList();
-      
+      final access1Vehicles =
+          vehicles.where((v) => v['access_number'] == 1).toList();
+      final access2Vehicles =
+          vehicles.where((v) => v['access_number'] == 2).toList();
+
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppTheme.spacingLarge),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-          _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
-          const SizedBox(height: 16),
-          const Text('Registro informativo: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
-          const SizedBox(height: 16),
-            _buildAccessSection(context, 'Placas registradas (Acceso 1)', access1Vehicles, 1),
+            _buildSectionHeader(
+                context, 'Placas Autorizadas', Icons.directions_car_rounded),
+            const SizedBox(height: 16),
+            const Text(
+                'Registro informativo: Incluye 2 accesos de hasta 5 autos cada uno.\nImportante: Solo 1 auto por acceso puede ingresar al mismo tiempo.'),
+            const SizedBox(height: 16),
+            _buildAccessSection(
+                context, 'Placas registradas (Acceso 1)', access1Vehicles, 1),
             const SizedBox(height: 24),
-            _buildAccessSection(context, 'Placas registradas (Acceso 2)', access2Vehicles, 2),
+            _buildAccessSection(
+                context, 'Placas registradas (Acceso 2)', access2Vehicles, 2),
             const SizedBox(height: 32),
             _buildParkingDisclaimer(),
             const SizedBox(height: 120),
@@ -2246,9 +2569,11 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader(context, 'Placas Autorizadas', Icons.directions_car_rounded),
+          _buildSectionHeader(
+              context, 'Placas Autorizadas', Icons.directions_car_rounded),
           const SizedBox(height: 16),
-          const Text('Vehículos registrados para acceso al estacionamiento (máximo 5). Solo 1 puede estar en el estacionamiento a la vez.'),
+          const Text(
+              'Vehículos registrados para acceso al estacionamiento (máximo 5). Solo 1 puede estar en el estacionamiento a la vez.'),
           const SizedBox(height: 16),
           _buildCard(
             context,
@@ -2292,7 +2617,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  Widget _buildAccessSection(BuildContext context, String title, List<dynamic> accessVehicles, int accessNumber) {
+  Widget _buildAccessSection(BuildContext context, String title,
+      List<dynamic> accessVehicles, int accessNumber) {
     return _buildCard(
       context,
       child: Column(
@@ -2306,14 +2632,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ),
                 Text(
                   '${accessVehicles.length} / 5',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: accessVehicles.length >= 5 ? AppTheme.dangerColor : AppTheme.primaryColor,
+                    color: accessVehicles.length >= 5
+                        ? AppTheme.dangerColor
+                        : AppTheme.primaryColor,
                   ),
                 ),
               ],
@@ -2340,7 +2669,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 child: ElevatedButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text('Registrar Vehículo'),
-                  onPressed: () => _showVehicleDialog(context, null, accessNumber: accessNumber),
+                  onPressed: () => _showVehicleDialog(context, null,
+                      accessNumber: accessNumber),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
@@ -2364,17 +2694,24 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildVehicleTile(BuildContext context, dynamic vehicle) {
     return ListTile(
-      leading: Icon(Icons.directions_car, color: vehicle['is_in_parking'] == true ? AppTheme.successColor : AppTheme.primaryColor),
+      leading: Icon(Icons.directions_car,
+          color: vehicle['is_in_parking'] == true
+              ? AppTheme.successColor
+              : AppTheme.primaryColor),
       title: Text('Placas: ${vehicle['plates'] ?? ''}'),
-      subtitle: Text('${vehicle['make'] ?? ''} ${vehicle['model'] ?? ''}'.trim()),
+      subtitle:
+          Text('${vehicle['make'] ?? ''} ${vehicle['model'] ?? ''}'.trim()),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (vehicle['is_in_parking'] == true)
-            const Tooltip(message: 'En estacionamiento', child: Icon(Icons.local_parking, color: AppTheme.successColor)),
+            const Tooltip(
+                message: 'En estacionamiento',
+                child: Icon(Icons.local_parking, color: AppTheme.successColor)),
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () => _showVehicleDialog(context, vehicle, accessNumber: vehicle['access_number'] ?? 1),
+            onPressed: () => _showVehicleDialog(context, vehicle,
+                accessNumber: vehicle['access_number'] ?? 1),
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, color: AppTheme.dangerColor),
@@ -2389,7 +2726,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[850] : AppTheme.neutral100,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[850]
+            : AppTheme.neutral100,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppTheme.neutral300),
       ),
@@ -2411,14 +2750,19 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           const SizedBox(height: 12),
           InkWell(
             onTap: () async {
-              final Uri url = Uri.parse('https://registro-vehicular.centrolibanes.org.mx/files/REGLAMENTO_ESTACIONAMIENTO.pdf');
+              final Uri url = Uri.parse(
+                  'https://registro-vehicular.centrolibanes.org.mx/files/REGLAMENTO_ESTACIONAMIENTO.pdf');
               if (!await launchUrl(url)) {
-                if (mounted) ToastAlerts.showError(context, 'No se pudo abrir el enlace');
+                if (mounted)
+                  ToastAlerts.showError(context, 'No se pudo abrir el enlace');
               }
             },
             child: const Text(
               'Consulta el reglamento completo AQUÍ.',
-              style: TextStyle(fontSize: 12, color: AppTheme.primaryColor, decoration: TextDecoration.underline),
+              style: TextStyle(
+                  fontSize: 12,
+                  color: AppTheme.primaryColor,
+                  decoration: TextDecoration.underline),
             ),
           ),
         ],
@@ -2426,12 +2770,17 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     );
   }
 
-  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle, {int accessNumber = 1}) {
+  void _showVehicleDialog(BuildContext context, Map<String, dynamic>? vehicle,
+      {int accessNumber = 1}) {
     final isEditing = vehicle != null;
-    final platesCtrl = TextEditingController(text: vehicle?['plates']?.toString() ?? '');
-    final makeCtrl = TextEditingController(text: vehicle?['make']?.toString() ?? '');
-    final modelCtrl = TextEditingController(text: vehicle?['model']?.toString() ?? '');
-    final colorCtrl = TextEditingController(text: vehicle?['color']?.toString() ?? '');
+    final platesCtrl =
+        TextEditingController(text: vehicle?['plates']?.toString() ?? '');
+    final makeCtrl =
+        TextEditingController(text: vehicle?['make']?.toString() ?? '');
+    final modelCtrl =
+        TextEditingController(text: vehicle?['model']?.toString() ?? '');
+    final colorCtrl =
+        TextEditingController(text: vehicle?['color']?.toString() ?? '');
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -2440,78 +2789,91 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
-            return Container(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      isEditing ? 'Editar Vehículo' : 'Registrar Vehículo',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+        return StatefulBuilder(builder: (context, setState) {
+          final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+          return Container(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomPadding),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isEditing ? 'Editar Vehículo' : 'Registrar Vehículo',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  TextField(
+                      controller: platesCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Placas *', border: OutlineInputBorder())),
+                  const SizedBox(height: 16),
+                  TextField(
+                      controller: makeCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Marca', border: OutlineInputBorder())),
+                  const SizedBox(height: 16),
+                  TextField(
+                      controller: modelCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Modelo', border: OutlineInputBorder())),
+                  const SizedBox(height: 16),
+                  TextField(
+                      controller: colorCtrl,
+                      decoration: const InputDecoration(
+                          labelText: 'Color', border: OutlineInputBorder())),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancelar'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    TextField(controller: platesCtrl, decoration: const InputDecoration(labelText: 'Placas *', border: OutlineInputBorder())),
-                    const SizedBox(height: 16),
-                    TextField(controller: makeCtrl, decoration: const InputDecoration(labelText: 'Marca', border: OutlineInputBorder())),
-                    const SizedBox(height: 16),
-                    TextField(controller: modelCtrl, decoration: const InputDecoration(labelText: 'Modelo', border: OutlineInputBorder())),
-                    const SizedBox(height: 16),
-                    TextField(controller: colorCtrl, decoration: const InputDecoration(labelText: 'Color', border: OutlineInputBorder())),
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancelar'),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            final plates = platesCtrl.text.trim();
+                            if (plates.isEmpty) {
+                              ToastAlerts.showWarning(
+                                  context, 'Las placas son obligatorias');
+                              return;
+                            }
+                            final data = {
+                              'plates': plates,
+                              'make': makeCtrl.text.trim(),
+                              'model': modelCtrl.text.trim(),
+                              'color': colorCtrl.text.trim(),
+                              'access_number': isEditing
+                                  ? (vehicle['access_number'] ?? accessNumber)
+                                  : accessNumber,
+                            };
+                            Navigator.pop(context);
+                            if (isEditing) {
+                              _editVehicle(vehicle['id'], data);
+                            } else {
+                              _addVehicle(data);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primaryColor,
+                            foregroundColor: Colors.white,
                           ),
+                          child: const Text('Guardar'),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              final plates = platesCtrl.text.trim();
-                              if (plates.isEmpty) {
-                                ToastAlerts.showWarning(context, 'Las placas son obligatorias');
-                                return;
-                              }
-                              final data = {
-                                'plates': plates,
-                                'make': makeCtrl.text.trim(),
-                                'model': modelCtrl.text.trim(),
-                                'color': colorCtrl.text.trim(),
-                                'access_number': isEditing ? (vehicle['access_number'] ?? accessNumber) : accessNumber,
-                              };
-                              Navigator.pop(context);
-                              if (isEditing) {
-                                _editVehicle(vehicle['id'], data);
-                              } else {
-                                _addVehicle(data);
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: const Text('Guardar'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            );
-          }
-        );
+            ),
+          );
+        });
       },
     );
   }
@@ -2531,7 +2893,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Future<void> _editVehicle(dynamic id, Map<String, dynamic> data) async {
     try {
-      await ref.read(profileProvider.notifier).editVehicle(int.parse(id.toString()), data);
+      await ref
+          .read(profileProvider.notifier)
+          .editVehicle(int.parse(id.toString()), data);
       if (mounted) {
         ToastAlerts.showSuccess(context, 'Vehículo actualizado');
       }
@@ -2544,7 +2908,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Future<void> _disableVehicle(dynamic id) async {
     try {
-      await ref.read(profileProvider.notifier).disableVehicle(int.parse(id.toString()));
+      await ref
+          .read(profileProvider.notifier)
+          .disableVehicle(int.parse(id.toString()));
       if (mounted) {
         ToastAlerts.showSuccess(context, 'Vehículo removido');
       }
@@ -2555,7 +2921,8 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     }
   }
 
-  Widget _buildFinancesTab(BuildContext context, WidgetRef ref, ProfileModel profile) {
+  Widget _buildFinancesTab(
+      BuildContext context, WidgetRef ref, ProfileModel profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final paymentsAsync = ref.watch(userPaymentsProvider);
 
@@ -2563,130 +2930,128 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: paymentsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor)),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppTheme.primaryColor)),
         error: (err, _) => Center(child: Text('Error: $err')),
         data: (data) {
           final pendingBalance = data['pending_balance'] ?? 0;
           final nextCharge = data['next_charge_amount'] ?? 0;
           final dueMonths = data['due_months'] ?? 0;
           final paymentFrequency = data['payment_frequency'] as String?;
-          final membershipStatus = data['membership_status'] as String? ?? 'Activa';
-          
+          final membershipStatus =
+              data['membership_status'] as String? ?? 'Activa';
+
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Resumen Financiero',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: -0.5),
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5),
               ),
               const SizedBox(height: 6),
               Text(
                 'Saldo actual, transacciones y estado de cuenta',
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6), fontSize: 13, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.6),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500),
               ),
               const SizedBox(height: 32),
-              
-              Column(
+              Row(
                 children: [
-                  _buildFinanceCard(
-                    context, 
-                    icon: Icons.account_balance_wallet_rounded, 
-                    title: 'Saldo Vencido', 
-                    value: NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(pendingBalance),
-                    isPrimary: pendingBalance > 0,
-                    fullWidth: true,
+                  Expanded(
+                    child: _buildFinanceCard(
+                      context,
+                      icon: Icons.account_balance_wallet_rounded,
+                      title: 'Saldo Pendiente',
+                      value:
+                          NumberFormat.currency(symbol: '\$', decimalDigits: 0)
+                              .format(pendingBalance),
+                      isPrimary: pendingBalance > 0,
+                    ),
                   ),
-                  const SizedBox(height: 16),
-                  _buildFinanceCard(
-                    context, 
-                    icon: Icons.credit_card_rounded, 
-                    title: 'Frecuencia de Pago', 
-                    value: paymentFrequency ?? 'No registrada',
-                    fullWidth: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFinanceCard(
-                    context, 
-                    icon: Icons.verified_user_rounded, 
-                    title: 'Estatus de la Membresía', 
-                    value: membershipStatus,
-                    isStatus: true,
-                    fullWidth: true,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFinanceCard(
+                      context,
+                      icon: Icons.verified_user_rounded,
+                      title: 'Membresía',
+                      value: membershipStatus,
+                      isStatus: true,
+                    ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 32),
-              const Text(
-                'Historial y Cargos Recientes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5),
-              ),
-              const SizedBox(height: 16),
-
               if ((data['history'] as List).isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Text('Sin movimientos', style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                    child: Text('Sin movimientos',
+                        style: TextStyle(
+                            color: AppTheme.neutral500.withOpacity(0.8))),
                   ),
                 )
-              else
-                ...((data['history'] as List).map((h) {
-                    final isPending = h['status'] == 'pending';
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark ? AppTheme.neutral900 : AppTheme.surfaceColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isPending 
-                            ? AppTheme.warningColor.withOpacity(isDark ? 0.3 : 0.6)
-                            : (isDark ? AppTheme.neutral800 : AppTheme.neutral200),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: isPending 
-                                ? AppTheme.warningColor.withOpacity(0.1)
-                                : AppTheme.successColor.withOpacity(0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              isPending ? Icons.access_time_filled_rounded : Icons.check_circle_rounded,
-                              color: isPending ? AppTheme.warningColor : AppTheme.successColor,
-                              size: 20,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  h['sales_order_id'] ?? 'Movimiento',
-                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  (h['module'] ?? '').toString().replaceAll('_', ' ').toUpperCase(),
-                                  style: TextStyle(fontSize: 11, color: AppTheme.neutral500.withOpacity(0.8), fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            NumberFormat.currency(symbol: '\$', decimalDigits: 0).format(h['amount'] ?? 0),
-                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
-                          ),
-                        ],
-                      ),
-                    );
-                })),
+              else ...[
+                // Vencidas
+                if ((data['history'] as List)
+                    .any((h) => h['status'] == 'overdue')) ...[
+                  const Text(
+                    'Órdenes Vencidas',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: AppTheme.dangerColor),
+                  ),
+                  const SizedBox(height: 16),
+                  ...((data['history'] as List)
+                      .where((h) => h['status'] == 'overdue')
+                      .map((h) => _buildOrderTile(context, h, isDark, true))),
+                  const SizedBox(height: 16),
+                ],
+
+                // Pendientes
+                if ((data['history'] as List)
+                    .any((h) => h['status'] == 'pending')) ...[
+                  const Text(
+                    'Órdenes Pendientes',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5,
+                        color: AppTheme.warningColor),
+                  ),
+                  const SizedBox(height: 16),
+                  ...((data['history'] as List)
+                      .where((h) => h['status'] == 'pending')
+                      .map((h) => _buildOrderTile(context, h, isDark, false))),
+                  const SizedBox(height: 16),
+                ],
+
+                // Otras (Pagadas, etc.) por si acaso
+                if ((data['history'] as List).any((h) =>
+                    h['status'] != 'pending' && h['status'] != 'overdue')) ...[
+                  const Text(
+                    'Historial',
+                    style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: -0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  ...((data['history'] as List)
+                      .where((h) =>
+                          h['status'] != 'pending' && h['status'] != 'overdue')
+                      .map((h) => _buildOrderTile(context, h, isDark, false))),
+                ],
+              ],
               const SizedBox(height: 120),
             ],
           );
@@ -2697,22 +3062,23 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildFinanceCard(
     BuildContext context, {
-    required IconData icon, 
-    required String title, 
-    required String value, 
+    required IconData icon,
+    required String title,
+    required String value,
     bool isStatus = false,
     bool isPrimary = false,
     bool fullWidth = false,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       width: fullWidth ? double.infinity : null,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.5)),
+        border: Border.all(
+            color: AppTheme.neutral200.withOpacity(isDark ? 0.1 : 0.5)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.03),
@@ -2727,10 +3093,14 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isPrimary ? AppTheme.vibrantGold.withOpacity(0.15) : AppTheme.primaryColor.withOpacity(0.1),
+              color: isPrimary
+                  ? AppTheme.vibrantGold.withOpacity(0.15)
+                  : AppTheme.primaryColor.withOpacity(0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: isPrimary ? AppTheme.vibrantGold : AppTheme.primaryColor, size: 28),
+            child: Icon(icon,
+                color: isPrimary ? AppTheme.vibrantGold : AppTheme.primaryColor,
+                size: 28),
           ),
           const SizedBox(height: 16),
           Text(
@@ -2747,10 +3117,16 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               decoration: BoxDecoration(
-                color: value.toLowerCase() == 'ausente' ? AppTheme.warningColor : AppTheme.successColor,
+                color: value.toLowerCase() == 'ausente'
+                    ? AppTheme.warningColor
+                    : AppTheme.successColor,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Text(value, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+              child: Text(value,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold)),
             )
           else
             Text(
@@ -2759,9 +3135,88 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
-                color: isPrimary ? AppTheme.vibrantGold : Theme.of(context).colorScheme.onSurface,
+                color: isPrimary
+                    ? AppTheme.vibrantGold
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOrderTile(
+      BuildContext context, dynamic h, bool isDark, bool isOverdue) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? AppTheme.neutral900 : AppTheme.surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isOverdue
+              ? AppTheme.dangerColor.withOpacity(isDark ? 0.3 : 0.6)
+              : (h['status'] == 'pending'
+                  ? AppTheme.warningColor.withOpacity(isDark ? 0.3 : 0.6)
+                  : (isDark ? AppTheme.neutral800 : AppTheme.neutral200)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isOverdue
+                  ? AppTheme.dangerColor.withOpacity(0.1)
+                  : (h['status'] == 'pending'
+                      ? AppTheme.warningColor.withOpacity(0.1)
+                      : AppTheme.successColor.withOpacity(0.1)),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isOverdue
+                  ? Icons.warning_rounded
+                  : (h['status'] == 'pending'
+                      ? Icons.access_time_filled_rounded
+                      : Icons.check_circle_rounded),
+              color: isOverdue
+                  ? AppTheme.dangerColor
+                  : (h['status'] == 'pending'
+                      ? AppTheme.warningColor
+                      : AppTheme.successColor),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  h['sales_order_id'] ?? 'Movimiento',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 14),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  (h['module'] ?? '')
+                      .toString()
+                      .replaceAll('_', ' ')
+                      .toUpperCase(),
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: AppTheme.neutral500.withOpacity(0.8),
+                      fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            NumberFormat.currency(symbol: '\$', decimalDigits: 0)
+                .format(h['amount'] ?? 0),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+          ),
         ],
       ),
     );
