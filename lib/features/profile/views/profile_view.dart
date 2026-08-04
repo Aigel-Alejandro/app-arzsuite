@@ -1875,7 +1875,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 */
                 _buildPermissionChip(
                   context,
-                  label: 'Inscripciones',
+                  label: 'Inscribir Actividades',
                   icon: Icons.sports_tennis_rounded,
                   isGranted: member.permissions.contains('activities.enroll'),
                   onChanged: (val) async {
