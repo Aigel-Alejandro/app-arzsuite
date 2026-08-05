@@ -7,11 +7,13 @@ class ApiClient {
   final Dio _dio;
   final String baseUrl;
   String? _token;
+  final VoidCallback? onUnauthorized;
 
   ApiClient({
     required this.baseUrl,
     Map<String, String>? additionalHeaders,
     String? token,
+    this.onUnauthorized,
   })  : _token = token,
         _dio = Dio(BaseOptions(
           baseUrl: baseUrl,
@@ -48,6 +50,9 @@ class ApiClient {
       },
       onError: (DioException e, handler) {
         // Manejar errores de red, respuestas 401, etc.
+        if (e.response?.statusCode == 401) {
+          onUnauthorized?.call();
+        }
         return handler.next(e);
       },
     ));

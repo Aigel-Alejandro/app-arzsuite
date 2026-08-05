@@ -1,15 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import '../network/api_client.dart';
 import '../network/api_endpoints.dart';
 import 'global_providers.dart';
+import 'auth_provider.dart';
 
 /// Notifier que mantiene una instancia mutable de ApiClient.
 /// Permite actualizar el token JWT después del login sin crear una nueva instancia.
 class ApiClientNotifier extends StateNotifier<ApiClient> {
-  ApiClientNotifier(String? initialToken)
+  final VoidCallback? onUnauthorized;
+
+  ApiClientNotifier(String? initialToken, {this.onUnauthorized})
       : super(ApiClient(
           baseUrl: ApiEndpoints.baseUrlCakePHP,
           token: initialToken,
+          onUnauthorized: onUnauthorized,
         ));
 
   /// Actualiza el token y emite una NUEVA instancia de ApiClient para notificar a Riverpod.
@@ -17,6 +22,7 @@ class ApiClientNotifier extends StateNotifier<ApiClient> {
     state = ApiClient(
       baseUrl: state.baseUrl,
       token: token,
+      onUnauthorized: onUnauthorized,
     );
   }
 }
@@ -26,5 +32,13 @@ final apiClientNotifierProvider =
     StateNotifierProvider<ApiClientNotifier, ApiClient>((ref) {
   final prefs = ref.watch(sharedPreferencesProvider);
   final token = prefs.getString('saved_token');
-  return ApiClientNotifier(token);
+  return ApiClientNotifier(
+    token,
+    onUnauthorized: () {
+      // Usamos Future.microtask para evitar problemas de rebuild durante build.
+      Future.microtask(() {
+        ref.read(authProvider.notifier).logout();
+      });
+    },
+  );
 });
