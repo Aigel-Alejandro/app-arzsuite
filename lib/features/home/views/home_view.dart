@@ -565,7 +565,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Text(
-                'No hay eventos programados.',
+                'No hay actividades inscritas.',
                 style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
               ),
             ),
@@ -604,21 +604,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
         final next30Days = List.generate(30, (i) => startOfToday.add(Duration(days: i)));
 
         // Determine active date
-        DateTime activeDate = startOfToday;
-        if (_selectedDate != null) {
-          activeDate = _selectedDate!;
-        } else if (filteredItems.isNotEmpty) {
-          bool hasEventsToday = filteredItems.any((item) {
-            final eventDate = DateTime.fromMillisecondsSinceEpoch(item.timestamp * 1000);
-            return eventDate.year == activeDate.year &&
-                   eventDate.month == activeDate.month &&
-                   eventDate.day == activeDate.day;
-          });
-          if (!hasEventsToday) {
-            final closestEventDate = DateTime.fromMillisecondsSinceEpoch(filteredItems.first.timestamp * 1000);
-            activeDate = DateTime(closestEventDate.year, closestEventDate.month, closestEventDate.day);
-          }
-        }
+        DateTime activeDate = _selectedDate ?? startOfToday;
 
         // Filter by active date
         filteredItems = filteredItems.where((item) {
@@ -807,7 +793,13 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                       }),
                     ],
                     onChanged: (val) {
-                      if (val != null) setState(() => _selectedSocioId = val);
+                      if (val != null) {
+                        setState(() {
+                          _selectedSocioId = val;
+                          _selectedDate = null;
+                          _hasScrolledToInitial = false;
+                        });
+                      }
                     },
                   ),
                 ),
@@ -819,7 +811,7 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16.0),
                 child: Text(
-                  'No hay eventos para la selección.', 
+                  'No hay actividades inscritas para este día.', 
                   style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
                 ),
               )

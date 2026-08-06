@@ -11,6 +11,7 @@ import 'core/providers/global_providers.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,11 @@ void main() async {
     url: 'https://jgxwzxqbispwempgetrh.supabase.co',
     anonKey: 'sb_publishable_z3Iw5Cnoy5F7gHViVwZG2A_455RJrPR',
   );
+
+  // Inicializar OneSignal
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  OneSignal.initialize("36b742e0-4aeb-47b7-abf9-7ba1af280f7b");
+  OneSignal.Notifications.requestPermission(true);
 
   final prefs = await SharedPreferences.getInstance();
 

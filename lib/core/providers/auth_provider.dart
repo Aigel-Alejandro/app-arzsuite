@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/summer_course/models/member.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'global_providers.dart';
 
 // Este provider almacenará temporalmente al "Socio" logueado
@@ -54,10 +55,17 @@ class AuthNotifier extends StateNotifier<Member?> {
     _prefs.setString('saved_member_type', member.memberType);
     _prefs.setStringList('saved_permissions', member.permissions);
     _prefs.setBool('saved_has_accepted_terms', member.hasAcceptedTerms);
+
+    if (!kIsWeb) {
+      OneSignal.login(member.id);
+    }
   }
 
   void logout() {
     state = null;
+    if (!kIsWeb) {
+      OneSignal.logout();
+    }
     _prefs.remove('saved_token');
     _prefs.remove('saved_refresh_token');
     _prefs.remove('use_biometrics');

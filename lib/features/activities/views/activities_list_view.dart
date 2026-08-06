@@ -430,9 +430,15 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                 }
 
                 // Aplicar filtros
-                var filteredActivities = activities;
+                var filteredActivities = activities.where((activity) {
+                  final bool hasClubAccess = profile == null ||
+                      profile.clubAccess.isEmpty ||
+                      profile.clubAccess.contains(activity.clubId);
+                  return hasClubAccess;
+                }).toList();
+
                 if (!widget.isSubscribed) {
-                  filteredActivities = activities.where((activity) {
+                  filteredActivities = filteredActivities.where((activity) {
                     if (_selectedClub != null &&
                         activity.clubName != _selectedClub) return false;
                     if (_selectedTipo != null && activity.tipo != _selectedTipo)
@@ -465,17 +471,13 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                     padding: EdgeInsets.all(AppTheme.spacingLarge),
                     child: Center(
                         child: Text(
-                            "No se encontraron actividades con los filtros seleccionados.",
+                            "No se encontraron actividades disponibles.",
                             style: TextStyle(color: AppTheme.neutral500))),
                   );
                 }
 
                 return Column(
                   children: filteredActivities.map((activity) {
-                    final bool hasClubAccess = profile == null ||
-                        profile.clubAccess.isEmpty ||
-                        profile.clubAccess.contains(activity.clubId);
-
                     return Padding(
                       padding:
                           const EdgeInsets.only(bottom: AppTheme.spacingMedium),
@@ -500,7 +502,7 @@ class _ActivitiesListViewState extends ConsumerState<ActivitiesListView> {
                                             sum + (g.cupoDisponible ?? 0))),
                         isSubscribed: widget.isSubscribed,
                         hasEnrollPermission: hasEnrollPermission,
-                        hasClubAccess: hasClubAccess,
+                        hasClubAccess: true,
                       ),
                     );
                   }).toList(),

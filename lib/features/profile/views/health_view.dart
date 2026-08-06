@@ -71,35 +71,35 @@ class HealthInfo {
 
 class MedicalRecord {
   final int id;
+  final String? patientName;
   final String? visitDate;
-  final String? attentionType;
+  final String? locationName;
+  final String? medicalPersonnel;
   final String? visitReason;
   final String? diagnosis;
-  final String? summary;
-  final String? medicalPersonnel;
-  final String? nursing;
+  final String? treatmentPlan;
 
   MedicalRecord({
     required this.id,
+    this.patientName,
     this.visitDate,
-    this.attentionType,
+    this.locationName,
+    this.medicalPersonnel,
     this.visitReason,
     this.diagnosis,
-    this.summary,
-    this.medicalPersonnel,
-    this.nursing,
+    this.treatmentPlan,
   });
 
   factory MedicalRecord.fromJson(Map<String, dynamic> json) {
     return MedicalRecord(
       id: json['id'],
+      patientName: json['patient_name'],
       visitDate: json['visit_date'],
-      attentionType: json['attention_type'],
+      locationName: json['location_name'],
+      medicalPersonnel: json['medical_personnel'],
       visitReason: json['visit_reason'],
       diagnosis: json['diagnosis'],
-      summary: json['summary'],
-      medicalPersonnel: json['medical_personnel'],
-      nursing: json['nursing'],
+      treatmentPlan: json['treatment_plan'],
     );
   }
 }
@@ -752,7 +752,8 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
            matchesText = (r.diagnosis?.toLowerCase().contains(q) ?? false) ||
                   (r.visitReason?.toLowerCase().contains(q) ?? false) ||
                   (r.medicalPersonnel?.toLowerCase().contains(q) ?? false) ||
-                  (r.attentionType?.toLowerCase().contains(q) ?? false);
+                  (r.locationName?.toLowerCase().contains(q) ?? false) ||
+                  (r.treatmentPlan?.toLowerCase().contains(q) ?? false);
        }
 
        bool matchesDate = true;
@@ -884,132 +885,164 @@ class _HealthViewState extends ConsumerState<HealthView> with SingleTickerProvid
 
   Widget _buildMedicalRecordCard(MedicalRecord record) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? Colors.white.withOpacity(0.03) : Colors.white;
-    final borderColor = isDark ? Colors.white.withOpacity(0.1) : AppTheme.neutral200;
-    final attentionColor = _getAttentionColor(record.attentionType);
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final borderColor = isDark ? Colors.white.withOpacity(0.08) : AppTheme.neutral200;
+    final headerBgColor = isDark ? Colors.white.withOpacity(0.03) : AppTheme.neutral100.withOpacity(0.5);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
         boxShadow: isDark ? [] : [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Container(width: 5, color: attentionColor),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // --- Header ---
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: headerBgColor,
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+              border: Border(bottom: BorderSide(color: borderColor)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today_outlined, size: 14, color: AppTheme.primaryColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      record.visitDate ?? 'Sin fecha',
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: AppTheme.primaryColor),
+                    ),
+                  ],
+                ),
+                if (record.locationName != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withOpacity(0.1) : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: isDark ? null : Border.all(color: AppTheme.neutral200),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.location_on, size: 12, color: isDark ? Colors.white70 : AppTheme.neutral700),
+                        const SizedBox(width: 4),
+                        Text(
+                          record.locationName!,
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isDark ? Colors.white70 : AppTheme.neutral700),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          
+          // --- Body ---
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Paciente
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.person_outline, color: AppTheme.primaryColor, size: 20),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            record.visitDate ?? 'Sin fecha',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppTheme.primaryColor),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: attentionColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              record.attentionType ?? 'Atención médica',
-                              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: attentionColor),
-                            ),
-                          ),
+                          const Text('Paciente', style: TextStyle(fontSize: 12, color: AppTheme.neutral500)),
+                          Text(record.patientName ?? 'Paciente', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      
-                      if (record.diagnosis != null && record.diagnosis!.isNotEmpty) ...[
-                        const Text('Diagnóstico', style: TextStyle(fontSize: 11, color: AppTheme.neutral500)),
-                        Text(record.diagnosis!, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                        const SizedBox(height: 10),
-                      ],
-                      
-                      _buildRecordDetailRow('Motivo de visita', record.visitReason),
-                      _buildRecordDetailRow('Resumen clínico', record.summary),
-                      
-                      const SizedBox(height: 8),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withOpacity(0.02) : AppTheme.neutral100.withOpacity(0.5),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(child: _buildPersonnelInfo('Médico', record.medicalPersonnel, Icons.person_outline)),
-                            Expanded(child: _buildPersonnelInfo('Enfermería', record.nursing, Icons.medical_services_outlined)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                
+                if (record.diagnosis != null && record.diagnosis!.isNotEmpty) ...[
+                  const SizedBox(height: 18),
+                  _buildModernDetailRow(
+                    Icons.health_and_safety_outlined, 
+                    'Diagnóstico Principal', 
+                    record.diagnosis,
+                    valueColor: AppTheme.primaryColor,
+                    valueWeight: FontWeight.w700,
+                  ),
+                ],
+                
+                const SizedBox(height: 14),
+                _buildModernDetailRow(Icons.chat_bubble_outline, 'Motivo de consulta', record.visitReason),
+                const SizedBox(height: 14),
+                _buildModernDetailRow(Icons.healing_outlined, 'Plan de tratamiento', record.treatmentPlan),
+              ],
+            ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Color _getAttentionColor(String? type) {
-    if (type == null) return AppTheme.primaryColor;
-    final t = type.toLowerCase();
-    if (t.contains('urgencia')) return AppTheme.dangerColor;
-    if (t.contains('seguimiento')) return AppTheme.warningColor;
-    return AppTheme.primaryColor;
-  }
-
-  Widget _buildRecordDetailRow(String label, String? value) {
-    if (value == null || value.trim().isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 11, color: AppTheme.neutral500)),
-          const SizedBox(height: 2),
-          Text(value, style: const TextStyle(fontSize: 13)),
+          
+          // --- Footer ---
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: borderColor)),
+            ),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundColor: isDark ? Colors.white10 : AppTheme.neutral200,
+                  child: Icon(Icons.medical_information_outlined, size: 16, color: isDark ? Colors.white70 : AppTheme.neutral700),
+                ),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Médico Atendió', style: TextStyle(fontSize: 11, color: AppTheme.neutral500, fontWeight: FontWeight.w500)),
+                    Text(record.medicalPersonnel ?? 'No asignado', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPersonnelInfo(String role, String? name, IconData icon) {
+  Widget _buildModernDetailRow(IconData icon, String label, String? value, {Color? valueColor, FontWeight? valueWeight}) {
+    if (value == null || value.trim().isEmpty) return const SizedBox.shrink();
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 14, color: AppTheme.neutral500),
-        const SizedBox(width: 6),
+        Icon(icon, size: 16, color: AppTheme.neutral400),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(role, style: const TextStyle(fontSize: 10, color: AppTheme.neutral500)),
-              Text(
-                name?.isNotEmpty == true ? name! : '—',
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
+              Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.neutral500, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(value, style: TextStyle(fontSize: 14, height: 1.4, color: valueColor, fontWeight: valueWeight)),
             ],
           ),
         ),
