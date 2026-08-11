@@ -21,6 +21,7 @@ import 'package:app_arzsuite/features/tournaments/views/tournament_my_detail_vie
 import 'package:app_arzsuite/core/providers/auth_provider.dart';
 import 'package:app_arzsuite/core/widgets/toast_alerts.dart';
 import 'package:app_arzsuite/features/profile/providers/profile_provider.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 class HomeView extends ConsumerWidget {
   const HomeView({super.key});
@@ -500,12 +501,9 @@ class _AgendaWidget extends ConsumerStatefulWidget {
 class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
   String _selectedSocioId = 'ME'; // 'ME', 'ALL', or a specific socioId
   DateTime? _selectedDate;
-  final ScrollController _scrollController = ScrollController();
-  bool _hasScrolledToInitial = false;
 
   @override
   void dispose() {
-    _scrollController.dispose();
     super.dispose();
   }
 
@@ -598,53 +596,241 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
           }
         }
 
-        // Generate next 30 days
         final today = DateTime.now();
         final startOfToday = DateTime(today.year, today.month, today.day);
-        final next30Days = List.generate(30, (i) => startOfToday.add(Duration(days: i)));
+        
+        // Find Monday of this week
+        final startOfThisWeek = startOfToday.subtract(Duration(days: startOfToday.weekday - 1));
 
-        // Determine active date
-        DateTime activeDate = _selectedDate ?? startOfToday;
+        // Generate 8 weeks
+        final weeks = List.generate(8, (i) => startOfThisWeek.add(Duration(days: i * 7)));
 
-        // Filter by active date
+        // Determine active date (we will store the start of the week in _selectedDate instead of a specific day)
+        DateTime activeWeekStart = _selectedDate ?? startOfThisWeek;
+        // make sure activeWeekStart is a Monday
+        activeWeekStart = activeWeekStart.subtract(Duration(days: activeWeekStart.weekday - 1));
+        
+        final activeWeekEnd = activeWeekStart.add(const Duration(days: 6, hours: 23, minutes: 59, seconds: 59));
+
+        // Filter by active week
         filteredItems = filteredItems.where((item) {
           final eventDate = DateTime.fromMillisecondsSinceEpoch(item.timestamp * 1000);
-          return eventDate.year == activeDate.year &&
-                 eventDate.month == activeDate.month &&
-                 eventDate.day == activeDate.day;
+          return eventDate.isAfter(activeWeekStart.subtract(const Duration(seconds: 1))) && 
+                 eventDate.isBefore(activeWeekEnd.add(const Duration(seconds: 1)));
         }).toList();
 
-        if (!_hasScrolledToInitial) {
-          _hasScrolledToInitial = true;
-          final index = next30Days.indexWhere((d) => d.year == activeDate.year && d.month == activeDate.month && d.day == activeDate.day);
-          if (index > 0) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (_scrollController.hasClients) {
-                // width = 60, margin right = 12 => 72
-                final double offset = index * 72.0;
-                _scrollController.animateTo(
-                  offset,
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
+        // Sort items by timestamp ascending
+        filteredItems.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        
+        final List<Widget> agendaWidgets = [];
+        String lastDateStr = '';
+        final monthsEsShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        final daysEs = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
+
+        agendaWidgets.add(
+          SizedBox(
+            height: 56, // slightly higher for shadows
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: weeks.length,
+              itemBuilder: (context, index) {
+                final weekStart = weeks[index];
+                final weekEnd = weekStart.add(const Duration(days: 6));
+                final isSelected = isSameDay(weekStart, activeWeekStart);
+                
+                String label;
+                if (index == 0) {
+                  label = 'Esta semana';
+                } else if (index == 1) {
+                  label = 'Próxima semana';
+                } else {
+                  label = '${weekStart.day} ${monthsEsShort[weekStart.month - 1]} - ${weekEnd.day} ${monthsEsShort[weekEnd.month - 1]}';
+                }
+
+                Widget content;
+                if (index == 0) {
+                  content = Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.calendar_month_rounded, size: 16, color: isSelected ? Colors.white : Colors.grey.shade600),
+                      const SizedBox(width: 6),
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                          color: isSelected ? Colors.white : Colors.grey.shade700,
+                          letterSpacing: isSelected ? 0.3 : 0,
+                        ),
+                      ),
+                    ],
+                  );
+                } else {
+                  content = Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                      color: isSelected ? Colors.white : Colors.grey.shade700,
+                      letterSpacing: isSelected ? 0.3 : 0,
+                    ),
+                  );
+                }
+
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _selectedDate = weekStart;
+                    });
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    margin: const EdgeInsets.only(right: 12, bottom: 8, top: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppTheme.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: isSelected ? Colors.transparent : Colors.grey.shade200,
+                        width: 1,
+                      ),
+                      boxShadow: isSelected
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primaryColor.withValues(alpha: 0.35),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ]
+                          : [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.03),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              )
+                            ],
+                    ),
+                    child: content,
+                  ),
                 );
-              }
-            });
-          }
+              },
+            ),
+          ),
+        );
+        agendaWidgets.add(const SizedBox(height: 24));
+
+        // Filter chips (Only for Manager or people with permission, and if there is more than 1 member active in agenda)
+        if (canViewFamilyAgenda && membersMap.length > 1) {
+          agendaWidgets.add(
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral800 : AppTheme.neutral200),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedSocioId,
+                  isExpanded: true,
+                  icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primaryColor),
+                  dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  style: TextStyle(
+                    color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.neutral800,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: 'ME',
+                      child: Text('Mis Actividades'),
+                    ),
+                    const DropdownMenuItem(
+                      value: 'ALL',
+                      child: Text('Todos los familiares'),
+                    ),
+                    ...membersMap.entries.where((e) => e.key != myId).map((entry) {
+                      final n = entry.value.split(' ').first;
+                      final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase();
+                      return DropdownMenuItem(
+                        value: entry.key,
+                        child: Text('Actividades de $capitalized'),
+                      );
+                    }),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() {
+                        _selectedSocioId = val;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ),
+          );
+          agendaWidgets.add(const SizedBox(height: 16));
         }
 
-        final monthsEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-        final monthStr = '${monthsEs[activeDate.month - 1]} ${activeDate.year}';
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        if (filteredItems.isEmpty) {
+          agendaWidgets.add(
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
+              margin: const EdgeInsets.only(top: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral800 : Colors.grey.shade200),
+              ),
+              child: Column(
                 children: [
+                  Icon(Icons.event_busy_rounded, size: 48, color: Colors.grey.shade300),
+                  const SizedBox(height: 12),
                   Text(
-                    monthStr.toUpperCase(),
+                    'Semana Libre',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'No tienes actividades programadas para estos días.', 
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade500, 
+                      fontSize: 13
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        } else {
+          for (var item in filteredItems) {
+            final eventDate = DateTime.fromMillisecondsSinceEpoch(item.timestamp * 1000);
+            final eventStartOfDay = DateTime(eventDate.year, eventDate.month, eventDate.day);
+            
+            String dateStr;
+            if (eventStartOfDay == startOfToday) {
+              dateStr = 'Hoy';
+            } else if (eventStartOfDay == startOfToday.add(const Duration(days: 1))) {
+              dateStr = 'Mañana';
+            } else {
+              dateStr = '${daysEs[eventDate.weekday - 1]}, ${eventDate.day} de ${monthsEsShort[eventDate.month - 1]}';
+            }
+
+            if (dateStr != lastDateStr) {
+              agendaWidgets.add(
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 12.0),
+                  child: Text(
+                    dateStr.toUpperCase(),
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
@@ -652,193 +838,39 @@ class _AgendaWidgetState extends ConsumerState<_AgendaWidget> {
                       letterSpacing: 1.5,
                     ),
                   ),
-                  if (activeDate.year != today.year || activeDate.month != today.month || activeDate.day != today.day)
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _selectedDate = startOfToday;
-                        });
-                        _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
-                      },
-                      child: Row(
-                        children: [
-                          Icon(Icons.calendar_today_rounded, size: 14, color: AppTheme.primaryColor),
-                          const SizedBox(width: 4),
-                          Text(
-                            'Ir a hoy (${today.day} de ${monthsEs[today.month - 1]})',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            // Horizontal Calendar
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                controller: _scrollController,
-                scrollDirection: Axis.horizontal,
-                itemCount: next30Days.length,
-                itemBuilder: (context, index) {
-                  final dayDate = next30Days[index];
-                  final isSelected = dayDate.year == activeDate.year &&
-                                     dayDate.month == activeDate.month &&
-                                     dayDate.day == activeDate.day;
-                  final isToday = index == 0;
-                  final daysEs = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-                  final dowName = daysEs[dayDate.weekday - 1];
-                  final isFirstDayOfMonth = dayDate.day == 1;
-                  final monthsEsShort = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                  final topLabel = isToday ? 'Hoy' : (isFirstDayOfMonth ? monthsEsShort[dayDate.month - 1] : dowName);
-
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _selectedDate = dayDate;
-                      });
-                    },
-                    child: Container(
-                      width: 60,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryColor : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade300,
-                        ),
-                        boxShadow: isSelected
-                            ? [
-                                BoxShadow(
-                                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                )
-                              ]
-                            : [],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            topLabel,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: isFirstDayOfMonth ? FontWeight.w900 : FontWeight.w600,
-                              color: isSelected 
-                                  ? Colors.white 
-                                  : (isFirstDayOfMonth ? AppTheme.primaryColor : Colors.grey.shade600),
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            dayDate.day.toString(),
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Filter chips (Only for Manager or people with permission, and if there is more than 1 member active in agenda)
-            if (canViewFamilyAgenda && membersMap.length > 1) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral800 : AppTheme.neutral200),
                 ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedSocioId,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppTheme.primaryColor),
-                    dropdownColor: Theme.of(context).brightness == Brightness.dark ? AppTheme.neutral900 : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    style: TextStyle(
-                      color: Theme.of(context).brightness == Brightness.dark ? Colors.white : AppTheme.neutral800,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: 'ME',
-                        child: Text('Mis Actividades'),
-                      ),
-                      const DropdownMenuItem(
-                        value: 'ALL',
-                        child: Text('Todos los familiares'),
-                      ),
-                      ...membersMap.entries.where((e) => e.key != myId).map((entry) {
-                        final n = entry.value.split(' ').first;
-                        final capitalized = n.isEmpty ? n : n[0].toUpperCase() + n.substring(1).toLowerCase();
-                        return DropdownMenuItem(
-                          value: entry.key,
-                          child: Text('Actividades de $capitalized'),
-                        );
-                      }),
-                    ],
-                    onChanged: (val) {
-                      if (val != null) {
-                        setState(() {
-                          _selectedSocioId = val;
-                          _selectedDate = null;
-                          _hasScrolledToInitial = false;
-                        });
-                      }
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
+              );
+              lastDateStr = dateStr;
+            }
 
-            if (filteredItems.isEmpty)
+            final color = _parseColor(item.colorHex);
+            final icon = _parseIcon(item.icon);
+
+            agendaWidgets.add(
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: Text(
-                  'No hay actividades inscritas para este día.', 
-                  style: TextStyle(color: AppTheme.neutral500, fontStyle: FontStyle.italic),
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildAgendaItem(
+                  context: context,
+                  time: item.timeBlock,
+                  duration: item.durationStr,
+                  title: item.title,
+                  subtitle: item.lugarSeleccionado != null && item.lugarSeleccionado!.isNotEmpty 
+                      ? '${item.subtitle}: ${item.lugarSeleccionado}' 
+                      : item.subtitle,
+                  person: canManageFamily && _selectedSocioId == 'ALL' ? item.personName : '', 
+                  icon: icon,
+                  color: color,
+                  isMatch: item.isMatch,
+                  onCancel: !item.isMatch ? () => _cancelar(context, item.id, item.title) : null,
                 ),
-              )
-            else
-              ...filteredItems.map((item) {
-                final color = _parseColor(item.colorHex);
-                final icon = _parseIcon(item.icon);
+              ),
+            );
+          }
+        }
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildAgendaItem(
-                    context: context,
-                    time: item.timeBlock,
-                    duration: item.durationStr,
-                    title: item.title,
-                    subtitle: item.lugarSeleccionado != null && item.lugarSeleccionado!.isNotEmpty 
-                        ? '${item.subtitle}: ${item.lugarSeleccionado}' 
-                        : item.subtitle,
-                    person: canManageFamily && _selectedSocioId == 'ALL' ? item.personName : '', // Only show person name if viewing all
-                    icon: icon,
-                    color: color,
-                    isMatch: item.isMatch,
-                    onCancel: !item.isMatch ? () => _cancelar(context, item.id, item.title) : null,
-                  ),
-                );
-              }),
-          ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: agendaWidgets,
         );
       },
       loading: () => const Center(
