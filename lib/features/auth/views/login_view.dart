@@ -120,6 +120,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
                 isTitular: memberType.toLowerCase() == 'titular' || memberType == '1',
                 token: accessToken,
                 permissions: permissions,
+                hasAcceptedTerms: userData['app_terms_accepted'] ?? false,
               ),
             );
             Navigator.of(context).pushReplacement(
@@ -235,6 +236,7 @@ class _LoginViewState extends ConsumerState<LoginView> {
             phone: userData['phone'],
             token: response.data['data']['access_token'],
             permissions: permissions,
+            hasAcceptedTerms: userData['app_terms_accepted'] ?? false,
           );
           // 1. Actualizar token en ApiClient mutable (DEBE SER PRIMERO)
           ref.read(apiClientNotifierProvider.notifier).updateToken(response.data['data']['access_token']);

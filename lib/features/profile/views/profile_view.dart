@@ -48,6 +48,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   bool _isSearchingCp = false;
   String? _lastSearchedCp;
+  
+  // Finance Tabs
+  int _financeTabIndex = 0; // 0 = Pendientes, 1 = Historial (Pagados)
 
   // Controllers Flag
   bool _isInit = false;
@@ -2989,66 +2992,153 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ],
               ),
               const SizedBox(height: 32),
-              if ((data['history'] as List).isEmpty)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Text('Sin movimientos',
-                        style: TextStyle(
-                            color: AppTheme.neutral500.withOpacity(0.8))),
-                  ),
-                )
-              else ...[
-                // Vencidas
-                if ((data['history'] as List)
-                    .any((h) => h['status'] == 'overdue')) ...[
-                  const Text(
-                    'Órdenes Vencidas',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                        color: AppTheme.dangerColor),
-                  ),
-                  const SizedBox(height: 16),
-                  ...((data['history'] as List)
-                      .where((h) => h['status'] == 'overdue')
-                      .map((h) => _buildOrderTile(context, h, isDark, true))),
-                  const SizedBox(height: 16),
-                ],
+              
+              // Custom Tabs Toggle
+              Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _financeTabIndex = 0),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _financeTabIndex == 0
+                                ? (isDark ? AppTheme.neutral700 : AppTheme.surfaceColor)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(26),
+                            boxShadow: _financeTabIndex == 0
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ]
+                                : [],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Pendientes',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _financeTabIndex == 0
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _financeTabIndex = 1),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _financeTabIndex == 1
+                                ? (isDark ? AppTheme.neutral700 : AppTheme.surfaceColor)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(26),
+                            boxShadow: _financeTabIndex == 1
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 5,
+                                      offset: const Offset(0, 2),
+                                    )
+                                  ]
+                                : [],
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Historial',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _financeTabIndex == 1
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              
+              if (_financeTabIndex == 0) ...[
+                if (!(data['history'] as List).any((h) => h['status'] == 'pending' || h['status'] == 'overdue'))
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('No hay saldos pendientes 🎉',
+                          style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                    ),
+                  )
+                else ...[
+                  // Vencidas
+                  if ((data['history'] as List).any((h) => h['status'] == 'overdue')) ...[
+                    const Text(
+                      'Órdenes Vencidas',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          color: AppTheme.dangerColor),
+                    ),
+                    const SizedBox(height: 16),
+                    ...((data['history'] as List)
+                        .where((h) => h['status'] == 'overdue')
+                        .map((h) => _buildOrderTile(context, h, isDark, true))),
+                    const SizedBox(height: 16),
+                  ],
 
-                // Pendientes
-                if ((data['history'] as List)
-                    .any((h) => h['status'] == 'pending')) ...[
-                  const Text(
-                    'Órdenes Pendientes',
-                    style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                        color: AppTheme.warningColor),
-                  ),
-                  const SizedBox(height: 16),
-                  ...((data['history'] as List)
-                      .where((h) => h['status'] == 'pending')
-                      .map((h) => _buildOrderTile(context, h, isDark, false))),
-                  const SizedBox(height: 16),
+                  // Pendientes
+                  if ((data['history'] as List).any((h) => h['status'] == 'pending')) ...[
+                    const Text(
+                      'Próximas a Vencer',
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          color: AppTheme.warningColor),
+                    ),
+                    const SizedBox(height: 16),
+                    ...((data['history'] as List)
+                        .where((h) => h['status'] == 'pending')
+                        .map((h) => _buildOrderTile(context, h, isDark, false))),
+                    const SizedBox(height: 16),
+                  ],
                 ],
-
-                // Otras (Pagadas, etc.) por si acaso
-                if ((data['history'] as List).any((h) =>
-                    h['status'] != 'pending' && h['status'] != 'overdue')) ...[
+              ] else ...[
+                if (!(data['history'] as List).any((h) => h['status'] == 'paid'))
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Text('Aún no tienes historial de pagos',
+                          style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                    ),
+                  )
+                else ...[
                   const Text(
-                    'Historial',
+                    'Transacciones Pagadas',
                     style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5),
+                        fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5),
                   ),
                   const SizedBox(height: 16),
                   ...((data['history'] as List)
-                      .where((h) =>
-                          h['status'] != 'pending' && h['status'] != 'overdue')
+                      .where((h) => h['status'] == 'paid')
                       .map((h) => _buildOrderTile(context, h, isDark, false))),
                 ],
               ],
