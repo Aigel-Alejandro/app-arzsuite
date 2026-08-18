@@ -13,7 +13,7 @@ class AppTheme {
 
   // Alert Colors
   static const Color successColor = Color(0xFF43B581);
-  static const Color warningColor = Color(0xFFF4D35E);
+  static const Color warningColor = Color(0xFFFBBF24); // Softer UX yellow
   static const Color dangerColor = Color(0xFFDA3E3E);
 
   // Neutral Colors (Softer grays for better UX/UI - Modern 2026 Zinc palette)

@@ -51,6 +51,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
   
   // Finance Tabs
   int _financeTabIndex = 0; // 0 = Pendientes, 1 = Historial (Pagados)
+  String _financeSearchQuery = '';
+  bool _financeSortDateAscending = false;
+  String _selectedFinanceMonth = 'auto';
+  final TextEditingController _financeSearchController = TextEditingController();
 
   // Controllers Flag
   bool _isInit = false;
@@ -413,6 +417,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
     _fiscalCiudadCtrl.dispose();
     _fiscalEstadoCtrl.dispose();
     _fiscalCpCtrl.dispose();
+    _financeSearchController.dispose();
     super.dispose();
   }
 
@@ -2992,156 +2997,426 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                 ],
               ),
               const SizedBox(height: 32),
-              
-              // Custom Tabs Toggle
-              Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _financeTabIndex = 0),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: _financeTabIndex == 0
-                                ? (isDark ? AppTheme.neutral700 : AppTheme.surfaceColor)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(26),
-                            boxShadow: _financeTabIndex == 0
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 5,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ]
-                                : [],
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Pendientes',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _financeTabIndex == 0
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+              StatefulBuilder(
+                builder: (context, setLocalState) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Custom Tabs Toggle
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.neutral800 : AppTheme.neutral200,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: Stack(
+                          children: [
+                            Positioned.fill(
+                              child: AnimatedAlign(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                                alignment: _financeTabIndex == 0 ? Alignment.centerLeft : Alignment.centerRight,
+                                child: FractionallySizedBox(
+                                  widthFactor: 0.5,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: isDark ? AppTheme.neutral700 : AppTheme.surfaceColor,
+                                      borderRadius: BorderRadius.circular(26),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.05),
+                                          blurRadius: 5,
+                                          offset: const Offset(0, 2),
+                                        )
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _financeTabIndex = 1),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: _financeTabIndex == 1
-                                ? (isDark ? AppTheme.neutral700 : AppTheme.surfaceColor)
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(26),
-                            boxShadow: _financeTabIndex == 1
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 5,
-                                      offset: const Offset(0, 2),
-                                    )
-                                  ]
-                                : [],
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Historial',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: _financeTabIndex == 1
-                                    ? Theme.of(context).colorScheme.onSurface
-                                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
-                              ),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setLocalState(() { _financeTabIndex = 0; _selectedFinanceMonth = 'auto'; }),
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Center(
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.bold,
+                                            color: _financeTabIndex == 0
+                                                ? Theme.of(context).colorScheme.onSurface
+                                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                          ),
+                                          child: const Text('Pendientes'),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setLocalState(() { _financeTabIndex = 1; _selectedFinanceMonth = 'auto'; }),
+                                    behavior: HitTestBehavior.opaque,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(vertical: 12),
+                                      child: Center(
+                                        child: AnimatedDefaultTextStyle(
+                                          duration: const Duration(milliseconds: 200),
+                                          style: TextStyle(
+                                            fontFamily: 'Inter',
+                                            fontWeight: FontWeight.bold,
+                                            color: _financeTabIndex == 1
+                                                ? Theme.of(context).colorScheme.onSurface
+                                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                                          ),
+                                          child: const Text('Historial'),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              if (_financeTabIndex == 0) ...[
-                if (!(data['history'] as List).any((h) => h['status'] == 'pending' || h['status'] == 'overdue'))
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text('No hay saldos pendientes 🎉',
-                          style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
-                    ),
-                  )
-                else ...[
-                  // Vencidas
-                  if ((data['history'] as List).any((h) => h['status'] == 'overdue')) ...[
-                    const Text(
-                      'Órdenes Vencidas',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                          color: AppTheme.dangerColor),
-                    ),
-                    const SizedBox(height: 16),
-                    ...((data['history'] as List)
-                        .where((h) => h['status'] == 'overdue')
-                        .map((h) => _buildOrderTile(context, h, isDark, true))),
-                    const SizedBox(height: 16),
-                  ],
+                      const SizedBox(height: 24),
+                      
+                      Builder(builder: (context) {
+                      // Prepare filtered and sorted history
+                      final List rawHistory = data["history"] as List;
+                      final now = DateTime.now();
+                      final currentMonthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+                      
+                      final Set<String> rawMonthsSet = {};
+                      bool hasOverdue = false;
+                      final bool isPendingTab = _financeTabIndex == 0;
 
-                  // Pendientes
-                  if ((data['history'] as List).any((h) => h['status'] == 'pending')) ...[
-                    const Text(
-                      'Próximas a Vencer',
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                          color: AppTheme.warningColor),
-                    ),
-                    const SizedBox(height: 16),
-                    ...((data['history'] as List)
-                        .where((h) => h['status'] == 'pending')
-                        .map((h) => _buildOrderTile(context, h, isDark, false))),
-                    const SizedBox(height: 16),
+                      for (final h in rawHistory) {
+                        bool isPendingItem = h['status'] == 'pending' || h['status'] == 'overdue';
+                        if (isPendingTab == isPendingItem) {
+                          if (isPendingTab && h['status'] == 'overdue') hasOverdue = true;
+                          final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
+                          if (date != null) {
+                            final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+                            rawMonthsSet.add(monthKey);
+                          }
+                        }
+                      }
+                      
+                      // Grouping logic
+                      final Map<String, List<String>> monthsByYear = {};
+                      for (final mKey in rawMonthsSet) {
+                        final year = mKey.split('-')[0];
+                        monthsByYear.putIfAbsent(year, () => []).add(mKey);
+                      }
+                      
+                      final Set<String> finalChipsSet = {currentMonthKey};
+                      for (final entry in monthsByYear.entries) {
+                        final year = entry.key;
+                        final monthsInYear = entry.value;
+                        if (monthsInYear.length > 2) {
+                          finalChipsSet.add(year); // add the year grouping key
+                        } else {
+                          finalChipsSet.addAll(monthsInYear);
+                        }
+                      }
+                      
+                      final List<String> availableMonths = finalChipsSet.toList()..sort();
+                      
+                      String activeMonth = _selectedFinanceMonth;
+                      if (activeMonth == 'auto') {
+                        activeMonth = hasOverdue ? 'Atrasados' : currentMonthKey;
+                      }
+
+                      bool hasItemsInMonth(String mKey) {
+                        return rawHistory.any((h) {
+                          bool isPendingItem = h['status'] == 'pending' || h['status'] == 'overdue';
+                          if (isPendingTab == isPendingItem) {
+                            final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
+                            if (date != null) {
+                              if (mKey.length == 4) {
+                                return date.year.toString() == mKey;
+                              } else {
+                                return '${date.year}-${date.month.toString().padLeft(2, '0')}' == mKey;
+                              }
+                            }
+                          }
+                          return false;
+                        });
+                      }
+
+                      final List historyList = rawHistory.where((h) {
+                        bool isPendingItem = h['status'] == 'pending' || h['status'] == 'overdue';
+                        if (isPendingTab != isPendingItem) return false;
+
+                        if (activeMonth == 'Atrasados') {
+                          return isPendingTab && h['status'] == 'overdue';
+                        } else {
+                          final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
+                          if (date != null) {
+                            if (activeMonth.length == 4) {
+                              return date.year.toString() == activeMonth;
+                            } else {
+                              final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+                              return monthKey == activeMonth;
+                            }
+                          }
+                          return false;
+                        }
+                      }).toList();
+                      if (_financeSearchQuery.isNotEmpty) {
+                        final query = _financeSearchQuery.toLowerCase();
+                        historyList.retainWhere((h) {
+                          final name = (h["trandisplayname"] ?? "").toString().toLowerCase();
+                          final memo = (h["memo"] ?? "").toString().toLowerCase();
+                          return name.contains(query) || memo.contains(query);
+                        });
+                      }
+                      historyList.sort((a, b) {
+                        final dateA = DateTime.tryParse(a["trandate"]?.toString() ?? "") ?? DateTime(1970);
+                        final dateB = DateTime.tryParse(b["trandate"]?.toString() ?? "") ?? DateTime(1970);
+                        return _financeSortDateAscending ? dateA.compareTo(dateB) : dateB.compareTo(dateA);
+                      });
+
+                      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      // Search Bar UI
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              margin: const EdgeInsets.only(bottom: 24),
+                              decoration: BoxDecoration(
+                                color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: TextField(
+                                controller: _financeSearchController,
+                                decoration: InputDecoration(
+                                  hintText: "Buscar por orden, concepto o nota...",
+                                  prefixIcon: Icon(Icons.search, color: AppTheme.neutral500),
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                                onChanged: (val) {
+                                  setLocalState(() => _financeSearchQuery = val);
+                                },
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 24),
+                            decoration: BoxDecoration(
+                              color: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: IconButton(
+                              tooltip: 'Invertir orden de fecha',
+                              icon: Icon(
+                                _financeSortDateAscending ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                                color: AppTheme.neutral500,
+                              ),
+                              onPressed: () {
+                                setLocalState(() {
+                                  _financeSortDateAscending = !_financeSortDateAscending;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      Container(
+                        height: 40,
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            if (hasOverdue)
+                              Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  showCheckmark: false,
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  side: BorderSide.none,
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text('Atrasados', style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: activeMonth == 'Atrasados' ? (isDark ? Colors.white : AppTheme.dangerColor) : AppTheme.neutral500,
+                                      )),
+                                      const SizedBox(width: 6),
+                                      const CircleAvatar(backgroundColor: AppTheme.dangerColor, radius: 4),
+                                    ],
+                                  ),
+                                  selected: activeMonth == 'Atrasados',
+                                  onSelected: (val) {
+                                    if (val) setLocalState(() => _selectedFinanceMonth = 'Atrasados');
+                                  },
+                                  selectedColor: AppTheme.dangerColor.withValues(alpha: isDark ? 0.3 : 0.15),
+                                  backgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+                                ),
+                              ),
+                            ...availableMonths.map((mKey) {
+                              String chipLabel;
+                              if (mKey.length == 4) {
+                                chipLabel = 'Año $mKey';
+                              } else {
+                                final parts = mKey.split('-');
+                                final year = parts[0];
+                                final monthNum = int.parse(parts[1]);
+                                const monthsEs = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                                final monthName = monthsEs[monthNum - 1];
+                                chipLabel = '$monthName $year';
+                              }
+                              
+                              final bool hasItems = hasItemsInMonth(mKey);
+                              final Color indicatorColor = isPendingTab ? AppTheme.warningColor : AppTheme.successColor;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  showCheckmark: false,
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 0),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                  side: BorderSide.none,
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(chipLabel, style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: activeMonth == mKey ? (isDark ? Colors.white : AppTheme.neutral800) : AppTheme.neutral500,
+                                      )),
+                                      if (hasItems) ...[
+                                        const SizedBox(width: 6),
+                                        CircleAvatar(backgroundColor: indicatorColor, radius: 4),
+                                      ]
+                                    ],
+                                  ),
+                                  selected: activeMonth == mKey,
+                                  onSelected: (val) {
+                                    if (val) setLocalState(() => _selectedFinanceMonth = mKey);
+                                  },
+                                  selectedColor: isPendingTab 
+                                      ? AppTheme.warningColor.withValues(alpha: isDark ? 0.3 : 0.2)
+                                      : AppTheme.successColor.withValues(alpha: isDark ? 0.3 : 0.15),
+                                  backgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      ),
+
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 600),
+                        reverseDuration: const Duration(milliseconds: 400),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SlideTransition(
+                              position: Tween<Offset>(
+                                begin: const Offset(0.1, 0),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.fastOutSlowIn,
+                              )),
+                              child: child,
+                            ),
+                          );
+                        },
+                        child: _financeTabIndex == 0
+                            ? Column(
+                                key: const ValueKey('pendientes'),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (!historyList.any((h) => h['status'] == 'pending' || h['status'] == 'overdue'))
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(24.0),
+                                        child: Text('No hay saldos pendientes 🎉',
+                                            style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                                      ),
+                                    )
+                                  else ...[
+                                    // Vencidas
+                                    if (historyList.any((h) => h['status'] == 'overdue')) ...[
+                                      const Text(
+                                        'Órdenes Vencidas',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -0.5,
+                                            color: AppTheme.dangerColor),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ...(historyList
+                                          .where((h) => h['status'] == 'overdue')
+                                          .map((h) => _buildOrderTile(context, h, isDark, true))),
+                                      const SizedBox(height: 16),
+                                    ],
+          
+                                    // Pendientes
+                                    if (historyList.any((h) => h['status'] == 'pending')) ...[
+                                      const Text(
+                                        'Próximas a Vencer',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: -0.5,
+                                            color: AppTheme.warningColor),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      ...(historyList
+                                          .where((h) => h['status'] == 'pending')
+                                          .map((h) => _buildOrderTile(context, h, isDark, false))),
+                                      const SizedBox(height: 16),
+                                    ],
+                                  ],
+                                ],
+                              )
+                            : Column(
+                                key: const ValueKey('historial'),
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (historyList.isEmpty)
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(24.0),
+                                        child: Text('Aún no tienes historial',
+                                            style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
+                                      ),
+                                    )
+                                  else ...[
+                                    const Text(
+                                      'Historial Completo',
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: -0.5),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    ...(historyList.map((h) =>
+                                        _buildOrderTile(context, h, isDark, h['status'] == 'overdue'))),
+                                    const SizedBox(height: 16),
+                                  ]
+                                ],
+                              ),
+                      )
+                    ]);
+                  }),
                   ],
-                ],
-              ] else ...[
-                if (!(data['history'] as List).any((h) => h['status'] == 'paid'))
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Text('Aún no tienes historial de pagos',
-                          style: TextStyle(color: AppTheme.neutral500.withOpacity(0.8))),
-                    ),
-                  )
-                else ...[
-                  const Text(
-                    'Transacciones Pagadas',
-                    style: TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: -0.5),
-                  ),
-                  const SizedBox(height: 16),
-                  ...((data['history'] as List)
-                      .where((h) => h['status'] == 'paid')
-                      .map((h) => _buildOrderTile(context, h, isDark, false))),
-                ],
-              ],
+                  );
+                },
+              ),
               const SizedBox(height: 120),
             ],
           );
@@ -3237,11 +3512,26 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
 
   Widget _buildOrderTile(
       BuildContext context, dynamic h, bool isDark, bool isOverdue) {
+    String formattedDate = '';
+    if (h['trandate'] != null) {
+      try {
+        final d = DateTime.parse(h['trandate'].toString());
+        const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        formattedDate = '${d.day} de ${months[d.month - 1]} del ${d.year}';
+      } catch (_) {
+        formattedDate = h['trandate'].toString().split(' ')[0];
+      }
+    }
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppTheme.neutral900 : AppTheme.surfaceColor,
+        color: isOverdue
+            ? AppTheme.dangerColor.withValues(alpha: isDark ? 0.05 : 0.05)
+            : (h['status'] == 'pending'
+                ? AppTheme.warningColor.withValues(alpha: isDark ? 0.05 : 0.05)
+                : (isDark ? AppTheme.neutral900 : AppTheme.surfaceColor)),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isOverdue
@@ -3283,13 +3573,13 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  h['sales_order_id'] ?? 'Movimiento',
+                  h['trandisplayname'] ?? 'Movimiento',
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 14),
+                      fontWeight: FontWeight.w700, fontSize: 13),
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  (h['module'] ?? '')
+                  (h['memo'] ?? '')
                       .toString()
                       .replaceAll('_', ' ')
                       .toUpperCase(),
@@ -3298,13 +3588,23 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       color: AppTheme.neutral500.withOpacity(0.8),
                       fontWeight: FontWeight.bold),
                 ),
+                if (formattedDate.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    formattedDate,
+                    style: TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.neutral500.withOpacity(0.6),
+                        fontWeight: FontWeight.w500),
+                  ),
+                ]
               ],
             ),
           ),
           const SizedBox(width: 12),
           Text(
             NumberFormat.currency(symbol: '\$', decimalDigits: 0)
-                .format(h['amount'] ?? 0),
+                .format(h['total'] ?? 0),
             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
           ),
         ],
