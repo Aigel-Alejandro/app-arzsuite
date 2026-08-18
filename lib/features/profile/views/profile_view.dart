@@ -3091,9 +3091,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                       // Prepare filtered and sorted history
                       final List rawHistory = data["history"] as List;
                       final now = DateTime.now();
-                      final currentMonthKey = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+                      final currentYearKey = now.year.toString();
                       
-                      final Set<String> rawMonthsSet = {};
+                      final Set<String> rawYearsSet = {};
                       bool hasOverdue = false;
                       final bool isPendingTab = _financeTabIndex == 0;
 
@@ -3103,48 +3103,29 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                           if (isPendingTab && h['status'] == 'overdue') hasOverdue = true;
                           final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
                           if (date != null) {
-                            final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
-                            rawMonthsSet.add(monthKey);
+                            rawYearsSet.add(date.year.toString());
                           }
                         }
                       }
                       
-                      // Grouping logic
-                      final Map<String, List<String>> monthsByYear = {};
-                      for (final mKey in rawMonthsSet) {
-                        final year = mKey.split('-')[0];
-                        monthsByYear.putIfAbsent(year, () => []).add(mKey);
-                      }
+                      // Add all years directly
+                      final Set<String> finalChipsSet = {currentYearKey};
+                      finalChipsSet.addAll(rawYearsSet);
                       
-                      final Set<String> finalChipsSet = {currentMonthKey};
-                      for (final entry in monthsByYear.entries) {
-                        final year = entry.key;
-                        final monthsInYear = entry.value;
-                        if (monthsInYear.length > 2) {
-                          finalChipsSet.add(year); // add the year grouping key
-                        } else {
-                          finalChipsSet.addAll(monthsInYear);
-                        }
-                      }
+                      final List<String> availableYears = finalChipsSet.toList()..sort();
                       
-                      final List<String> availableMonths = finalChipsSet.toList()..sort();
-                      
-                      String activeMonth = _selectedFinanceMonth;
-                      if (activeMonth == 'auto') {
-                        activeMonth = hasOverdue ? 'Atrasados' : currentMonthKey;
+                      String activeFilter = _selectedFinanceMonth;
+                      if (activeFilter == 'auto' || activeFilter.contains('-')) { // if it contained a month like 2026-08, reset it
+                        activeFilter = hasOverdue ? 'Atrasados' : currentYearKey;
                       }
 
-                      bool hasItemsInMonth(String mKey) {
+                      bool hasItemsInFilter(String mKey) {
                         return rawHistory.any((h) {
                           bool isPendingItem = h['status'] == 'pending' || h['status'] == 'overdue';
                           if (isPendingTab == isPendingItem) {
                             final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
                             if (date != null) {
-                              if (mKey.length == 4) {
-                                return date.year.toString() == mKey;
-                              } else {
-                                return '${date.year}-${date.month.toString().padLeft(2, '0')}' == mKey;
-                              }
+                              return date.year.toString() == mKey;
                             }
                           }
                           return false;
@@ -3155,17 +3136,12 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                         bool isPendingItem = h['status'] == 'pending' || h['status'] == 'overdue';
                         if (isPendingTab != isPendingItem) return false;
 
-                        if (activeMonth == 'Atrasados') {
+                        if (activeFilter == 'Atrasados') {
                           return isPendingTab && h['status'] == 'overdue';
                         } else {
                           final date = DateTime.tryParse(h["trandate"]?.toString() ?? "");
                           if (date != null) {
-                            if (activeMonth.length == 4) {
-                              return date.year.toString() == activeMonth;
-                            } else {
-                              final monthKey = '${date.year}-${date.month.toString().padLeft(2, '0')}';
-                              return monthKey == activeMonth;
-                            }
+                            return date.year.toString() == activeFilter;
                           }
                           return false;
                         }
@@ -3249,15 +3225,15 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                   label: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text('Atrasados', style: TextStyle(
+                                      Text('Vencidos', style: TextStyle(
                                         fontWeight: FontWeight.w700,
-                                        color: activeMonth == 'Atrasados' ? (isDark ? Colors.white : AppTheme.dangerColor) : AppTheme.neutral500,
+                                        color: activeFilter == 'Atrasados' ? (isDark ? Colors.white : AppTheme.dangerColor) : AppTheme.neutral500,
                                       )),
                                       const SizedBox(width: 6),
                                       const CircleAvatar(backgroundColor: AppTheme.dangerColor, radius: 4),
                                     ],
                                   ),
-                                  selected: activeMonth == 'Atrasados',
+                                  selected: activeFilter == 'Atrasados',
                                   onSelected: (val) {
                                     if (val) setLocalState(() => _selectedFinanceMonth = 'Atrasados');
                                   },
@@ -3265,20 +3241,10 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                   backgroundColor: isDark ? AppTheme.neutral800 : AppTheme.neutral100,
                                 ),
                               ),
-                            ...availableMonths.map((mKey) {
-                              String chipLabel;
-                              if (mKey.length == 4) {
-                                chipLabel = 'Año $mKey';
-                              } else {
-                                final parts = mKey.split('-');
-                                final year = parts[0];
-                                final monthNum = int.parse(parts[1]);
-                                const monthsEs = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-                                final monthName = monthsEs[monthNum - 1];
-                                chipLabel = '$monthName $year';
-                              }
+                            ...availableYears.map((yKey) {
+                              String chipLabel = 'Año $yKey';
                               
-                              final bool hasItems = hasItemsInMonth(mKey);
+                              final bool hasItems = hasItemsInFilter(yKey);
                               final Color indicatorColor = isPendingTab ? AppTheme.warningColor : AppTheme.successColor;
                               return Padding(
                                 padding: const EdgeInsets.only(right: 8),
@@ -3292,7 +3258,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                     children: [
                                       Text(chipLabel, style: TextStyle(
                                         fontWeight: FontWeight.w700,
-                                        color: activeMonth == mKey ? (isDark ? Colors.white : AppTheme.neutral800) : AppTheme.neutral500,
+                                        color: activeFilter == yKey ? (isDark ? Colors.white : AppTheme.neutral800) : AppTheme.neutral500,
                                       )),
                                       if (hasItems) ...[
                                         const SizedBox(width: 6),
@@ -3300,9 +3266,9 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                       ]
                                     ],
                                   ),
-                                  selected: activeMonth == mKey,
+                                  selected: activeFilter == yKey,
                                   onSelected: (val) {
-                                    if (val) setLocalState(() => _selectedFinanceMonth = mKey);
+                                    if (val) setLocalState(() => _selectedFinanceMonth = yKey);
                                   },
                                   selectedColor: isPendingTab 
                                       ? AppTheme.warningColor.withValues(alpha: isDark ? 0.3 : 0.2)
@@ -3367,7 +3333,7 @@ class _ProfileViewState extends ConsumerState<ProfileView> {
                                     // Pendientes
                                     if (historyList.any((h) => h['status'] == 'pending')) ...[
                                       const Text(
-                                        'Próximas a Vencer',
+                                        'Ordenes próximas',
                                         style: TextStyle(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
